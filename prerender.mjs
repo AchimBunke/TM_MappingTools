@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
+// Serve with a base path so <base href="/TM_MappingTools/"> resolves correctly
 const server = spawn('npx', ['serve', '.', '-p', '5500', '--no-clipboard'], {
   stdio: 'ignore',
   detached: true
@@ -15,30 +16,31 @@ const browser = await puppeteer.launch({
   headless: true
 });
 
-const routes = [
-  '/',
-];
+const routes = ['/'];
 
 for (const route of routes) {
   console.log(`Prerendering ${route}...`);
   const page = await browser.newPage();
 
-  // Log browser console so we can see what Blazor is doing
   page.on('console', msg => console.log('  [browser]', msg.text()));
   page.on('pageerror', err => console.log('  [page error]', err.message));
 
-  await page.goto(`http://localhost:5500${route}`, {
+  // Intercept requests and rewrite /TM_MappingTools/* -> /*
+  await page.setRequestInterception(true);
+  page.on('request', req => {
+    const url = req.url().replace('http://localhost:5500/TM_MappingTools', 'http://localhost:5500');
+    req.continue({ url });
+  });
+
+  await page.goto(`http://localhost:5500/`, {
     waitUntil: 'networkidle0',
     timeout: 60000
   });
 
-  // Wait until the loading spinner is GONE from #app
-  // Replace 'nav' with any element your app renders after boot
   try {
     await page.waitForFunction(
       () => {
         const app = document.getElementById('app');
-        // Check that loading spinner svg is no longer the only child
         return app && !app.querySelector('svg.loading-progress');
       },
       { timeout: 30000 }
