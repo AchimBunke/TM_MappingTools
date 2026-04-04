@@ -22,6 +22,11 @@ jobs:
     - name: Publish .NET Core Project
       run: dotnet publish TM_MappingTools.csproj -c Release -o Prerender/output --nologo
 
+    # Fix base href BEFORE prerendering so Puppeteer loads assets correctly
+    - name: Fix base href before prerender
+      run: |
+        sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' Prerender/output/wwwroot/index.html
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -62,7 +67,6 @@ jobs:
           args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
-        // Add any additional routes your app has here
         const routes = [
           '/',
         ];
@@ -76,7 +80,6 @@ jobs:
             timeout: 60000
           });
 
-          // Wait extra time for Blazor WASM to finish booting
           await new Promise(r => setTimeout(r, 5000));
 
           const html = await page.content();
@@ -97,10 +100,11 @@ jobs:
       working-directory: Prerender/output/wwwroot
       run: node prerender.mjs
 
-    - name: Fix base href in prerendered HTML files
+    # Only strip the injected WASM bootstrap script that Puppeteer captures,
+    # base href is already correct from the earlier fix
+    - name: Strip WASM inline bootstrap from prerendered HTML
       run: |
         find Prerender/output/wwwroot -name "*.html" | while read htmlFile; do
-          sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' "$htmlFile"
           sed -i 's/<script type="text\/javascript">var Module; window.__wasmmodulecallback__(); delete window.__wasmmodulecallback__;<\/script><script src="_framework\/dotnet.10.0.5.js" defer="" integrity="sha256-SWZOE2EsCqc\/7dPgJrcFqUvVvdeJ9cipeZ2NFMC9v2s=" crossorigin="anonymous"><\/script>//g' "$htmlFile"
         done
 
