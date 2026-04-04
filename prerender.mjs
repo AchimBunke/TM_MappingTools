@@ -14,7 +14,6 @@ const browser = await puppeteer.launch({
   args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
 
-// Add any additional routes your app has here
 const routes = [
   '/',
 ];
@@ -28,7 +27,6 @@ for (const route of routes) {
     timeout: 60000
   });
 
-  // Wait extra time for Blazor WASM to finish booting
   await new Promise(r => setTimeout(r, 5000));
 
   const html = await page.content();

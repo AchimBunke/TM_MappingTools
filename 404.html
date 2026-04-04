@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="en" style="--blazor-load-percentage: 100%; --blazor-load-percentage-text: &quot;100%&quot;;"><head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <base href="/">
-    <link href="_framework/dotnet.2nws1riezd.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-wt6U9j6s3wbf67mUz87i52u5vkMmMKBQHyHaKXl1+q0=">
+    <title>TM_MappingTools</title>
+    <base href="/TM_MappingTools/">
+    <link href="_framework/dotnet.qmz0f4uxvf.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-nizviKuVPRbDAfwU5tXSlYTssDINIrfdLBaJmKsKrHE=">
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/app.css">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -11,44 +11,32 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.2nws1riezd.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.ykrnppwhq2.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.qmz0f4uxvf.js",
     "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.peu2mfb29t.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.2nws1riezd.js": "sha256-wt6U9j6s3wbf67mUz87i52u5vkMmMKBQHyHaKXl1+q0=",
-    "./_framework/dotnet.js": "sha256-wt6U9j6s3wbf67mUz87i52u5vkMmMKBQHyHaKXl1+q0=",
+    "./_framework/dotnet.js": "sha256-nizviKuVPRbDAfwU5tXSlYTssDINIrfdLBaJmKsKrHE=",
     "./_framework/dotnet.native.js": "sha256-nheeN4H7Js+avp9nd/sQxdaehbeEx3qriXjiZ3pSw6U=",
     "./_framework/dotnet.native.ykrnppwhq2.js": "sha256-nheeN4H7Js+avp9nd/sQxdaehbeEx3qriXjiZ3pSw6U=",
+    "./_framework/dotnet.qmz0f4uxvf.js": "sha256-nizviKuVPRbDAfwU5tXSlYTssDINIrfdLBaJmKsKrHE=",
     "./_framework/dotnet.runtime.js": "sha256-cajUr4vA/MpLPWj3omULUOwEQw3i8CE2n8AmDheqWBM=",
     "./_framework/dotnet.runtime.peu2mfb29t.js": "sha256-cajUr4vA/MpLPWj3omULUOwEQw3i8CE2n8AmDheqWBM="
   }
 }</script>
-<!--!--><!--!--><!--!--><title>Home</title><!--!--><!--!--><!--!--></head>
+</head>
 
 <body>
-    <div id="app"><!--!--><!--!--><!--!--><!--!--><div class="page" b-yrpmrvqeod=""><div class="sidebar" b-yrpmrvqeod=""><!--!--><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5=""><div class="container-fluid" b-k974kyz3h5=""><!--!--><a class="navbar-brand" href="" b-k974kyz3h5="">TM_MappingTools</a>
-        <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5=""><!--!--><span class="navbar-toggler-icon" b-k974kyz3h5=""></span></button></div></div><!--!-->
-
-<div class="collapse nav-scrollable" b-k974kyz3h5=""><nav class="nav flex-column" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="" class="nav-link active" aria-current="page"><!--!--><span class="bi bi-house-door-fill-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> Home
-            </a></div><!--!-->
-        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="counter" class="nav-link"><!--!--><span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> Counter
-            </a></div><!--!-->
-        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="weather" class="nav-link"><!--!--><span class="bi bi-list-nested-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> Weather
-            </a></div></nav></div></div><!--!-->
-
-    <main b-yrpmrvqeod=""><!--!--><div class="top-row px-4" b-yrpmrvqeod=""><a href="https://learn.microsoft.com/aspnet/core/" target="_blank" b-yrpmrvqeod="">About</a></div>
-
-        <article class="content px-4" b-yrpmrvqeod=""><!--!--><!--!--><!--!--><!--!-->
-
-<!--!--><h1 tabindex="-1">Hello, world!</h1>
-
-Welcome to your new app.
-</article></main></div><!--!-->
-        <!--!--></div>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%"></circle>
+            <circle r="40%" cx="50%" cy="50%"></circle>
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
