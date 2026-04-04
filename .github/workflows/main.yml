@@ -20,6 +20,10 @@ jobs:
             # publishes Blazor project to the release-folder
     - name: Publish .NET Core Project
       run: dotnet publish TM_MappingTools.csproj -c Release -o release --nologo
+
+    - name: Fix base href
+      run: |
+        sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' release/wwwroot/index.html
       
     - name: Commit wwwroot to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@3.7.1
