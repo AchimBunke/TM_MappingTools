@@ -64,7 +64,8 @@ jobs:
         await new Promise(r => setTimeout(r, 3000));
 
         const browser = await puppeteer.launch({
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: true
         });
 
         const routes = [
@@ -75,12 +76,30 @@ jobs:
           console.log(`Prerendering ${route}...`);
           const page = await browser.newPage();
 
+          // Log browser console so we can see what Blazor is doing
+          page.on('console', msg => console.log('  [browser]', msg.text()));
+          page.on('pageerror', err => console.log('  [page error]', err.message));
+
           await page.goto(`http://localhost:5500${route}`, {
             waitUntil: 'networkidle0',
             timeout: 60000
           });
 
-          await new Promise(r => setTimeout(r, 5000));
+          // Wait until the loading spinner is GONE from #app
+          // Replace 'nav' with any element your app renders after boot
+          try {
+            await page.waitForFunction(
+              () => {
+                const app = document.getElementById('app');
+                // Check that loading spinner svg is no longer the only child
+                return app && !app.querySelector('svg.loading-progress');
+              },
+              { timeout: 30000 }
+            );
+            console.log('  ✅ Blazor finished rendering');
+          } catch (e) {
+            console.log('  ⚠️ Timed out waiting for Blazor - saving whatever is rendered');
+          }
 
           const html = await page.content();
           await page.close();
