@@ -1,0 +1,153 @@
+﻿@using TM_GenericMapping.Abstractions
+@using TM_GenericMapping.IO
+@using TM_MappingTools.Model
+@using TM_MappingTools.Services
+@inject ClipFileService FileService
+@implements IDisposable
+
+
+@if (!FileService.HasFile)
+{
+    <div class="track-selector-body">
+        <p class="track-selector-empty">No clip loaded.</p>
+    </div>
+}
+else if (!tracks.Any())
+{
+    <div class="track-selector-body">
+        <p class="track-selector-empty">Clip has no tracks.</p>
+    </div>
+}
+else
+{
+    <div class="track-selector-body">
+        <div class="track-selector-search">
+            <input class="form-control" placeholder="Search..." @bind="searchTerm" @bind:event="oninput" />
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <button class="btn btn-sm btn-outline-secondary" @onclick="ClearSearch" title="Clear">&times;</button>
+            }
+        </div>
+
+        <div class="track-selector-actions">
+            <button class="btn btn-sm btn-outline-primary" @onclick="SelectAll">All</button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="ClearAll">None</button>
+        </div>
+
+        <div class="track-list">
+            @foreach (var track in FilteredTracks)
+            {
+                <div
+                    class="form-check track-item @(selectedTracksLocal.Contains(track) ? "track-item-selected" : string.Empty)">
+                    <input class="form-check-input" type="checkbox" id="track_@track.TrackIndex"
+                           checked="@selectedTracksLocal.Contains(track)" @onchange="@(() => ToggleTrack(track))" />
+                    <label class="form-check-label" for="track_@track.TrackIndex">
+                        @track.TrackName
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="track-selector-footer">
+        @selectedTracksLocal.Count / @tracks.Count selected
+        @if (!string.IsNullOrEmpty(searchTerm))
+        {
+            <span>&nbsp;&middot; @FilteredTracks.Count() shown</span>
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter] public List<TrackData> SelectedTracks { get; set; } = new();
+    [Parameter] public EventCallback<List<TrackData>> SelectedTracksChanged { get; set; }
+
+    private List<TrackData> tracks = new();
+    private HashSet<TrackData> selectedTracksLocal = new();
+    private string searchTerm = string.Empty;
+    private Clip? previousClip;
+
+    private List<TrackData> FilteredTracks =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? tracks
+            : tracks.Where(t => t.TrackName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override void OnInitialized()
+    {
+        FileService.FileChanged += OnFileChanged;
+        ReloadFromService();
+    }
+
+    private void OnFileChanged()
+    {
+        ReloadFromService();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ReloadFromService()
+    {
+        var clip = FileService.Clip;
+
+        if (clip == null)
+        {
+            tracks.Clear();
+            selectedTracksLocal.Clear();
+            previousClip = null;
+            PushSelectionToParent();
+            return;
+        }
+
+        if (!ReferenceEquals(previousClip, clip))
+        {
+            previousClip = clip;
+            tracks = LoadTracks(clip).ToList();
+            selectedTracksLocal.Clear();
+            PushSelectionToParent();
+        }
+    }
+
+    private IEnumerable<TrackData> LoadTracks(Clip clip)
+    {
+        try
+        {
+            return clip.MediaClip.Tracks.Select(
+                (t, i) => new TrackData { TrackName = t.Name ?? "<unnamed>", TrackIndex = i, MediaTrack = new MediaTrack(t) });
+        }
+        catch { }
+        return Enumerable.Empty<TrackData>();
+    }
+
+    private void ClearSearch() => searchTerm = string.Empty;
+
+    private void ToggleTrack(TrackData track)
+    {
+        if (!selectedTracksLocal.Remove(track))
+            selectedTracksLocal.Add(track);
+        PushSelectionToParent();
+    }
+
+    private void SelectAll()
+    {
+        selectedTracksLocal = tracks.ToHashSet();
+        PushSelectionToParent();
+    }
+
+    private void ClearAll()
+    {
+        selectedTracksLocal.Clear();
+        PushSelectionToParent();
+    }
+
+    private void PushSelectionToParent()
+    {
+        SelectedTracks = selectedTracksLocal.ToList();
+        _ = SelectedTracksChanged.InvokeAsync(SelectedTracks);
+    }
+
+    public void Dispose()
+    {
+        FileService.FileChanged -= OnFileChanged;
+    }
+}
+

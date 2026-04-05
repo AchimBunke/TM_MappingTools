@@ -1,0 +1,120 @@
+.track-selector {
+    background: var(--tm-surface);
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-md);
+    box-shadow: var(--tm-shadow-sm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.track-selector-header {
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid var(--tm-border);
+    background: var(--tm-surface-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.track-selector-header-icon {
+    font-size: 1rem;
+    color: var(--tm-accent);
+    line-height: 1;
+}
+
+.track-selector-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tm-text-muted);
+    margin: 0;
+}
+
+.track-selector-body {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.track-selector-search {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.track-selector-search .form-control {
+    font-size: 0.83rem;
+    padding: 0.3rem 0.55rem;
+}
+
+.track-selector-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    max-height: 310px;
+    overflow-y: auto;
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-sm);
+    padding: 0.3rem 0;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.3rem 0.65rem;
+    padding-left: 0.65rem;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+    margin: 0;
+    transition: background 0.1s, border-color 0.1s;
+}
+
+.track-item .form-check-input {
+    margin: 0.15rem 0 0;
+    float: none;
+    flex: 0 0 auto;
+}
+
+.track-item:hover {
+    background: var(--tm-accent-soft);
+}
+
+.track-item-selected {
+    background: color-mix(in srgb, var(--tm-accent-soft) 75%, white 25%);
+    border-left-color: var(--tm-accent);
+}
+
+.track-item-selected .form-check-label {
+    color: var(--tm-accent-strong);
+    font-weight: 600;
+}
+
+.track-item .form-check-label {
+    font-size: 0.83rem;
+    cursor: pointer;
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.track-selector-footer {
+    padding: 0.45rem 0.75rem;
+    border-top: 1px solid var(--tm-border);
+    font-size: 0.78rem;
+    color: var(--tm-text-muted);
+    background: var(--tm-surface-soft);
+}
+
+.track-selector-empty {
+    font-size: 0.87rem;
+    color: var(--tm-text-muted);
+    margin: 0;
+}

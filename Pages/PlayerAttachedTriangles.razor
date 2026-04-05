@@ -1,0 +1,100 @@
+﻿@page "/player-attached-triangles"
+
+<PageTitle>Player Attached Triangles</PageTitle>
+
+<div class="tool-page">
+    <div class="tool-page-header">
+        <span class="bi bi-paperclip tool-page-header-icon" aria-hidden="true"></span>
+        <div class="tool-page-header-text">
+            <h1 class="tool-page-title">Player-Attached 3D Triangles</h1>
+            <p class="tool-page-desc">Attach 3D triangles to the player. These tracks will move relative to the car.</p>
+        </div>
+    </div>
+    <div class="tool-page-body">
+        <div class="tool-page-layout">
+            <div class="tool-page-sidebar">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Track Selection</h2>
+                    </div>
+                    <TrackSelector @bind-SelectedTracks="selectedTracks" />
+                </div>
+            </div>
+            <div class="tool-page-main">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Actions</h2>
+                    </div>
+                    <ExecuteAction SelectedTracks="selectedTracks"
+                                Execute="ExecuteToolAsync"
+                                UseSelectedTracks="true" 
+                                Tooltip="Execute the tool with the selected tracks."/>
+                </div>
+
+                <div class="tool-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Parameters</h2>
+                    </div>
+                    <ParameterInput Definitions="parameterDefinitions"
+                                    Values="parameterValues"
+                                    ValuesChanged="OnParameterValuesChanged" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(executionMessage))
+                {
+                    <div class="alert alert-info" role="status">@executionMessage</div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TrackData> selectedTracks = new();
+
+   private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "ensureVisibility",
+            Label = "Ensure Visibility",
+            Tooltip = "If disabled, 3DTriangles may not render depending on your camera direction and distance. Enabling this will ensure they are always visible by added extra vertices to the track preventing erroneous culling.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "ensuranceVertexDistance",
+            Label = "Ensurance Vertex Distance",
+            Tooltip = "If Ensure Visibility is enabled, this controls the distance of the extra vertices added to ensure visibility. Low values may cause erroneous culling to appear.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 10000f,
+            Min = 0.1,
+            Max = 100000,
+            Step = 100,
+        },
+    };
+
+    private ToolParameterValues parameterValues = new();
+    private bool isExecuting;
+    private string? executionMessage;
+
+
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private Task ExecuteToolAsync()
+    {
+        foreach (var trackData in selectedTracks)
+        {
+            TracksUtils.MakeTrianglesRelative(trackData.MediaTrack.Track, 
+                parameterValues.GetBool("ensureVisibility"), 
+                parameterValues.GetFloat("ensuranceVertexDistance"));
+        }
+        return Task.CompletedTask;
+    }
+}

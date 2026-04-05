@@ -1,4 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using TM_MappingTools.Utils
+@inject TM_MappingTools.Services.ClipFileService FileService
+@inject IJSRuntime JS
+@inherits LayoutComponentBase
+@implements IDisposable
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,7 +10,47 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank">Mapping Tools GitHub</a>
+            <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank">CSharp Mapping GitHub</a>
+            <a href="https://trackmania.exchange/usershow/131189" target="_blank">TMX</a>
+        </div>
+
+        <div class="file-io-row px-4 py-3 border-bottom">
+            <div class="file-io-split">
+                <div @ref="dropZoneElement" class="file-drop-area"
+                     @ondrop:preventDefault="true" @ondrop="OnDrop"
+                     @ondragover:preventDefault="true" @ondragover="OnDragOver">
+                    <InputFile @ref="inputFile" id="layoutFilePicker" OnChange="OnFileSelected" class="visually-hidden" />
+
+                    <div class="file-drop-content">
+                        @if (FileService.HasFile)
+                        {
+                            <div class="file-name">@FileService.FileName</div>
+                            <div class="file-size">@FileHelper.GetFormattedFileSize(FileService.FileSize) (original)</div>
+                        }
+                        else
+                        {
+                            <div class="file-name text-muted">No Clip loaded</div>
+                        }
+
+                        <div class="file-drop-hint">
+                            Drop a .Clip.Gbx file anywhere in this area, or
+                            <label for="layoutFilePicker" class="file-open-link">choose a file from disk</label>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="file-download-area">
+                    @if (FileService.HasFile)
+                    {
+                        <button class="btn btn-primary" @onclick="Download">Download Clip</button>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Load a Clip to enable download.</span>
+                    }
+                </div>
+            </div>
         </div>
 
         <article class="content px-4">
@@ -14,3 +58,54 @@
         </article>
     </main>
 </div>
+
+@code {
+    ElementReference dropZoneElement;
+    InputFile? inputFile;
+
+    protected override void OnInitialized()
+    {
+        FileService.FileChanged += OnFileChanged;
+    }
+
+    public void Dispose()
+    {
+        FileService.FileChanged -= OnFileChanged;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && inputFile is not null)
+        {
+            // Initialize the drop zone
+            await JS.InvokeVoidAsync("initializeFileDropZone", dropZoneElement, inputFile.Element);
+        }
+    }
+
+    private void OnFileChanged() => InvokeAsync(StateHasChanged);
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is not null)
+        {
+            await FileService.SetFileAsync(e.File);
+        }
+    }
+
+    private async Task Download()
+    {
+        using var stream = FileService.GetDownloadStream();
+        var streamRef = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", FileService.FileName, streamRef);
+    }
+    private void OnDragOver(DragEventArgs e)
+    {
+        // No-op: preventDefault handled in markup
+    }
+
+    private async Task OnDrop(DragEventArgs e)
+    {
+        // No-op: preventDefault handled in markup
+    }
+
+}

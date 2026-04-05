@@ -1,0 +1,124 @@
+﻿@using TM_MappingTools.Model
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3">
+    <span class="text-muted small">
+        @if (UseSelectedTracks)
+        {
+            <span>Selected tracks:
+                @if (!string.IsNullOrWhiteSpace(SelectedTrackPreview))
+                {
+                    <span> <strong>@SelectedTrackPreview</strong></span>
+                }
+            </span>
+        }
+        else
+        {
+            <span><strong>@ExecutionTargetOverwrite</strong></span>
+        }
+            
+    </span>
+    <button type="button" class="btn btn-primary" @onclick="ExecuteAsync" disabled="@(!EffectiveCanExecute)"
+            title="@Tooltip">
+        @(isExecuting ? "Executing..." : "Execute")
+    </button>
+</div>
+
+
+@if (!string.IsNullOrWhiteSpace(ExecutionMessage))
+{
+    <div class="alert alert-info" role="status">@ExecutionMessage</div>
+}
+
+@code {
+    private const int FullPreviewTrackCount = 5;
+    private const int MaxPreviewLength = 70;
+    private const int AbbreviatedPreviewTrackCount = 5;
+
+    [Parameter] public IReadOnlyList<TrackData> SelectedTracks { get; set; } = Array.Empty<TrackData>();
+    [Parameter] public bool UseSelectedTracks { get; set; } = true;
+    [Parameter] public string ExecutionTargetOverwrite { get; set; } = string.Empty;
+    [Parameter] public string Tooltip { get; set; } = string.Empty;
+  
+    [Parameter] public Func<bool>? CanExecute { get; set; }
+    [Parameter] public string? ExecutionMessage { get; set; }
+    [Parameter] public EventCallback Execute { get; set; }
+
+    private bool isExecuting;
+    private bool EffectiveCanExecute =>
+        !isExecuting &&
+        Execute.HasDelegate &&
+        (CanExecute?.Invoke() ?? true) &&
+        (!UseSelectedTracks || SelectedTracks.Count > 0);
+    private async Task ExecuteAsync()
+    {
+        if (!EffectiveCanExecute) return;
+
+        isExecuting = true;
+        ExecutionMessage = null;
+
+        try
+        {
+            await Execute.InvokeAsync(null);
+            if (UseSelectedTracks)
+            {
+                ExecutionMessage = $"Action finished for {SelectedTracks.Count} track(s).";
+            }
+            else
+            {
+                ExecutionMessage = $"Action finished.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ExecutionMessage = $"Action failed: {ex.Message}";
+        }
+        finally
+        {
+            isExecuting = false;
+        }
+    }
+    private string SelectedTrackPreview
+    {
+        get
+        {
+            if (SelectedTracks.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var names = SelectedTracks
+                .Select(GetTrackDisplayName)
+                .ToList();
+
+            var fullPreview = string.Join(", ", names);
+            var shouldAbbreviate = SelectedTracks.Count > FullPreviewTrackCount || fullPreview.Length > MaxPreviewLength;
+
+            if (!shouldAbbreviate)
+            {
+                return fullPreview;
+            }
+
+            var abbreviatedCount = Math.Min(AbbreviatedPreviewTrackCount, names.Count);
+            while (abbreviatedCount > 1)
+            {
+                var preview = string.Join(", ", names.Take(abbreviatedCount));
+                if (preview.Length <= MaxPreviewLength) break;
+                abbreviatedCount--;
+            }
+            var abbreviatedPreview = string.Join(", ", names.Take(abbreviatedCount));
+            return $"{abbreviatedPreview}, ...";
+        }
+    }
+
+    private static string GetTrackDisplayName(TrackData track)
+    {
+        if (!string.IsNullOrWhiteSpace(track.TrackName))
+        {
+            return track.TrackName;
+        }
+
+        return $"Track {track.TrackIndex}";
+    }
+
+    
+}
