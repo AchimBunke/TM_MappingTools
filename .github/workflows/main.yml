@@ -133,24 +133,12 @@ jobs:
       working-directory: Prerender/output/wwwroot
       run: node prerender.mjs
 
-    # DEBUG - see exactly what was written
-    - name: Debug - show prerendered index.html
-      run: |
-        echo "=== First 50 lines of prerendered index.html ==="
-        head -50 Prerender/output/wwwroot/index.html
-        echo "=== Does it contain prerendered content? ==="
-        grep -c "nav-link" Prerender/output/wwwroot/index.html || echo "0 matches - prerender content missing"
-
     - name: Fix base href in prerendered HTML files
       run: |
         find Prerender/output/wwwroot -name "*.html" | while read htmlFile; do
           sed -i 's|<base href="/">|<base href="/TM_MappingTools/">|g' "$htmlFile"
           sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' "$htmlFile"
         done
-
-    # DEBUG - confirm base href was fixed
-    - name: Debug - confirm base href after sed
-      run: grep "base href" Prerender/output/wwwroot/index.html
 
     - name: Copy index.html to 404.html
       run: cp Prerender/output/wwwroot/index.html Prerender/output/wwwroot/404.html
