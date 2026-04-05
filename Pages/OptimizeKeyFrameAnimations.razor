@@ -8,13 +8,111 @@
         <div class="tool-page-header-text">
             <h1 class="tool-page-title">Optimize Keyframe Animations</h1>
             <p class="tool-page-desc">Reduce redundant keyframes in MediaTracker animations to reduce file size.</p>
+            <p class="tool-page-desc">This operation may take some time depending on the size of track and mesh.</p>
         </div>
     </div>
     <div class="tool-page-body">
+        <div class="tool-page-layout">
+            <div class="tool-page-sidebar">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Track Selection</h2>
+                    </div>
+                    <TrackSelector @bind-SelectedTracks="selectedTracks" />
+                </div>
+            </div>
+            <div class="tool-page-main">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Actions</h2>
+                    </div>
+                    <ExecuteAction SelectedTracks="selectedTracks" Execute="ExecuteToolAsync" UseSelectedTracks="true"
+                                   Tooltip="Execute the tool with the selected tracks. This may take some time!" />
+                </div>
 
+                <div class="tool-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Parameters</h2>
+                    </div>
+                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                                    ValuesChanged="OnParameterValuesChanged" />
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
 
-@code {
 
+
+@code {
+    private List<TrackData> selectedTracks = new();
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "errorMetric",
+            Label = "Error Metric",
+            Tooltip = "The error metric used to determine the quality of the keyframe optimization.",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = "Max",
+            Options = new[]
+            {
+                new ToolParameterOption { Value = "Max", Label = "Max" },
+                new ToolParameterOption { Value = "RootMeanSquare", Label = "Root Mean Square" },
+            },
+        },
+        new()
+        {
+            Key = "errorThreshold",
+            Label = "Error Threshold",
+            Tooltip = "The maximum allowable error for keyframe optimization. The higher the threshold, the more aggressive the optimization will be at the potential cost of animation quality.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0.00001d,
+            Min = 0.0d,
+            Max = 1.0d,
+            Step = 0.00001d,
+        },
+    };
+
+    private ToolParameterValues parameterValues = new();
+
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private async Task<string?> ExecuteToolAsync()
+    {
+        var errorMetricStr = parameterValues.GetString("errorMetric");
+        var errorMetric = Enum.TryParse<KeyFrameAnimationOptimizer.ErrorMetric>(errorMetricStr, out var parsedErrorMetric)
+            ? parsedErrorMetric
+            : KeyFrameAnimationOptimizer.ErrorMetric.Max;
+        var errorThreshold = parameterValues.GetFloat("errorThreshold");
+        var optimizationInfo = new KeyFrameAnimationOptimizer.ClipOptimizationInfo();
+
+        foreach (var trackData in selectedTracks)
+        {
+            var optimizerSettings = new KeyFrameAnimationOptimizer.OptimizerSettings
+            {
+                ErrorMetric = errorMetric,
+                ErrorThreshold = errorThreshold
+            };
+            var result = KeyFrameAnimationOptimizer.OptimizeTrack(trackData.MediaTrack.Track, optimizerSettings);
+            optimizationInfo.TrackOptimizationInfos.Add(result);
+        }
+
+        return BuildSuccessMessage(optimizationInfo);
+    }
+
+    private string? BuildSuccessMessage(KeyFrameAnimationOptimizer.ClipOptimizationInfo optimizationInfo)
+    {
+        if (optimizationInfo == null || optimizationInfo.TrackOptimizationInfos.Count == 0)
+        {
+            return null;
+        }
+
+        return $"Optimization completed for {optimizationInfo.TrackOptimizationInfos.Count} track(s)! Removed {optimizationInfo.TotalRemovedKeyFrameCount} keyframes and {optimizationInfo.TotalRemovedPositionCount} positions across all optimized tracks.";
+    }
 }

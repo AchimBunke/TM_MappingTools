@@ -48,7 +48,7 @@
 @code {
     private List<TrackData> selectedTracks = new();
 
-   private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
         new()
         {
@@ -79,7 +79,7 @@
         return Task.CompletedTask;
     }
 
-    private Task ExecuteToolAsync()
+    private async Task<string?> ExecuteToolAsync()
     {
         foreach (var trackData in selectedTracks)
         {
@@ -87,6 +87,7 @@
                 parameterValues.GetBool("ensureVisibility"), 
                 parameterValues.GetFloat("ensuranceVertexDistance"));
         }
-        return Task.CompletedTask;
+
+        return null;
     }
 }

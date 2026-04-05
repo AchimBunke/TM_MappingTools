@@ -17,9 +17,20 @@
         }
             
     </span>
-    <button type="button" class="btn btn-primary" @onclick="ExecuteAsync" disabled="@(!EffectiveCanExecute)"
-            title="@Tooltip">
-        @(isExecuting ? "Executing..." : "Execute")
+    <button type="button" 
+        class="btn btn-primary @(isExecuting ? "executing" : "")" 
+        @onclick="ExecuteAsync" 
+        disabled="@(!EffectiveCanExecute || isExecuting)"
+        title="@Tooltip">
+    @if (isExecuting)
+    {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <span>Executing...</span>
+    }
+    else
+    {
+        <span>Execute</span>
+    }
     </button>
 </div>
 
@@ -41,12 +52,12 @@
   
     [Parameter] public Func<bool>? CanExecute { get; set; }
     [Parameter] public string? ExecutionMessage { get; set; }
-    [Parameter] public EventCallback Execute { get; set; }
+    [Parameter] public Func<Task<string?>>? Execute { get; set; }
 
     private bool isExecuting;
     private bool EffectiveCanExecute =>
         !isExecuting &&
-        Execute.HasDelegate &&
+        Execute != null &&
         (CanExecute?.Invoke() ?? true) &&
         (!UseSelectedTracks || SelectedTracks.Count > 0);
     private async Task ExecuteAsync()
@@ -56,10 +67,16 @@
         isExecuting = true;
         ExecutionMessage = null;
 
+        StateHasChanged();
+        await Task.Yield(); 
         try
         {
-            await Execute.InvokeAsync(null);
-            if (UseSelectedTracks)
+            var result = await Execute!.Invoke();
+            if(!string.IsNullOrEmpty(result))
+            {
+                ExecutionMessage = result;
+            }
+            else if (UseSelectedTracks)
             {
                 ExecutionMessage = $"Action finished for {SelectedTracks.Count} track(s).";
             }
@@ -75,6 +92,7 @@
         finally
         {
             isExecuting = false;
+            StateHasChanged();
         }
     }
     private string SelectedTrackPreview
