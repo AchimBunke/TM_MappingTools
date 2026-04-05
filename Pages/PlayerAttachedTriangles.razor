@@ -40,11 +40,6 @@
                                     ValuesChanged="OnParameterValuesChanged" />
                 </div>
 
-                @if (!string.IsNullOrWhiteSpace(executionMessage))
-                {
-                    <div class="alert alert-info" role="status">@executionMessage</div>
-                }
-
             </div>
         </div>
     </div>
@@ -77,9 +72,6 @@
     };
 
     private ToolParameterValues parameterValues = new();
-    private bool isExecuting;
-    private string? executionMessage;
-
 
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
