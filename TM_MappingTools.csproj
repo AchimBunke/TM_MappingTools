@@ -20,9 +20,6 @@
     <Folder Include="Utils\" />
   </ItemGroup>
 
-  <!-- <ItemGroup>
-    <ProjectReference Include="..\..\..\TM_Projects\TM_GenericMapping\TM_GenericMapping.csproj" />
-  </ItemGroup> -->
 
 
 </Project>
