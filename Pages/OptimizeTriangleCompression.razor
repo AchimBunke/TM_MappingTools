@@ -1,0 +1,198 @@
+﻿@page "/optimize-triangle-compression"
+@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+
+<PageTitle>Optimize Triangle Compression</PageTitle>
+
+<div class="tool-page">
+    <ToolPageHeader IconClass="bi bi-grid-3x3"
+                    Title="Optimize Triangle Compression"
+                    Description="">
+        <HeaderActions>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
+                    @onclick="ToggleHelpPanel"
+                    aria-expanded="@showHelpPanel"
+                    aria-controls="optimizeHelpPanel">
+                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
+                @(showHelpPanel ? "Hide details" : "How this works")
+            </button>
+        </HeaderActions>
+    </ToolPageHeader>
+    <div class="tool-page-body">
+        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
+            <div class="tool-page-sidebar">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Track Selection</h2>
+                    </div>
+                    <TrackSelector @bind-SelectedTracks="selectedTracks" />
+                </div>
+            </div>
+            <div class="tool-page-main">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Actions</h2>
+                    </div>
+                    <ExecuteAction SelectedTracks="selectedTracks" Execute="ExecuteToolAsync" UseSelectedTracks="true"
+                                   Tooltip="Execute the tool with the selected tracks. This may take some time!" />
+                </div>
+
+                <div class="tool-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Parameters</h2>
+                    </div>
+                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                                    ValuesChanged="OnParameterValuesChanged" />
+                </div>
+
+            </div>
+
+            @if (showHelpPanel)
+            {
+                <ToolHelpSidebar PanelId="optimizeHelpPanel"
+                                 Title="Detailed Info"
+                                 Description="What this tool changes and how to tune it safely.">
+                    <h3>What happens when you click Execute</h3>
+                    <p>The optimizer iterates over each selected MediaTracker track and analyzes the vertices. It reduces the precision of vertex positions to improve compression efficiency of LZO.</p>
+                    <p>It quantizes vertex positions to a grid based on the specified precision and snaps values to 0 if possible. It also can create temporal coherence by snapping values consistently across animation keys.</p>
+                    <p>LZO compression reduces file size by efficiently encoding repeated patterns and minimizing redundancy in the data. By using quantized position and 0-snapping we try to maximize those repeating patterns create longer strings of zeros which helps the compression.</p>
+                    <h3>Enable Quantization</h3>
+                    <p>When enabled, the optimizer will quantize vertex positions to a grid based on the specified precision.</p>
+                    <h3>Quantization Step</h3>
+                    <p>The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality. The chosen step size should depend on your specific mesh size, small intricate meshes require smaller steps while larger, coarser meshes can use larger steps.</p>
+                    <h3>Enable Zero Clamping</h3>
+                    <p>When enabled, the optimizer will clamp values below the specified threshold to zero.</p>
+                    <h3>Zero Clamping Threshold</h3>
+                    <p>The threshold for zero clamping. Values below this threshold will be clamped to zero. Typically half of Quantization Step.</p>
+                    <h3>Enable Temporal Stabilizing</h3>
+                    <p>When enabled, the optimizer will snap animation keys to create temporal coherence. This means that vertex movement between 2 keyframes that fall under a certain threshold will be snapped to the same position.</p>
+                    <h3>Temporal Stabilizing Threshold Factor</h3>
+                    <p>The threshold factor for temporal stabilizing (snapping of animation keys). Impacts threshold under which vertices will snap to positions of older animation keys. Threshold is calculated by <b>ThresholdFactor * QuantizationStep</b>.</p>
+                    <h3>Enable Color Optimization</h3>
+                    <p>When enabled, the optimizer will also optimize vertex colors by quantizing them to 8 bits per channel (0-255 range). Most triangle blocks are dominated in size by their keyframes so Color Optimization does not matter in almost all cases.</p> 
+                    <h3>Practical workflow</h3>
+                    <p>Start with a low quantization step for your mesh size (e.g. 0.001 or 0.01) and check the results in-game and in the resulting filesize. Gradually increase the step until you find a good balance between compression and visual quality. Enabling zero clamping helps a lot! Temporal stabilizing is hard to finetune and can quickly lead to heavy distortion in the movement, so you should use the Optimize KeyFrame Animation tool to minimize keyframes first. Color optimization can be enabled for minimal additional compression, but may not be necessary in most cases.</p>
+                    
+                </ToolHelpSidebar>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TrackData> selectedTracks = new();
+    private bool showHelpPanel;
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "enableQuantization",
+            Label = "Enable Quantization",
+            Tooltip = "Enable or disable quantization for the optimizer.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "quantizationStep",
+            Label = "Quantization Step",
+            Tooltip = "The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0.01d,
+            Min = 0.000001d,
+            Max = 10.0d,
+            Step = 0.01d,
+        },
+        new()
+        {
+            Key = "enableZeroClamping",
+            Label = "Enable Zero Clamping",
+            Tooltip = "Enable or disable zero clamping for the optimizer.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "zeroClampingThreshold",
+            Label = "Zero Clamping Threshold",
+            Tooltip = "The threshold for zero clamping. Values below this threshold will be clamped to zero. Typically half of Quantization Step.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0.005d,
+            Min = 0.000001d,
+            Max = 1.0d,
+            Step = 0.001d,
+        },
+        new()
+        {
+            Key = "enableTemporalStabilizing",
+            Label = "Enable Temporal Stabilizing",
+            Tooltip = "Enable or disable temporal stabilizing (snapping of animation keys) for the optimizer.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "temporalStabilizingThresholdFactor",
+            Label = "Temporal Stabilizing Threshold Factor",
+            Tooltip = "The threshold factor for temporal stabilizing (snapping of animation keys). Impacts threshold under which vertices will snap to positions of older animation keys.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 1d,
+            Min = 0.001d,
+            Max = 10d,
+            Step = 0.1d,
+        },
+        new()
+        {
+            Key = "enableColorOptimization",
+            Label = "Enable Color Optimization",
+            Tooltip = "Enable or disable color optimization for the optimizer.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+    };
+
+    private ToolParameterValues parameterValues = new();
+
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private void ToggleHelpPanel()
+    {
+        showHelpPanel = !showHelpPanel;
+    }
+
+    private async Task<string?> ExecuteToolAsync()
+    {
+        
+        var optimizer = new TriangleOptimizer();
+        optimizer.Settings = new TriangleOptimizer.TriangleOptimizerSettings
+        {
+            AutoComputeParameters = false,
+            EnableColorOptimization = parameterValues.GetBool("enableColorOptimization"),
+            EnableTemporalStabilization = parameterValues.GetBool("enableTemporalStabilizing"),
+            TemporalThresholdFactor = parameterValues.GetFloat("temporalStabilizingThresholdFactor"),
+            EnableQuantization = parameterValues.GetBool("enableQuantization"),
+            QuantizationStep = parameterValues.GetFloat("quantizationStep"),
+            EnableZeroClamp = parameterValues.GetBool("enableZeroClamping"),
+            ZeroThreshold = parameterValues.GetFloat("zeroClampingThreshold"),
+        };
+        var optimizationResult = optimizer.OptimizeTracks(selectedTracks.Select(t=>t.MediaTrack.Track).ToArray());
+
+        OperationHistoryService.AddOperation("Optimized Triangle Compression");
+        return BuildSuccessMessage(optimizationResult);
+    }
+
+    private string? BuildSuccessMessage(TriangleOptimizer.OptimizationResult optimizationInfo)
+    {
+        if (optimizationInfo == null || optimizationInfo.BlocksProcessed == 0)
+        {
+            return null;
+        }
+
+        return $"Optimization completed for {optimizationInfo.BlocksProcessed} block(s) with {optimizationInfo.KeysProcessed} keys.{(optimizationInfo.IsStepComputed ? "Computed quantization size: " + optimizationInfo.ComputedStep + "." : "")} Processed {optimizationInfo.VerticesProcessed} vertices and changed {optimizationInfo.VerticesChanged} ({optimizationInfo.VertexChangePercent}%). Zeroed {optimizationInfo.VerticesZeroed} vertices. Temporally snapped {optimizationInfo.VerticesTemporallySnapped} vertices. Maximum possible 0-Bytes: {optimizationInfo.MaximumPossibleZeroBytes}; 0-Bytes before optimization: {optimizationInfo.ZeroBytesBeforeOptimization}({optimizationInfo.ZeroBytePercentagBefore}%); 0-Bytes after optimization: {optimizationInfo.ZeroBytesAfterOptimization}({optimizationInfo.ZeroBytePercentagAfter}%).";
+
+    }
+}
