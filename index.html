@@ -3,15 +3,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <base href="/TM_MappingTools/">
-    <link href="_framework/dotnet.b9o5mykqdl.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-8ZfNU1xFpD+AqDJxy6P3kIkhBfX3GGF7l9js7LpK5Yg=">
+    <link href="_framework/dotnet.f94natdq7p.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-rVx5uDGZrWPHvVSlbC8ah5+06jDKpWHfW21juk9RnlA=">
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/app.css">
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="TM_MappingTools.styles.css" rel="stylesheet">
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.b9o5mykqdl.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.f94natdq7p.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.79x7rp8afl.js",
     "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.peu2mfb29t.js"
   },
@@ -19,8 +20,8 @@
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.b9o5mykqdl.js": "sha256-8ZfNU1xFpD+AqDJxy6P3kIkhBfX3GGF7l9js7LpK5Yg=",
-    "./_framework/dotnet.js": "sha256-8ZfNU1xFpD+AqDJxy6P3kIkhBfX3GGF7l9js7LpK5Yg=",
+    "./_framework/dotnet.f94natdq7p.js": "sha256-rVx5uDGZrWPHvVSlbC8ah5+06jDKpWHfW21juk9RnlA=",
+    "./_framework/dotnet.js": "sha256-rVx5uDGZrWPHvVSlbC8ah5+06jDKpWHfW21juk9RnlA=",
     "./_framework/dotnet.native.79x7rp8afl.js": "sha256-G6Ot4KWLnwcYKTDP77xAM6vyF4XvZquvNNy+QSz8iiw=",
     "./_framework/dotnet.native.js": "sha256-G6Ot4KWLnwcYKTDP77xAM6vyF4XvZquvNNy+QSz8iiw=",
     "./_framework/dotnet.runtime.js": "sha256-cajUr4vA/MpLPWj3omULUOwEQw3i8CE2n8AmDheqWBM=",
@@ -33,20 +34,23 @@
     <div id="app"><!--!--><!--!--><!--!--><!--!--><div class="page" b-yrpmrvqeod=""><div class="sidebar" b-yrpmrvqeod=""><!--!--><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5=""><div class="container-fluid" b-k974kyz3h5=""><!--!--><a class="navbar-brand" href="" b-k974kyz3h5="">TM Mapping Tools</a>
         <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5=""><!--!--><span class="navbar-toggler-icon" b-k974kyz3h5=""></span></button></div></div><!--!-->
 
-<div class="collapse nav-scrollable" b-k974kyz3h5=""><nav class="nav flex-column" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="" class="nav-link active" aria-current="page"><!--!--><span class="bi bi-house-door-fill-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> Home
+<div class="collapse nav-scrollable" b-k974kyz3h5=""><nav class="nav flex-column" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="" class="nav-link active" aria-current="page"><!--!--><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5=""></i> Home
             </a></div><!--!-->
 
         <hr class="nav-separator" b-k974kyz3h5="">
 
-        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="player-attached-triangles" class="nav-link"><!--!--><span class="bi bi-paperclip-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> Player-Attached 3DTriangles
+        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="player-attached-triangles" class="nav-link"><!--!--><i class="nav-menu-icon bi-paperclip" aria-hidden="true" b-k974kyz3h5=""></i>Player-Attached 3DTriangles
             </a></div><!--!-->
 
-        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-keyframe-animations" class="nav-link"><!--!--><span class="bi bi-bezier-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> Optimize Keyframe Animations
+        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-keyframe-animations" class="nav-link"><!--!--><i class="nav-menu-icon bi-bezier" b-k974kyz3h5=""></i> Optimize Keyframe Animations
+            </a></div><!--!-->
+
+         <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-triangle-compression" class="nav-link"><!--!--><i class="nav-menu-icon bi-grid-3x3" b-k974kyz3h5=""></i> Optimize Triangle Compression
             </a></div><!--!-->
 
         <hr class="nav-separator" b-k974kyz3h5="">
 
-        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="about" class="nav-link"><!--!--><span class="bi bi-info-circle-nav-menu" aria-hidden="true" b-k974kyz3h5=""></span> About
+        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="about" class="nav-link"><!--!--><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5=""></i> About
             </a></div></nav></div></div><!--!-->
 
     <main b-yrpmrvqeod=""><!--!--><div class="top-row px-4" b-yrpmrvqeod=""><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod="">Mapping Tools GitHub</a>
@@ -59,12 +63,14 @@
                             Drop a .Clip.Gbx file anywhere in this area, or
                             <label for="layoutFilePicker" class="file-open-link" b-yrpmrvqeod="">choose a file from disk</label>.
                         </div></div></div><!--!-->
+                <div class="operations-history-list small" b-yrpmrvqeod=""><!--!--><div class="operations-history-title" b-yrpmrvqeod="">Operations Done</div>
+                    <ul class="list-unstyled mb-0" b-yrpmrvqeod=""><!--!--><li class="operation-empty" b-yrpmrvqeod="">(empty)</li></ul></div><!--!-->
 
-                <div class="file-download-area" b-yrpmrvqeod=""><!--!--><span class="text-muted small" b-yrpmrvqeod="">Load a Clip to enable download.</span></div></div></div><!--!-->
+                <div class="file-download-area" b-yrpmrvqeod=""><!--!--><span class="text-muted small" b-yrpmrvqeod="">Load a Clip to enable export.</span></div></div></div><!--!-->
 
         <article class="content px-4" b-yrpmrvqeod=""><!--!--><!--!--><!--!--><!--!-->
 
-<!--!--><div class="home-hero"><div class="home-hero-icon"><span class="bi bi-camera-reels" aria-hidden="true"></span></div>
+<!--!--><div class="home-hero"><div class="home-hero-icon"><span class="bi-house-door-fill" aria-hidden="true"></span></div>
     <h1 class="home-hero-title" tabindex="-1">TM Mapping Tools</h1>
     <p class="home-hero-subtitle">A collection of tools for TrackMania mappers to edit and optimize MediaTracker clips.</p>
     <p class="home-hero-hint">
@@ -75,7 +81,7 @@
     <div class="home-tool-cards"><a href="player-attached-triangles" class="home-tool-card"><span class="bi bi-paperclip home-tool-card-icon" aria-hidden="true"></span>
             <div class="home-tool-card-body"><div class="home-tool-card-title">Player-Attached 3D Triangles</div>
                 <div class="home-tool-card-desc">Attach 3D Triangles to the Player.</div></div></a>
-        <a href="optimize-keyframe-animations" class="home-tool-card"><span class="bi bi-bezier2 home-tool-card-icon" aria-hidden="true"></span>
+        <a href="optimize-keyframe-animations" class="home-tool-card"><i class="bi-bezier home-tool-card-icon" aria-hidden="true"></i>
             <div class="home-tool-card-body"><div class="home-tool-card-title">Optimize Keyframe Animations</div>
                 <div class="home-tool-card-desc">Reduce redundant keyframes in MediaTracker animations to reduce filesize.</div></div></a></div></div></article></main></div><!--!-->
         <!--!--></div>
