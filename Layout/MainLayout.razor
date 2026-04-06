@@ -1,5 +1,6 @@
 ﻿@using TM_MappingTools.Utils
 @inject TM_MappingTools.Services.ClipFileService FileService
+@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject IJSRuntime JS
 @inherits LayoutComponentBase
 @implements IDisposable
@@ -39,15 +40,34 @@
                         </div>
                     </div>
                 </div>
+                <div class="operations-history-list small">
+                    <div class="operations-history-title">Operations Done</div>
+                    <ul class="list-unstyled mb-0">
+                        @for (var i = 0; i < OperationHistoryService.OperationsHistory.Count; i++)
+                        {
+                            var op = OperationHistoryService.OperationsHistory[i];
+                            var idx = i+1;
+                            <li>
+                                <span class="operation-id">@idx</span>
+                                <span class="operation-key" title="@op">@op</span> 
+                            </li>
+                            
+                        }
+                        @if (OperationHistoryService.OperationsHistory.Count == 0)
+                        {
+                            <li class="operation-empty">(empty)</li>
+                        }
+                    </ul>
+                </div>
 
                 <div class="file-download-area">
                     @if (FileService.HasFile)
                     {
-                        <button class="btn btn-primary" @onclick="Download">Download Clip</button>
+                        <button class="btn btn-primary" @onclick="Download">Export Clip</button>
                     }
                     else
                     {
-                        <span class="text-muted small">Load a Clip to enable download.</span>
+                        <span class="text-muted small">Load a Clip to enable export.</span>
                     }
                 </div>
             </div>
@@ -66,11 +86,13 @@
     protected override void OnInitialized()
     {
         FileService.FileChanged += OnFileChanged;
+        OperationHistoryService.HistoryChanged += OnOperationHistoryChanged;
     }
 
     public void Dispose()
     {
         FileService.FileChanged -= OnFileChanged;
+        OperationHistoryService.HistoryChanged -= OnOperationHistoryChanged;
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -83,12 +105,15 @@
 
     private void OnFileChanged() => InvokeAsync(StateHasChanged);
 
+    private void OnOperationHistoryChanged() => InvokeAsync(StateHasChanged);
+
     private async Task OnFileSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
         if (file is not null)
         {
             await FileService.SetFileAsync(e.File);
+            OperationHistoryService.Clear();
         }
     }
 

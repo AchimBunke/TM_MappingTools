@@ -1,4 +1,5 @@
 ﻿@page "/optimize-keyframe-animations"
+@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 
 <PageTitle>Optimize Keyframe Animations</PageTitle>
 
@@ -7,8 +8,7 @@
         <span class="bi bi-bezier2 tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text">
             <h1 class="tool-page-title">Optimize Keyframe Animations</h1>
-            <p class="tool-page-desc">Reduce redundant keyframes in MediaTracker animations to reduce file size.</p>
-            <p class="tool-page-desc">This operation may take some time depending on the size of track and mesh.</p>
+            <p class="tool-page-desc">Reduce redundant keyframes in MediaTracker animations to reduce file size. This operation may take some time depending on the size of track and mesh.</p>
         </div>
     </div>
     <div class="tool-page-body">
@@ -103,6 +103,7 @@
             optimizationInfo.TrackOptimizationInfos.Add(result);
         }
 
+        OperationHistoryService.AddOperation("Optimized Keyframe Animations");
         return BuildSuccessMessage(optimizationInfo);
     }
 

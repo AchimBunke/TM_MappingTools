@@ -41,14 +41,82 @@ main {
     background: var(--tm-surface-soft);
 }
 
+.operations-history-list {
+    background: var(--tm-surface);
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-md);
+    padding: 0.55rem 0.7rem;
+    min-height: 70px;
+    max-height: 120px;
+    min-width: 170px;
+    max-width: 100%;
+    box-shadow: var(--tm-shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    grid-area: history;
+
+}
+
+.operations-history-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+    color: var(--tm-text);
+    text-transform: uppercase;
+}
+
+.operations-history-list ul {
+    margin: 0;
+    padding-left: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.operations-history-list li {
+    display: flex;
+    /* justify-content: space-between; */
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.12rem 0;
+}
+
+.operation-key {
+    color: var(--tm-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.operation-count {
+    color: var(--tm-text-muted);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.operation-id {
+    color: var(--tm-text-muted);
+    font-size: 0.95em;
+    text-align: left;
+    min-width: 14px;
+}
+
+.operation-empty {
+    color: var(--tm-text-muted);
+}
+
 .file-io-split {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 350px) auto;
+    grid-template-areas: "drop history download";
     gap: 0.75rem;
     align-items: stretch;
 }
 
 .file-drop-area {
+    grid-area: drop;
     border: 1px dashed var(--tm-border);
     border-radius: var(--tm-radius-md);
     background: var(--tm-surface);
@@ -108,6 +176,7 @@ main {
 }
 
 .file-download-area {
+    grid-area: download;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -115,8 +184,21 @@ main {
     border-radius: var(--tm-radius-md);
     background: var(--tm-surface);
     padding: 0.75rem 1rem;
-    min-width: 220px;
+    min-width: 180px;
     box-shadow: var(--tm-shadow-sm);
+}
+
+@media (max-width: 1100px) {
+    .file-io-split {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "drop drop"
+            "history download";
+    }
+
+    .operations-history-list {
+        max-height: 140px;
+    }
 }
 
 @media (max-width: 640.98px) {
@@ -130,6 +212,16 @@ main {
 
     .file-io-split {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "drop"
+            "history"
+            "download";
+    }
+
+    .operations-history-list {
+        min-width: 0;
+        max-width: none;
+        max-height: 170px;
     }
 
     .file-download-area {

@@ -1,4 +1,6 @@
 ﻿@page "/player-attached-triangles"
+@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+
 
 <PageTitle>Player Attached Triangles</PageTitle>
 
@@ -87,6 +89,7 @@
                 parameterValues.GetBool("ensureVisibility"), 
                 parameterValues.GetFloat("ensuranceVertexDistance"));
         }
+        OperationHistoryService.AddOperation("Player Attached Triangles");
 
         return null;
     }
