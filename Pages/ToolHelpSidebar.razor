@@ -1,0 +1,28 @@
+<aside id="@PanelId" class="tool-page-help" aria-live="polite">
+    <div class="tool-panel tool-help-panel">
+        <div class="tool-panel-header">
+            <h2 class="tool-panel-title">@Title</h2>
+            @if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <p class="tool-panel-desc">@Description</p>
+            }
+        </div>
+        <div class="tool-help-content">
+            @ChildContent
+        </div>
+    </div>
+</aside>
+
+@code {
+    [Parameter, EditorRequired]
+    public string PanelId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Title { get; set; } = "Detailed Info";
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment? ChildContent { get; set; }
+}

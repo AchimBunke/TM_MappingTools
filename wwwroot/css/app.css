@@ -302,6 +302,25 @@ code {
     margin-bottom: 1.75rem;
 }
 
+.tool-page-header-main {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.tool-page-header-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.tool-help-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
 .tool-page-header-icon {
     font-size: 2rem;
     color: var(--tm-accent);
@@ -353,6 +372,23 @@ code {
     min-width: 0;
 }
 
+.tool-page-help {
+    min-width: 0;
+}
+
+.tool-page-layout-with-help {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(300px, 380px);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.tool-page-layout-with-help .tool-page-sidebar,
+.tool-page-layout-with-help .tool-page-main,
+.tool-page-layout-with-help .tool-page-help {
+    width: auto;
+}
+
 .tool-panel {
     background: var(--tm-surface);
     border: 1px solid var(--tm-border);
@@ -384,6 +420,31 @@ code {
     color: var(--tm-text-muted);
 }
 
+.tool-help-panel {
+    position: sticky;
+    top: 5.25rem;
+}
+
+.tool-help-content {
+    padding: 1rem;
+    max-height: min(70vh, 640px);
+    overflow-y: auto;
+}
+
+.tool-help-content h3 {
+    margin: 0.1rem 0 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--tm-text);
+}
+
+.tool-help-content p {
+    margin: 0 0 0.9rem;
+    color: var(--tm-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
 .tool-value-grid {
     display: grid;
     grid-template-columns: minmax(160px, 220px) 1fr;
@@ -406,4 +467,52 @@ code {
 .tool-value-data {
     font-size: 0.9rem;
     color: var(--tm-text);
+}
+
+@media (max-width: 1180px) {
+    .tool-page-layout-with-help {
+        grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+        grid-template-areas:
+            "sidebar main"
+            "help help";
+    }
+
+    .tool-page-layout-with-help .tool-page-sidebar {
+        grid-area: sidebar;
+    }
+
+    .tool-page-layout-with-help .tool-page-main {
+        grid-area: main;
+    }
+
+    .tool-page-layout-with-help .tool-page-help {
+        grid-area: help;
+    }
+
+    .tool-help-panel {
+        position: static;
+    }
+
+    .tool-help-content {
+        max-height: 320px;
+    }
+}
+
+@media (max-width: 760px) {
+    .tool-page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tool-page-header-main {
+        align-items: flex-start;
+    }
+
+    .tool-page-layout-with-help {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "sidebar"
+            "main"
+            "help";
+    }
 }

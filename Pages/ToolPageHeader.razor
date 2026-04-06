@@ -1,0 +1,33 @@
+<div class="tool-page-header">
+    <div class="tool-page-header-main">
+        <span class="@IconClass tool-page-header-icon" aria-hidden="true"></span>
+        <div class="tool-page-header-text">
+            <h1 class="tool-page-title">@Title</h1>
+            @if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <p class="tool-page-desc">@Description</p>
+            }
+        </div>
+    </div>
+
+    @if (HeaderActions is not null)
+    {
+        <div class="tool-page-header-actions">
+            @HeaderActions
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string IconClass { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public RenderFragment? HeaderActions { get; set; }
+}

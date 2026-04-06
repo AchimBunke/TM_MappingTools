@@ -5,15 +5,22 @@
 <PageTitle>Player Attached Triangles</PageTitle>
 
 <div class="tool-page">
-    <div class="tool-page-header">
-        <span class="bi bi-paperclip tool-page-header-icon" aria-hidden="true"></span>
-        <div class="tool-page-header-text">
-            <h1 class="tool-page-title">Player-Attached 3D Triangles</h1>
-            <p class="tool-page-desc">Attach 3D triangles to the player. These tracks will move relative to the car.</p>
-        </div>
-    </div>
+    <ToolPageHeader IconClass="bi bi-paperclip"
+                    Title="Player-Attached 3D Triangles"
+                    Description="Attach 3D triangles to the player. These tracks will move relative to the car.">
+        <HeaderActions>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
+                    @onclick="ToggleHelpPanel"
+                    aria-expanded="@showHelpPanel"
+                    aria-controls="playerTrianglesHelpPanel">
+                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
+                @(showHelpPanel ? "Hide details" : "How this works")
+            </button>
+        </HeaderActions>
+    </ToolPageHeader>
     <div class="tool-page-body">
-        <div class="tool-page-layout">
+        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
             <div class="tool-page-sidebar">
                 <div class="tool-panel tool-action-panel">
                     <div class="tool-panel-header">
@@ -43,12 +50,32 @@
                 </div>
 
             </div>
+
+            @if (showHelpPanel)
+            {
+                <ToolHelpSidebar PanelId="playerTrianglesHelpPanel"
+                                 Title="Detailed Info"
+                                 Description="How player-attached triangles work and when to use visibility ensurance.">
+                    <h3>What happens when you click Execute</h3>
+                    <p>For each selected track, this tool converts triangle geometry so it moves relative to the player vehicle rather than staying fixed in world space.</p>
+
+                    <h3>Ensure Visibility</h3>
+                    <p>When enabled, extra vertices are added to reduce culling artifacts so triangles remain visible from all camera angles and distances.</p>
+
+                    <h3>Ensurance Vertex Distance</h3>
+                    <p>This sets how far those helper vertices are placed. Larger values may improve culling robustness.</p>
+
+                    <h3>Practical workflow</h3>
+                    <p>If you want your relative triangles to remain visible from all camera angles, enable Ensure Visibility. The only time you should disable it is if you purposely want to only show these triangles when driving in a certain direction. Though even then the culling behavior is insanely hard to predict and depends on screen resolution and camera settings.</p>
+                </ToolHelpSidebar>
+            }
         </div>
     </div>
 </div>
 
 @code {
     private List<TrackData> selectedTracks = new();
+    private bool showHelpPanel;
 
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -79,6 +106,11 @@
     {
         parameterValues = values;
         return Task.CompletedTask;
+    }
+
+    private void ToggleHelpPanel()
+    {
+        showHelpPanel = !showHelpPanel;
     }
 
     private async Task<string?> ExecuteToolAsync()

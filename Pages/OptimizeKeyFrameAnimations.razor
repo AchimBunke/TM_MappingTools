@@ -4,15 +4,22 @@
 <PageTitle>Optimize Keyframe Animations</PageTitle>
 
 <div class="tool-page">
-    <div class="tool-page-header">
-        <span class="bi bi-bezier2 tool-page-header-icon" aria-hidden="true"></span>
-        <div class="tool-page-header-text">
-            <h1 class="tool-page-title">Optimize Keyframe Animations</h1>
-            <p class="tool-page-desc">Reduce redundant keyframes in MediaTracker animations to reduce file size. This operation may take some time depending on the size of track and mesh.</p>
-        </div>
-    </div>
+    <ToolPageHeader IconClass="bi bi-bezier2"
+                    Title="Optimize Keyframe Animations"
+                    Description="Reduce redundant keyframes in MediaTracker animations to reduce file size. This operation may take some time depending on the size of track and mesh.">
+        <HeaderActions>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
+                    @onclick="ToggleHelpPanel"
+                    aria-expanded="@showHelpPanel"
+                    aria-controls="optimizeHelpPanel">
+                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
+                @(showHelpPanel ? "Hide details" : "How this works")
+            </button>
+        </HeaderActions>
+    </ToolPageHeader>
     <div class="tool-page-body">
-        <div class="tool-page-layout">
+        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
             <div class="tool-page-sidebar">
                 <div class="tool-panel tool-action-panel">
                     <div class="tool-panel-header">
@@ -39,6 +46,36 @@
                 </div>
 
             </div>
+
+            @if (showHelpPanel)
+            {
+                <ToolHelpSidebar PanelId="optimizeHelpPanel"
+                                 Title="Detailed Info"
+                                 Description="What this tool changes and how to tune it safely.">
+                    <h3>What happens when you click Execute</h3>
+                    <p>The optimizer iterates over each selected MediaTracker track and analyzes the keyframe sequence. It removes keyframes and position points that do not materially change animation quality under the chosen error settings.</p>
+                    <p>It uses the Douglas-Peucker algorithm to simplify the keyframe paths while maintaining the overall shape of the animation which works as follows:
+                        <ul class="text-muted small">
+                            <li>It takes 3 keyframes, 2 outer and 1 inner.</li>
+                            <li>It calculates the deviation of the inner keyframe from the linearly interpolated path between the outer keyframes.</li>
+                            <li>If the maximum deviation is below the specified error threshold, the intermediate keyframes can be removed without significantly affecting animation quality, because Trackmania will interpolate 2 keyframes linearly anyway.</li>
+                            <li>This process is repeated recursively until no more keyframes can be removed within the error threshold.</li>
+                        </ul>
+                    </p>
+
+                    <h3>Error Metric</h3>
+                    <p><strong>Max</strong> keeps the highest single deviation under the threshold. It is stricter on local spikes and usually preserves sharp details better.</p>
+                    <p><strong>Root Mean Square</strong> balances errors across the whole segment. It can remove more keys, but may allow small local deviations.</p>
+
+                    <h3>Error Threshold</h3>
+                    <p>Lower values preserve quality and remove fewer keys. Higher values are more aggressive and reduce file size more, but can introduce visible motion differences.</p>
+                    <p>A threshold of 0.01 with Max error metric means that even if the position deviates by 0.01 units from a linear motion, it will be considered on the path of linear motion and can be removed.</p>
+
+                    <h3>Practical workflow</h3>
+                    <p>Start with a low threshold and preview in-game. Increase gradually until you see acceptable size savings without visible artifacts. Repeat for tracks with different motion complexity.</p>
+                    
+                </ToolHelpSidebar>
+            }
         </div>
     </div>
 </div>
@@ -47,6 +84,7 @@
 
 @code {
     private List<TrackData> selectedTracks = new();
+    private bool showHelpPanel;
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
         new()
@@ -81,6 +119,11 @@
     {
         parameterValues = values;
         return Task.CompletedTask;
+    }
+
+    private void ToggleHelpPanel()
+    {
+        showHelpPanel = !showHelpPanel;
     }
 
     private async Task<string?> ExecuteToolAsync()
