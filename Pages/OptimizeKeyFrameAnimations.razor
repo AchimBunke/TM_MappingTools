@@ -1,5 +1,7 @@
 ﻿@page "/optimize-keyframe-animations"
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.SessionStorage SessionStorage
+
 
 <PageTitle>Optimize Keyframe Animations</PageTitle>
 
@@ -114,6 +116,16 @@
     };
 
     private ToolParameterValues parameterValues = new();
+
+    protected override void OnInitialized(){
+        base.OnInitialized();
+
+        if(SessionStorage.Has(member: nameof(parameterDefinitions)))
+            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
+        else
+            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
+
+    }
 
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {

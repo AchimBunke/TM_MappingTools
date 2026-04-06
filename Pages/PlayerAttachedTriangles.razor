@@ -1,5 +1,6 @@
 ﻿@page "/player-attached-triangles"
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.SessionStorage SessionStorage
 
 
 <PageTitle>Player Attached Triangles</PageTitle>
@@ -102,6 +103,15 @@
 
     private ToolParameterValues parameterValues = new();
 
+    protected override void OnInitialized(){
+        base.OnInitialized();
+
+        if(SessionStorage.Has(member: nameof(parameterDefinitions)))
+            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
+        else
+            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
+
+    }
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
