@@ -60,7 +60,7 @@
                     <h3>Enable Quantization</h3>
                     <p>When enabled, the optimizer will quantize vertex positions to a grid based on the specified precision.</p>
                     <h3>Quantization Step</h3>
-                    <p>The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality. The chosen step size should depend on your specific mesh size, small intricate meshes require smaller steps while larger, coarser meshes can use larger steps.</p>
+                    <p>The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality. The chosen step size should depend on your specific mesh size, small intricate meshes require smaller steps while larger, coarser meshes can use larger steps. Using a float value that has a lot of trailing zeros such as 0.0078125, 0.125, 0.5 or 1 in its binary representation can improve compression efficiency.</p>
                     <h3>Enable Zero Clamping</h3>
                     <p>When enabled, the optimizer will clamp values below the specified threshold to zero.</p>
                     <h3>Zero Clamping Threshold</h3>
@@ -97,9 +97,9 @@
         {
             Key = "quantizationStep",
             Label = "Quantization Step",
-            Tooltip = "The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality.",
+            Tooltip = "The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality. For better compression choose a float value with a long 0-string in binary.",
             Kind = ToolParameterKind.Float,
-            DefaultValue = 0.01d,
+            DefaultValue = 0.0125d,
             Min = 0.000001d,
             Max = 10.0d,
             Step = 0.01d,
@@ -118,7 +118,7 @@
             Label = "Zero Clamping Threshold",
             Tooltip = "The threshold for zero clamping. Values below this threshold will be clamped to zero. Typically half of Quantization Step.",
             Kind = ToolParameterKind.Float,
-            DefaultValue = 0.005d,
+            DefaultValue = 0.0078125d,
             Min = 0.000001d,
             Max = 1.0d,
             Step = 0.001d,
