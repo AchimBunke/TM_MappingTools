@@ -1,4 +1,5 @@
-﻿@using TM_MappingTools.Utils
+﻿@using TM_MappingTools.Pages
+@using TM_MappingTools.Utils
 @inject TM_MappingTools.Services.ClipFileService FileService
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject IJSRuntime JS
@@ -18,7 +19,7 @@
 
         <div class="file-io-row px-4 py-3 border-bottom">
             <div class="file-io-split">
-                <div @ref="dropZoneElement" class="file-drop-area"
+                @* <div @ref="dropZoneElement" class="file-drop-area"
                      @ondrop:preventDefault="true" @ondrop="OnDrop"
                      @ondragover:preventDefault="true" @ondragover="OnDragOver">
                     <InputFile @ref="inputFile" id="layoutFilePicker" OnChange="OnFileSelected" class="visually-hidden" />
@@ -39,7 +40,11 @@
                             <label for="layoutFilePicker" class="file-open-link">choose a file from disk</label>.
                         </div>
                     </div>
-                </div>
+                </div> *@
+                <FileLoader FileService="FileService"
+                            NoFileMessage="No Clip loaded."
+                            DropHintMessage="Drop a .Clip.Gbx file anywhere in this area"
+                            Accept=".Clip.Gbx" />
                 <div class="operations-history-list small">
                     <div class="operations-history-title">Operations Done</div>
                     <ul class="list-unstyled mb-0">
@@ -80,9 +85,6 @@
 </div>
 
 @code {
-    ElementReference dropZoneElement;
-    InputFile? inputFile;
-
     protected override void OnInitialized()
     {
         FileService.FileChanged += OnFileChanged;
@@ -94,27 +96,12 @@
         FileService.FileChanged -= OnFileChanged;
         OperationHistoryService.HistoryChanged -= OnOperationHistoryChanged;
     }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && inputFile is not null)
-        {
-            // Initialize the drop zone
-            await JS.InvokeVoidAsync("initializeFileDropZone", dropZoneElement, inputFile.Element);
-        }
-    }
-
-    private void OnFileChanged() => InvokeAsync(StateHasChanged);
 
     private void OnOperationHistoryChanged() => InvokeAsync(StateHasChanged);
 
-    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    private async void OnFileChanged()
     {
-        var file = e.File;
-        if (file is not null)
-        {
-            await FileService.SetFileAsync(e.File);
-            OperationHistoryService.Clear();
-        }
+        OperationHistoryService.Clear();
     }
 
     private async Task Download()
@@ -122,15 +109,6 @@
         using var stream = FileService.GetDownloadStream();
         var streamRef = new DotNetStreamReference(stream);
         await JS.InvokeVoidAsync("downloadFileFromStream", FileService.FileName, streamRef);
-    }
-    private void OnDragOver(DragEventArgs e)
-    {
-        // No-op: preventDefault handled in markup
-    }
-
-    private async Task OnDrop(DragEventArgs e)
-    {
-        // No-op: preventDefault handled in markup
     }
 
 }

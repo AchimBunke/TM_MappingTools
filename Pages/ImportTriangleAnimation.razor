@@ -1,0 +1,306 @@
+﻿@page "/import-triangle-animation"
+@using System.Runtime.Serialization
+@using System.Numerics
+@using TM_GenericMapping.MediaTracker.IO
+@using TM_MappingTools.Services
+@using TM_MappingTools.Utils
+@using static TM_GenericMapping.MediaTracker.IO.ObjSerializer
+@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.SessionStorage SessionStorage
+@inject TM_MappingTools.Services.ClipFileService ClipFileService
+
+
+<PageTitle>Import Triangle Animation</PageTitle>
+
+<div class="tool-page">
+    <ToolPageHeader IconClass="bi-collection-play" Title="Import Triangle Animation"
+                    Description="Import .obj animation from Blender and create triangle animations. Operations with lots of vertices may take a while to execute.">
+        <HeaderActions>
+            <button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" @onclick="ToggleHelpPanel"
+                    aria-expanded="@showHelpPanel" aria-controls="playerTrianglesHelpPanel">
+                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
+                @(showHelpPanel ? "Hide details" : "How this works")
+            </button>
+        </HeaderActions>
+    </ToolPageHeader>
+    <div class="tool-page-body">
+        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
+            <div class="tool-page-sidebar">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Animation Import</h2>
+                    </div>
+                    <FileLoader FileService="FileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop all files related to the animation (including .obj and .mtl files) anywhere in this area"
+                                Accept=".obj,.mtl" AllowMultiple="true" />
+                </div>
+            </div>
+            <div class="tool-page-main">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Actions</h2>
+                    </div>
+                    <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
+                                   ExecutionTargetOverwrite="Generate Triangle Animation"
+                                   Tooltip="Execute the tool with the loaded .obj animation." CanExecute="CanExecuteTool" />
+                </div>
+
+                <div class="tool-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Parameters</h2>
+                    </div>
+                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                                    ValuesChanged="OnParameterValuesChanged" />
+                </div>
+
+            </div>
+
+            @if (showHelpPanel)
+            {
+                <ToolHelpSidebar PanelId="playerTrianglesHelpPanel" Title="Detailed Info"
+                                 Description="How player-attached triangles work and when to use visibility ensurance.">
+                    <h3>What happens when you click Execute</h3>
+                    <p>For each selected track, this tool converts triangle geometry so it moves relative to the player
+                        vehicle rather than staying fixed in world space.</p>
+
+                        <h3>Ensure Visibility</h3>
+                        <p>When enabled, extra vertices are added to reduce culling artifacts so triangles remain visible from
+                            all camera angles and distances.</p>
+
+                            <h3>Ensurance Vertex Distance</h3>
+                            <p>This sets how far those helper vertices are placed. Larger values may improve culling robustness.</p>
+
+                            <h3>Practical workflow</h3>
+                            <p>If you want your relative triangles to remain visible from all camera angles, enable Ensure
+                                Visibility. The only time you should disable it is if you purposely want to only show these
+                                triangles when driving in a certain direction. Though even then the culling behavior is insanely
+                                hard to predict and depends on screen resolution and camera settings.</p>
+                            </ToolHelpSidebar>
+                        }
+                    </div>
+                </div>
+            </div>
+
+@code {
+    
+    private FileService FileService = new();
+    private bool showHelpPanel;
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+         new()
+        {
+            Key = "animationLength",
+            Label = "Animation Length",
+            Tooltip = "Specifies the length of the animation in seconds.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 5.0f,
+            Min = 0f,
+            Step = 1f,
+        },
+        new()
+        {
+            Key = "useMaterialColors",
+            Label = "Use Material Colors",
+            Tooltip = "If enabled, the tool will use extract material colors from .mtl files in the same directory as the animation.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "materialExtractionMode",
+            Label = "Material Extraction Mode",
+            Tooltip = "Defines how material colors are extracted from .mtl files. Per Vertex Color uses the first seen color for a specific vertex. Per Vertex Color (Interpolated) interpolates all colors from all faces that use the same vertex. Per Face Color creates additional vertices for each face so that colors can be assigned to individually faces.",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = "PerVertexColor",
+            Options = new List<ToolParameterOption>
+            {
+                new() { Value = "PerVertexColor", Label = "Per Vertex Color" },
+                new() { Value = "PerVertexColor_Interpolated", Label = "Per Vertex Color (Interpolated)" },
+                new() { Value = "PerFaceColor", Label = "Per Face Color" },
+            }
+        },
+        new()
+        {
+            Key = "transformPosition",
+            Label = "Position Offset",
+            Tooltip = "Translation offset applied to the imported animation.",
+            Kind = ToolParameterKind.Vector3,
+            DefaultValue = Vector3.Zero,
+            Step = 1d,
+        },
+        new()
+        {
+            Key = "transformScale",
+            Label = "Scale",
+            Tooltip = "Per-axis scale for the imported animation.",
+            Kind = ToolParameterKind.Vector3,
+            DefaultValue = Vector3.One,
+            Step = 0.1d,
+        },
+        new()
+        {
+            Key = "transformRotation",
+            Label = "Rotation",
+            Tooltip = "Euler rotation in degrees (X, Y, Z).",
+            Kind = ToolParameterKind.Quaternion,
+            DefaultValue = Quaternion.Identity,
+            Step = 1,
+        },
+    };
+
+    private ToolParameterValues parameterValues = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (SessionStorage.Has(member: nameof(parameterDefinitions)))
+            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
+        else
+            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
+        FileService.FileChanged += OnFileChanged;
+
+    }
+    public void Dispose()
+    {
+        FileService.FileChanged -= OnFileChanged;
+    }
+    async void OnFileChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private void ToggleHelpPanel()
+    {
+        showHelpPanel = !showHelpPanel;
+    }
+
+    private bool CanExecuteTool()
+    {
+        return FileService.HasFiles && ClipFileService.Clip != null;
+    }
+    private async Task<string?> ExecuteToolAsync()
+    {
+        var frameCount = ObjSerializer.GetOrderedFrameNames(FileService.Files.Select(f => f.Name)).Count;
+        if (frameCount == 0)
+        {
+            return "No valid animation frames found in the loaded files.";
+        }
+        var animLength = parameterValues.GetFloat("animationLength");
+        var minRequiredFrameRateMillis = Time.Millis(animLength / frameCount);
+        var sceneAnimationSettings = SceneAnimationSettings.Default;
+        sceneAnimationSettings.AnimationTickRateMillis =
+            Math.Min(SceneAnimationSettings.Default.AnimationTickRateMillis, minRequiredFrameRateMillis);
+        sceneAnimationSettings.MinKeyFrameTickRateMillis =
+            Math.Min(SceneAnimationSettings.Default.MinKeyFrameTickRateMillis, minRequiredFrameRateMillis);
+
+        var scene = new SceneTimeline();
+        var builder = new AnimationBuilder
+        {
+            AnimationObjSource = await CreateStreamObjSource(),
+            FileService = FileService,
+            LoadSettings = new ObjSerializer.ObjLoadSettings()
+            {
+                ObjMaterialMode = Enum.Parse<ObjSerializer.ObjMaterialMode>(parameterValues.GetString("materialExtractionMode"))
+            },
+            Time = animLength,
+            Position = parameterValues.GetVector3("transformPosition", Vector3.Zero),
+            Scale = parameterValues.GetVector3("transformScale", Vector3.One),
+            Rotation = parameterValues.GetQuaternion("transformRotation", Quaternion.Identity),
+        };
+   
+        try
+        {
+            scene.Animate(ClipFileService.Clip!.MediaClip, sceneAnimationSettings, builder);
+        }
+        catch (Exception ex)
+        {
+            return $"Error while building animation: {ex.Message}";
+        }
+
+       
+        OperationHistoryService.AddOperation("Generate Triangle Animation");
+        return null;
+    }
+
+    async Task<IObjSource> CreateStreamObjSource()
+    {
+        var files = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        foreach (var f in FileService.Files)
+        {
+            await using var stream = f.OpenReadStream(maxAllowedSize: FileHelper.MaxAllowedFileSize);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            files[f.Name] = ms.ToArray();
+        }
+
+        return new InMemoryObjSource(files);
+    }
+
+    private sealed class InMemoryObjSource : IObjSource
+    {
+        private readonly IReadOnlyDictionary<string, byte[]> files;
+
+        public InMemoryObjSource(IReadOnlyDictionary<string, byte[]> files)
+        {
+            this.files = files;
+        }
+
+        public Stream Open(string name)
+        {
+            if (!files.TryGetValue(name, out var data))
+            {
+                throw new FileNotFoundException($"Stream source has no entry for '{name}'");
+            }
+
+            // ObjSerializer disposes each opened stream; return a fresh one every time.
+            return new MemoryStream(data, writable: false);
+        }
+
+        public bool Exists(string name)
+        {
+            return files.ContainsKey(name);
+        }
+    }
+
+    
+    class AnimationBuilder : SceneBuilder
+    {
+        public required IObjSource AnimationObjSource { get; set; }
+        public required IFileService FileService { get; set; }
+        public required ObjSerializer.ObjLoadSettings LoadSettings { get; set; }
+        public required float Time { get; set; }
+        public Vector3 Position { get; set; } = Vector3.Zero;
+        public Vector3 Scale { get; set; } = Vector3.One;
+        public Quaternion Rotation { get; set; } = Quaternion.Identity;
+
+        protected override void Build()
+        {
+            var orderedFiles = ObjSerializer.GetOrderedFrameNames(FileService.Files.Select(f => f.Name));
+            var animation = ObjSerializer.LoadAnimationFromObj(orderedFiles, AnimationObjSource, LoadSettings, out var baseObj);
+            
+            var scaleRoot = new TriangleObject();
+            scaleRoot.LocalScale = Scale;
+            var rotationRoot = new TriangleObject();
+            rotationRoot.LocalRotation = Rotation;
+            var translationRoot = new TriangleObject();
+            translationRoot.LocalPosition = Position;
+
+            scaleRoot.AddSubObjects(baseObj);
+            rotationRoot.AddSubObjects(scaleRoot);
+            translationRoot.AddSubObjects(rotationRoot);
+
+            scene.Add(translationRoot);
+            scene.Play(baseObj.Animate().StoredVertexAnimation(animation, time: Time));
+
+          
+            scene.WaitAnimationEnd();
+        }
+
+    }
+}

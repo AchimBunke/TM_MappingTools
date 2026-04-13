@@ -6,27 +6,18 @@ using TM_MappingTools.Utils;
 
 namespace TM_MappingTools.Services;
 
-public class ClipFileService
+public class ClipFileService : FileService
 {
-    public string FileName { get; private set; } = string.Empty;
-    public long FileSize { get; private set; } = 0;
-    public bool HasFile => Clip != null;
     public Clip? Clip { get; private set; }
     
-    public event Action? FileChanged;
-
-    public void Clear()
+    public override void Clear()
     {
-        FileName = string.Empty;
-        FileSize = 0;
         Clip = null;
-        FileChanged?.Invoke();
-
+        base.Clear();
     }
-    public async Task SetFileAsync(IBrowserFile file)
+    public override async Task SetFileAsync(IBrowserFile file)
     {
-        FileName = file.Name;
-        FileSize = file.Size;
+        await base.SetFileAsync(file);
         try
         {
             using var browserStream = file.OpenReadStream(FileHelper.MaxAllowedFileSize);
@@ -41,8 +32,8 @@ public class ClipFileService
                     CloseStream = false,
                 }
             };
-            Clip.Open(memoryStream);
-            FileChanged?.Invoke();
+            await Clip.OpenAsync(memoryStream);
+            InvokeFileChanged();
         }
         catch (IOException io)
         {

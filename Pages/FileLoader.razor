@@ -1,0 +1,114 @@
+﻿@using TM_MappingTools.Services
+@using TM_MappingTools.Utils
+
+@inject IJSRuntime JS
+
+
+<div @ref="dropZoneElement" class="file-drop-area" @ondrop:preventDefault="true" @ondrop="OnDrop"
+     @ondragover:preventDefault="true" @ondragover="OnDragOver">
+    <InputFile @ref="inputFile" id="@inputId" OnChange="OnFileSelected" class="visually-hidden" accept="@Accept"
+               multiple="@AllowMultiple"  />
+
+    <div class="file-drop-content">
+        @if (AllowMultiple)
+        {
+            @if (FileService.HasFiles)
+            {
+                <div class="file-name">@FileService.FileName</div>
+                <div class="file-size">(@FileService.Files.Count files)</div>
+            }
+            else
+            {
+                <div class="file-name text-muted">@NoFileMessage</div>
+            }
+
+            <div class="file-drop-hint">
+                @DropHintMessage, or
+                <label for="@inputId" class="file-open-link">choose files from disk</label>.
+            </div>
+        }
+        else
+        {
+            @if (FileService.HasFile)
+            {
+                <div class="file-name">@FileService.FileName</div>
+                <div class="file-size">@FileHelper.GetFormattedFileSize(FileService.FileSize) (original)</div>
+            }
+            else
+            {
+                <div class="file-name text-muted">@NoFileMessage</div>
+            }
+
+            <div class="file-drop-hint">
+                @DropHintMessage, or
+                <label for="@inputId" class="file-open-link">choose a file from disk</label>.
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    const int maximumFileCount = 10000;
+    [Parameter] public string Accept { get; set; } = "";
+    [Parameter] public bool AllowMultiple { get; set; } = false;
+    private readonly string inputId = $"filePicker-{Guid.NewGuid():N}";
+    ElementReference dropZoneElement;
+    InputFile? inputFile;
+
+    [Parameter] public IFileService FileService { get; set; } = default!;
+    [Parameter] public string NoFileMessage { get; set; } = "No file loaded.";
+    [Parameter] public string DropHintMessage { get; set; } = "Drop a file anywhere in this area, or choose a file from disk.";
+
+    protected override void OnInitialized()
+    {
+        FileService.FileChanged += OnFileChanged;
+    }
+
+    public void Dispose()
+    {
+        FileService.FileChanged -= OnFileChanged;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && inputFile is not null)
+        {
+            // Initialize the drop zone
+            await JS.InvokeVoidAsync("initializeFileDropZone", dropZoneElement, inputFile.Element);
+        }
+    }
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var allowed =
+            Accept.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(ext => ext.StartsWith('.') ? ext.ToLower() : "." + ext.ToLower());
+
+        if (AllowMultiple)
+        {
+            var allowedFiles = e.GetMultipleFiles(maximumFileCount)
+            .Where(file => !allowed.Any() || allowed.Any(a => file.Name.ToLower().EndsWith(a)));
+            await FileService.SetFilesAsync(allowedFiles);
+        }
+        else
+        {
+            var file = e.File;
+            if (file != null && (!allowed.Any() || allowed.Any(a => file.Name.ToLower().EndsWith(a))))
+            {
+                await FileService.SetFileAsync(file);
+            }
+        }
+    }
+    private void OnFileChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnDragOver(DragEventArgs e)
+    {
+        // No-op: preventDefault handled in markup
+    }
+
+    private async Task OnDrop(DragEventArgs e)
+    {
+        // No-op: preventDefault handled in markup
+    }
+}

@@ -1,0 +1,59 @@
+.file-drop-area {
+    grid-area: drop;
+    border: 1px dashed var(--tm-border);
+    border-radius: var(--tm-radius-md);
+    background: var(--tm-surface);
+    padding: 0.875rem 1rem;
+    min-height: 118px;
+    cursor: pointer;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+    box-shadow: var(--tm-shadow-sm);
+}
+
+.file-drop-area:hover {
+    border-color: var(--tm-accent);
+    box-shadow: var(--tm-focus-ring);
+}
+
+.file-drop-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.file-drop-title {
+    font-weight: 600;
+    color: var(--tm-text);
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--tm-text);
+    word-break: break-word;
+}
+
+.file-size {
+    font-size: 0.9rem;
+    color: var(--tm-text-muted);
+}
+
+.file-drop-hint {
+    margin-top: 0.25rem;
+    color: var(--tm-text-muted);
+}
+
+.file-open-hint {
+    color: var(--tm-text-muted);
+    font-size: 0.95rem;
+}
+
+.file-open-link {
+    margin-left: 0.2rem;
+    color: var(--tm-accent);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.file-open-link:hover {
+    color: var(--tm-accent-strong);
+}
