@@ -60,26 +60,33 @@
                 <ToolHelpSidebar PanelId="playerTrianglesHelpPanel" Title="Detailed Info"
                                  Description="How player-attached triangles work and when to use visibility ensurance.">
                     <h3>What happens when you click Execute</h3>
-                    <p>For each selected track, this tool converts triangle geometry so it moves relative to the player
-                        vehicle rather than staying fixed in world space.</p>
-
-                        <h3>Ensure Visibility</h3>
-                        <p>When enabled, extra vertices are added to reduce culling artifacts so triangles remain visible from
-                            all camera angles and distances.</p>
-
-                            <h3>Ensurance Vertex Distance</h3>
-                            <p>This sets how far those helper vertices are placed. Larger values may improve culling robustness.</p>
-
-                            <h3>Practical workflow</h3>
-                            <p>If you want your relative triangles to remain visible from all camera angles, enable Ensure
-                                Visibility. The only time you should disable it is if you purposely want to only show these
-                                triangles when driving in a certain direction. Though even then the culling behavior is insanely
-                                hard to predict and depends on screen resolution and camera settings.</p>
-                            </ToolHelpSidebar>
-                        }
-                    </div>
-                </div>
+                    <p>The tool will process the loaded .obj and .mtl animation files and generate a new triangle3D track
+                        from the animation based on the specified parameters.</p>
+                    <h3>Animation Length</h3>
+                    <p>This parameter specifies the total length of the generated animation in seconds. The tool will automatically determine the required frame rate based on the number of animation frames in the loaded .obj files to fit the entire animation within the specified length. Setting a shorter animation length will result in a faster animation, while a longer length will create a slower animation.</p>
+                    <h3>Material Colors</h3>
+                    <p>When enabled, the tool will attempt to extract material colors from .mtl files that are provided with the .obj animation files. If a .mtl file with matching material definitions is found, the tool will use the colors defined in the .mtl file for the corresponding vertices in the generated triangle animation. If no .mtl file is found or if a material definition is missing, the tool will fall back to using default colors for those vertices.</p>
+                    <h3>Material Extraction Mode</h3>
+                    <p>This parameter defines how the tool extracts material colors from .mtl files and applies them to the generated triangle animation. The available modes are:</p>
+                    <ul class="text-muted small">
+                        <li><strong>Per Vertex Color:</strong> In this mode, the tool assigns a single color to each vertex based on the first material it encounters for that vertex in the .obj files. This means that if a vertex is shared by multiple faces with different materials, only the color from the first material will be used.</li>
+                        <li><strong>Per Vertex Color (Interpolated):</strong> This mode also assigns colors on a per-vertex basis, but instead of taking just the first material, it considers all materials associated with the vertex across different faces. The tool then interpolates the colors from all these materials to determine the final color for that vertex. This can result in smoother color transitions for vertices that are shared by faces with different materials but it might look weird depending on the color variation.</li>
+                        <li><strong>Per Face Color:</strong> In this mode, the tool creates additional vertices for each face so that colors can be assigned individually to each face. This means that even if multiple faces share the same vertex position, they can have different colors based on their respective materials. This mode can produce more accurate color representation at the cost of increased vertex count. This can increase the vertext count by a lot so be aware how many shared vertices the animation contains.</li>
+                    </ul>
+                    <h3>Position Offset, Scale and Rotation</h3>
+                    <p>These parameters allow you to apply a transformation to the entire imported animation. The Position Offset translates the animation by the specified amount in the X, Y, and Z directions. The Scale parameter allows you to scale the animation independently along each axis, which can be useful for resizing the animation to fit your scene. The Rotation parameter applies an Euler rotation (in degrees) to the animation around the X, Y, and Z axes. You can use these transformation parameters to adjust the placement, size, and orientation of the imported triangle animation in your scene.</p>
+                    <h3>Practical workflow</h3>
+                    <p>You will need to create an animation in Blender and have it exported as .obj and .mtl files. When exporting from Blender, make sure to export as series of .obj files and also include materials (.mtl) files for each .obj file. The animations must be named sequentially, for example: animation_1.obj, animation_2.obj, etc.</p>
+                    <p>You need to have a clip imported. Then you either drag/drop or select <strong>all</strong> the animation files (.obj, .mtl) you want to generate from into the tool.</p>
+                    <p>Adjust the parameters as needed and click "Execute". The tool will create a new triangle animation track based on the imported .obj animation and add it as a new Track into to the clip.</p>
+                    <p>Depending on the complexity of the animation and the number of vertices, the generation process may take some time. In some tests it even took minutes, during which the website becomes unresponsive. Once completed, you can preview the animation in-game to see how it looks and make adjustments to the parameters if necessary. If the animation import failed, only the first frame will be imported.</p>
+                    <p><strong>Important:</strong> Make sure your animation does not create new objects or change the vertex/triangle count in between frames... this will not be handled correctly.</p>
+                    <p>See <a href="https://github.com/Mokuura/Triangle3DAnimation" target="_blank">Triangle3DAnimation from Mokuura</a> if you want a similar locally installed tool.</p>
+                    </ToolHelpSidebar>
+                }
             </div>
+        </div>
+    </div>
 
 @code {
     
@@ -224,8 +231,8 @@
         }
 
        
-        OperationHistoryService.AddOperation("Generate Triangle Animation");
-        return null;
+        OperationHistoryService.AddOperation("Import Triangle Animation");
+        return builder.Message;
     }
 
     async Task<IObjSource> CreateStreamObjSource()
@@ -279,16 +286,21 @@
         public Vector3 Scale { get; set; } = Vector3.One;
         public Quaternion Rotation { get; set; } = Quaternion.Identity;
 
+        public string Message { get; private set; } = string.Empty;
         protected override void Build()
         {
             var orderedFiles = ObjSerializer.GetOrderedFrameNames(FileService.Files.Select(f => f.Name));
             var animation = ObjSerializer.LoadAnimationFromObj(orderedFiles, AnimationObjSource, LoadSettings, out var baseObj);
-            
+
             var scaleRoot = new TriangleObject();
             scaleRoot.LocalScale = Scale;
             var rotationRoot = new TriangleObject();
             rotationRoot.LocalRotation = Rotation;
-            var translationRoot = new TriangleObject();
+          
+            var translationRoot = new TriangleObject()
+            {
+                Name = baseObj.Name.TrimEnd("_1").ToString()
+            };
             translationRoot.LocalPosition = Position;
 
             scaleRoot.AddSubObjects(baseObj);
@@ -296,7 +308,16 @@
             translationRoot.AddSubObjects(rotationRoot);
 
             scene.Add(translationRoot);
-            scene.Play(baseObj.Animate().StoredVertexAnimation(animation, time: Time));
+            
+            if (animation.VertexAnimationFrames.Length > 0)
+            {
+                Message = $"Animation created with {animation.VertexAnimationFrames.Length} keyframes.";
+                scene.Play(baseObj.Animate().StoredVertexAnimation(animation, time: Time));
+            }
+            else
+            {
+                Message = $"Animation could not be loaded or has no keyframes. Added first frame only!";
+            }
 
           
             scene.WaitAnimationEnd();
