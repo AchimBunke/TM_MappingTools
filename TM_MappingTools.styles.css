@@ -399,6 +399,66 @@ main[b-yrpmrvqeod] {
         overflow-y: auto;
     }
 }
+/* /Pages/FileLoader.razor.rz.scp.css */
+.file-drop-area[b-6u4mseu3x4] {
+    grid-area: drop;
+    border: 1px dashed var(--tm-border);
+    border-radius: var(--tm-radius-md);
+    background: var(--tm-surface);
+    padding: 0.875rem 1rem;
+    min-height: 118px;
+    cursor: pointer;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+    box-shadow: var(--tm-shadow-sm);
+}
+
+.file-drop-area:hover[b-6u4mseu3x4] {
+    border-color: var(--tm-accent);
+    box-shadow: var(--tm-focus-ring);
+}
+
+.file-drop-content[b-6u4mseu3x4] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.file-drop-title[b-6u4mseu3x4] {
+    font-weight: 600;
+    color: var(--tm-text);
+}
+
+.file-name[b-6u4mseu3x4] {
+    font-weight: 500;
+    color: var(--tm-text);
+    word-break: break-word;
+}
+
+.file-size[b-6u4mseu3x4] {
+    font-size: 0.9rem;
+    color: var(--tm-text-muted);
+}
+
+.file-drop-hint[b-6u4mseu3x4] {
+    margin-top: 0.25rem;
+    color: var(--tm-text-muted);
+}
+
+.file-open-hint[b-6u4mseu3x4] {
+    color: var(--tm-text-muted);
+    font-size: 0.95rem;
+}
+
+.file-open-link[b-6u4mseu3x4] {
+    margin-left: 0.2rem;
+    color: var(--tm-accent);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.file-open-link:hover[b-6u4mseu3x4] {
+    color: var(--tm-accent-strong);
+}
 /* /Pages/ParameterInput.razor.rz.scp.css */
 .parameter-input[b-8y05qc4gvo] {
     background: var(--tm-surface);
@@ -479,9 +539,69 @@ main[b-yrpmrvqeod] {
     line-height: 1.4;
 }
 
+.parameter-vector-grid[b-8y05qc4gvo] {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.parameter-vector-grid-2[b-8y05qc4gvo] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.parameter-vector-grid-3[b-8y05qc4gvo] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.parameter-vector-grid-4[b-8y05qc4gvo] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.parameter-vector-inline-item[b-8y05qc4gvo] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.parameter-vector-label[b-8y05qc4gvo] {
+    font-size: 0.68rem;
+    line-height: 1;
+    color: var(--tm-text-soft);
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+.parameter-input .parameter-vector-inline-item .form-control[b-8y05qc4gvo] {
+    height: 1.85rem;
+    min-height: 1.85rem;
+    padding: 0.12rem 0.4rem;
+    font-size: 0.84rem;
+    line-height: 1.1;
+}
+
+.parameter-vector-raw[b-8y05qc4gvo] {
+    margin-top: 0.3rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.parameter-vector-hint[b-8y05qc4gvo] {
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--tm-text-soft);
+}
+
 @media (max-width: 640.98px) {
     .parameter-input-field-wide[b-8y05qc4gvo] {
         grid-column: span 1;
+    }
+
+    .parameter-vector-grid-4[b-8y05qc4gvo] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .parameter-vector-grid-2[b-8y05qc4gvo],
+    .parameter-vector-grid-3[b-8y05qc4gvo] {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
     }
 }
 /* /Pages/TrackSelector.razor.rz.scp.css */

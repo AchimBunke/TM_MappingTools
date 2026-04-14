@@ -3,7 +3,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <base href="/TM_MappingTools/">
-    <link href="_framework/dotnet.py617aijrp.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-f3c0qdVF0Ee4/Rvx5OxJDR/WaaQRL7hVhlyhk8ZQ94Y=">
+    <link href="_framework/dotnet.ktiygplsh4.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-yPfIxMT/c35pqeWuCzFV0f5L69/qgTXJiYNlxiz/05c=">
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/app.css">
@@ -12,18 +12,18 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.ktiygplsh4.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.79x7rp8afl.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.py617aijrp.js",
     "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.peu2mfb29t.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-f3c0qdVF0Ee4/Rvx5OxJDR/WaaQRL7hVhlyhk8ZQ94Y=",
+    "./_framework/dotnet.js": "sha256-yPfIxMT/c35pqeWuCzFV0f5L69/qgTXJiYNlxiz/05c=",
+    "./_framework/dotnet.ktiygplsh4.js": "sha256-yPfIxMT/c35pqeWuCzFV0f5L69/qgTXJiYNlxiz/05c=",
     "./_framework/dotnet.native.79x7rp8afl.js": "sha256-G6Ot4KWLnwcYKTDP77xAM6vyF4XvZquvNNy+QSz8iiw=",
     "./_framework/dotnet.native.js": "sha256-G6Ot4KWLnwcYKTDP77xAM6vyF4XvZquvNNy+QSz8iiw=",
-    "./_framework/dotnet.py617aijrp.js": "sha256-f3c0qdVF0Ee4/Rvx5OxJDR/WaaQRL7hVhlyhk8ZQ94Y=",
     "./_framework/dotnet.runtime.js": "sha256-cajUr4vA/MpLPWj3omULUOwEQw3i8CE2n8AmDheqWBM=",
     "./_framework/dotnet.runtime.peu2mfb29t.js": "sha256-cajUr4vA/MpLPWj3omULUOwEQw3i8CE2n8AmDheqWBM="
   }
@@ -45,7 +45,10 @@
         <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-keyframe-animations" class="nav-link"><!--!--><i class="nav-menu-icon bi-bezier" b-k974kyz3h5=""></i> Optimize Keyframe Animations
             </a></div><!--!-->
 
-         <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-triangle-compression" class="nav-link"><!--!--><i class="nav-menu-icon bi-grid-3x3" b-k974kyz3h5=""></i> Optimize Triangle Compression
+        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-triangle-compression" class="nav-link"><!--!--><i class="nav-menu-icon bi-grid-3x3" b-k974kyz3h5=""></i> Optimize Triangle Compression
+            </a></div><!--!-->
+
+        <div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="import-triangle-animation" class="nav-link"><!--!--><i class="nav-menu-icon bi-collection-play" b-k974kyz3h5=""></i> Import Triangle Animation
             </a></div><!--!-->
 
         <hr class="nav-separator" b-k974kyz3h5="">
@@ -57,12 +60,11 @@
             <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod="">CSharp Mapping GitHub</a>
             <a href="https://trackmania.exchange/usershow/131189" target="_blank" b-yrpmrvqeod="">TMX</a></div>
 
-        <div class="file-io-row px-4 py-3 border-bottom" b-yrpmrvqeod=""><div class="file-io-split" b-yrpmrvqeod=""><div class="file-drop-area" b-yrpmrvqeod="" _bl_2=""><!--!--><input id="layoutFilePicker" class="visually-hidden" type="file" _bl_3=""><!--!-->
+        <div class="file-io-row px-4 py-3 border-bottom" b-yrpmrvqeod=""><div class="file-io-split" b-yrpmrvqeod=""><!--!--><div class="file-drop-area" b-6u4mseu3x4="" _bl_2=""><!--!--><input id="filePicker-13bec7d206d248e5a35484bf636559b1" class="visually-hidden" accept=".Clip.Gbx" type="file" _bl_3=""><!--!-->
 
-                    <div class="file-drop-content" b-yrpmrvqeod=""><!--!--><div class="file-name text-muted" b-yrpmrvqeod="">No Clip loaded</div><!--!--><div class="file-drop-hint" b-yrpmrvqeod="">
-                            Drop a .Clip.Gbx file anywhere in this area, or
-                            <label for="layoutFilePicker" class="file-open-link" b-yrpmrvqeod="">choose a file from disk</label>.
-                        </div></div></div><!--!-->
+    <div class="file-drop-content" b-6u4mseu3x4=""><div class="file-name text-muted" b-6u4mseu3x4="">No Clip loaded.</div><div class="file-drop-hint" b-6u4mseu3x4="">Drop a .Clip.Gbx file anywhere in this area<!--!-->, or
+                <label for="filePicker-13bec7d206d248e5a35484bf636559b1" class="file-open-link" b-6u4mseu3x4="">choose a file from disk</label><!--!-->.
+            </div></div></div><!--!-->
                 <div class="operations-history-list small" b-yrpmrvqeod=""><!--!--><div class="operations-history-title" b-yrpmrvqeod="">Operations Done</div>
                     <ul class="list-unstyled mb-0" b-yrpmrvqeod=""><!--!--><li class="operation-empty" b-yrpmrvqeod="">(empty)</li></ul></div><!--!-->
 
@@ -86,7 +88,10 @@
                 <div class="home-tool-card-desc">Reduce redundant keyframes in MediaTracker animations to reduce filesize.</div></div></a>
         <a href="optimize-triangle-compression" class="home-tool-card"><i class="bi-grid-3x3 home-tool-card-icon" aria-hidden="true"></i>
             <div class="home-tool-card-body"><div class="home-tool-card-title">Optimize Triangle Compression</div>
-                <div class="home-tool-card-desc">Optimize triangle compression for MediaTracker clips to reduce filesize.</div></div></a></div></div></article></main></div><!--!-->
+                <div class="home-tool-card-desc">Optimize triangle compression for MediaTracker clips to reduce filesize.</div></div></a>
+        <a href="import-triangle-animation" class="home-tool-card"><i class="bi-collection-play home-tool-card-icon" aria-hidden="true"></i>
+            <div class="home-tool-card-body"><div class="home-tool-card-title">Import Triangle Animation</div>
+                <div class="home-tool-card-desc">Import .obj animation from Blender and create triangle animations.</div></div></a></div></div></article></main></div><!--!-->
         <!--!--></div>
 
     <div id="blazor-error-ui">
