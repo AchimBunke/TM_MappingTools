@@ -210,7 +210,7 @@ code {
 .home-hero-subtitle {
     font-size: 1.1rem;
     color: var(--tm-text-muted);
-    max-width: 540px;
+    max-width: 640px;
     margin: 0.25rem 0 0;
 }
 
@@ -226,7 +226,7 @@ code {
 
 .home-tools-section {
     padding: 0 1.5rem 2.5rem;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     width: 100%;
 }
@@ -240,17 +240,39 @@ code {
     margin-bottom: 0.85rem;
 }
 
-.home-tool-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+.home-tool-groups {
+    display: grid;
+    gap: 1rem;
+}
+
+.home-tool-group {
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-md);
+    background: var(--tm-surface-soft);
+    padding: 0.9rem;
+}
+
+.home-group-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tm-text-muted);
+    margin: 0 0 0.8rem;
+}
+
+.home-tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.7rem;
 }
 
 .home-tool-card {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 7.2rem;
+    padding: 0.85rem 1rem;
     background: var(--tm-surface);
     border: 1px solid var(--tm-border);
     border-radius: var(--tm-radius-md);
@@ -258,6 +280,12 @@ code {
     text-decoration: none;
     color: var(--tm-text);
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.home-tool-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
 .home-tool-card:hover {
@@ -269,20 +297,32 @@ code {
 }
 
 .home-tool-card-icon {
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     color: var(--tm-accent);
     flex-shrink: 0;
 }
 
 .home-tool-card-title {
     font-weight: 600;
-    font-size: 0.97rem;
+    font-size: 0.9rem;
 }
 
 .home-tool-card-desc {
-    font-size: 0.87rem;
+    font-size: 0.82rem;
     color: var(--tm-text-muted);
-    margin-top: 0.15rem;
+    margin-top: 0.05rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+    .home-tools-section {
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+
+    .home-tool-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ── Shared tool page layout ────────────────────────────────── */
