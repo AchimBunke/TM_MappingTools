@@ -15,6 +15,9 @@ builder.Services.AddScoped<SessionStorage>();
 
 builder.Services.AddSingleton<FileService>();
 builder.Services.AddSingleton<ClipFileService>();
+builder.Services.AddSingleton<MapFileService>();
+builder.Services.AddSingleton<ItemFileService>();
+builder.Services.AddSingleton<FileTypeManager>();
 builder.Services.AddSingleton<OperationHistoryService>();
 
 GbxExtensions.Setup();

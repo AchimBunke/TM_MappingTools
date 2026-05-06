@@ -1,6 +1,6 @@
 ﻿@using TM_MappingTools.Pages
 @using TM_MappingTools.Utils
-@inject TM_MappingTools.Services.ClipFileService FileService
+@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject IJSRuntime JS
 @inherits LayoutComponentBase
@@ -19,32 +19,11 @@
 
         <div class="file-io-row px-4 py-3 border-bottom">
             <div class="file-io-split">
-                @* <div @ref="dropZoneElement" class="file-drop-area"
-                     @ondrop:preventDefault="true" @ondrop="OnDrop"
-                     @ondragover:preventDefault="true" @ondragover="OnDragOver">
-                    <InputFile @ref="inputFile" id="layoutFilePicker" OnChange="OnFileSelected" class="visually-hidden" />
-
-                    <div class="file-drop-content">
-                        @if (FileService.HasFile)
-                        {
-                            <div class="file-name">@FileService.FileName</div>
-                            <div class="file-size">@FileHelper.GetFormattedFileSize(FileService.FileSize) (original)</div>
-                        }
-                        else
-                        {
-                            <div class="file-name text-muted">No Clip loaded</div>
-                        }
-
-                        <div class="file-drop-hint">
-                            Drop a .Clip.Gbx file anywhere in this area, or
-                            <label for="layoutFilePicker" class="file-open-link">choose a file from disk</label>.
-                        </div>
-                    </div>
-                </div> *@
-                <FileLoader FileService="FileService"
-                            NoFileMessage="No Clip loaded."
-                            DropHintMessage="Drop a .Clip.Gbx file anywhere in this area"
-                            Accept=".Clip.Gbx" />
+                <FileLoader FileService="CurrentFileService"
+                            NoFileMessage="No file loaded."
+                            DropHintMessage="Drop a .Clip.Gbx, .Map.Gbx, or .Item.Gbx file anywhere in this area"
+                            Accept="@TM_MappingTools.Services.FileTypeManager.GetFileFilter()"
+                            OnFileSelected="OnFileSelected" />
                 <div class="operations-history-list small">
                     <div class="operations-history-title">Operations Done</div>
                     <ul class="list-unstyled mb-0">
@@ -66,13 +45,13 @@
                 </div>
 
                 <div class="file-download-area">
-                    @if (FileService.HasFile)
+                    @if (FileTypeManager.CurrentService?.HasFile == true)
                     {
-                        <button class="btn btn-primary" @onclick="Download">Export Clip</button>
+                        <button class="btn btn-primary" @onclick="Download">Export @FileTypeManager.CurrentContentType</button>
                     }
                     else
                     {
-                        <span class="text-muted small">Load a Clip to enable export.</span>
+                        <span class="text-muted small">Load a file to enable export.</span>
                     }
                 </div>
             </div>
@@ -85,30 +64,63 @@
 </div>
 
 @code {
+    private Services.FileService CurrentFileService = new();
+
     protected override void OnInitialized()
     {
-        FileService.FileChanged += OnFileChanged;
+        CurrentFileService.FileChanged += OnFileChanged;
+        FileTypeManager.FileTypeChanged += OnFileTypeChanged;
         OperationHistoryService.HistoryChanged += OnOperationHistoryChanged;
     }
 
     public void Dispose()
     {
-        FileService.FileChanged -= OnFileChanged;
+        CurrentFileService.FileChanged -= OnFileChanged;
+        FileTypeManager.FileTypeChanged -= OnFileTypeChanged;
         OperationHistoryService.HistoryChanged -= OnOperationHistoryChanged;
     }
 
     private void OnOperationHistoryChanged() => InvokeAsync(StateHasChanged);
+
+    private void OnFileTypeChanged() => InvokeAsync(StateHasChanged);
 
     private async void OnFileChanged()
     {
         OperationHistoryService.Clear();
     }
 
+    private async Task OnFileSelected(Microsoft.AspNetCore.Components.Forms.IBrowserFile file)
+    {
+        try
+        {
+            await FileTypeManager.LoadFileAsync(file);
+
+            // Sync UI state only when the typed service actually loaded content.
+            if (FileTypeManager.CurrentService?.HasFile == true)
+            {
+                await CurrentFileService.SetFileAsync(file);
+            }
+            else
+            {
+                CurrentFileService.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading file: {ex.Message}");
+            CurrentFileService.Clear();
+        }
+    }
+
     private async Task Download()
     {
-        using var stream = FileService.GetDownloadStream();
-        var streamRef = new DotNetStreamReference(stream);
-        await JS.InvokeVoidAsync("downloadFileFromStream", FileService.FileName, streamRef);
+        var stream = FileTypeManager.GetDownloadStream();
+        if (stream != null && FileTypeManager.CurrentService != null)
+        {
+            var streamRef = new DotNetStreamReference(stream);
+            await JS.InvokeVoidAsync("downloadFileFromStream", FileTypeManager.CurrentService.FileName, streamRef);
+        }
     }
 
 }
+

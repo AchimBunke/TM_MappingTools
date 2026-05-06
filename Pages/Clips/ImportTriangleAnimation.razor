@@ -7,7 +7,7 @@
 @using static TM_GenericMapping.MediaTracker.IO.ObjSerializer
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject TM_MappingTools.Services.SessionStorage SessionStorage
-@inject TM_MappingTools.Services.ClipFileService ClipFileService
+@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
 
 
 <PageTitle>Import Triangle Animation</PageTitle>
@@ -189,10 +189,14 @@
 
     private bool CanExecuteTool()
     {
-        return FileService.HasFiles && ClipFileService.Clip != null;
+        return FileService.HasFiles && FileTypeManager.GetClip() != null;
     }
     private async Task<string?> ExecuteToolAsync()
     {
+        var clip = FileTypeManager.GetClip();
+        if (clip == null)
+            return "No clip loaded.";
+
         var frameCount = ObjSerializer.GetOrderedFrameNames(FileService.Files.Select(f => f.Name)).Count;
         if (frameCount == 0)
         {
@@ -223,7 +227,7 @@
    
         try
         {
-            scene.Animate(ClipFileService.Clip!.MediaClip, sceneAnimationSettings, builder);
+            scene.Animate(clip.MediaClip, sceneAnimationSettings, builder);
         }
         catch (Exception ex)
         {
@@ -249,31 +253,7 @@
         return new InMemoryObjSource(files);
     }
 
-    private sealed class InMemoryObjSource : IObjSource
-    {
-        private readonly IReadOnlyDictionary<string, byte[]> files;
-
-        public InMemoryObjSource(IReadOnlyDictionary<string, byte[]> files)
-        {
-            this.files = files;
-        }
-
-        public Stream Open(string name)
-        {
-            if (!files.TryGetValue(name, out var data))
-            {
-                throw new FileNotFoundException($"Stream source has no entry for '{name}'");
-            }
-
-            // ObjSerializer disposes each opened stream; return a fresh one every time.
-            return new MemoryStream(data, writable: false);
-        }
-
-        public bool Exists(string name)
-        {
-            return files.ContainsKey(name);
-        }
-    }
+    
 
     
     class AnimationBuilder : SceneBuilder

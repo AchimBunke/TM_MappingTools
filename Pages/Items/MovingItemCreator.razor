@@ -1,0 +1,210 @@
+@page "/moving-item-creator"
+@using GBX.NET.Engines.GameData
+@using System.Text
+@using System.IO.Compression
+@using TM_MappingTools.Services
+@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
+@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.SessionStorage SessionStorage
+@inject IJSRuntime JS
+
+
+<PageTitle>Moving Item Creator</PageTitle>
+
+<div class="tool-page">
+    <ToolPageHeader IconClass="bi-box-arrow-in-right" Title="Moving Item Creator" Description="Create moving items.">
+    </ToolPageHeader>
+    <div class="tool-page-body">
+        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
+            <div class="tool-page-sidebar">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Items to convert to moving</h2>
+                    </div>
+                    <FileLoader FileService="FileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop all items you want to convert to moving here"
+                                Accept=".Item.Gbx" AllowMultiple="true" />
+                </div>
+            </div>
+            <div class="tool-page-main">
+                <div class="tool-panel tool-action-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Actions</h2>
+                    </div>
+                    <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
+                                   ExecutionTargetOverwrite="Generate Moving Items"
+                                   Tooltip="Execute the tool with the loaded items." CanExecute="CanExecuteTool" />
+                </div>
+
+                <div class="tool-panel">
+                    <div class="tool-panel-header">
+                        <h2 class="tool-panel-title">Parameters</h2>
+                    </div>
+                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                                    ValuesChanged="OnParameterValuesChanged" />
+                </div>
+
+            </div>
+
+            @if (showHelpPanel)
+            {
+                <ToolHelpSidebar PanelId="movingItemCreatorHelpPanel" Title="Detailed Info"
+                                 Description="What this tool changes and how to tune it safely.">
+                    <h3>What happens when you click Execute</h3>
+                    <p>The optimizer iterates over each selected MediaTracker track and analyzes the vertices. It reduces
+                        the precision of vertex positions to improve compression efficiency of LZO.</p>
+                      
+                    </ToolHelpSidebar>
+                }
+            </div>
+        </div>
+    </div>
+
+    
+@code {
+    private FileService FileService = new();
+    private bool showHelpPanel;
+    
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "author",
+            Label = "Author Name",
+            Tooltip = "The author of the moving item.",
+            Kind = ToolParameterKind.Text,
+            DefaultValue = string.Empty,
+        },
+        new()
+        {
+            Key = "namePostfix",
+            Label = "Item Name Postfix",
+            Tooltip = "The postfix to append to the name of the source item.",
+            Kind = ToolParameterKind.Text,
+            DefaultValue = "_Moving",
+        }
+    };
+
+    private ToolParameterValues parameterValues = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (SessionStorage.Has(member: nameof(parameterDefinitions)))
+            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
+        else
+            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
+        FileService.FileChanged += OnFileChanged;
+
+    }
+    public void Dispose()
+    {
+        FileService.FileChanged -= OnFileChanged;
+    }
+    async void OnFileChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private void ToggleHelpPanel()
+    {
+        showHelpPanel = !showHelpPanel;
+    }
+
+
+    private bool CanExecuteTool()
+    {
+        return FileService.HasFiles;
+    }
+    private async Task<string?> ExecuteToolAsync()
+    {
+        var sourceAnimationItem = FileTypeManager.GetItem();
+        bool hasSourceAnimation = sourceAnimationItem != null;
+
+        var itemFileService = new ItemFileService();
+
+        var meshExtractor = new TM_GenericMapping.Items.MeshExtractor();
+
+        var meshBuilderSettings = new TM_GenericMapping.Items.MeshBuilder.MeshBuilderSettings
+        {
+            Author = parameterValues.GetString("author","TM_MappingTools.MovingItemCreator"),
+        };
+        var meshBuilder = new TM_GenericMapping.Items.MeshBuilder(meshBuilderSettings);
+
+        var movingItemCreatorSettings = new TM_GenericMapping.Items.MovingItemCreator.MovingItemCreatorSettings
+        {
+            MovingItemAnimationTemplate = sourceAnimationItem,
+        };
+        var movingItemCreator = new TM_GenericMapping.Items.MovingItemCreator(
+            meshExtractor, 
+            meshBuilder,
+            movingItemCreatorSettings);
+        
+        string namePostfix = parameterValues.GetString("namePostfix", string.Empty);
+
+        StringBuilder messageBuilder = new();
+        var generatedItems = new List<(string FileName, CGameItemModel Item)>();
+
+        foreach(var file in FileService.Files)
+        {
+            await itemFileService.SetFileAsync(file);
+            var item = itemFileService.Item;
+            if(item == null)
+            {
+                messageBuilder.AppendLine($"Failed to create moving item for file: {file.Name}");
+                continue;
+            }
+            var movingItemResult = movingItemCreator.CreateMovingItem(item);
+            if(!movingItemResult.IsSuccess)
+                messageBuilder.AppendLine($"Failed to create moving item for file: {file.Name}");
+            else
+            {
+                movingItemResult.Value.Name = item.Name + namePostfix;
+
+                generatedItems.Add((FixFileName(file.Name, namePostfix), movingItemResult.Value));
+            }
+        }
+
+        if (generatedItems.Count > 0)
+            await DownloadZipAsync(generatedItems);
+
+        OperationHistoryService.AddOperation("Create Moving Items");
+
+        return messageBuilder.ToString();
+    }
+
+    string FixFileName(string originalName, string postFix)
+    {
+        if (string.IsNullOrEmpty(originalName) || string.IsNullOrEmpty(postFix))
+            return originalName;
+
+        const string itemsSuffix = ".Item.Gbx";
+        if (originalName.EndsWith(itemsSuffix, StringComparison.OrdinalIgnoreCase))
+            return originalName[..^itemsSuffix.Length] + postFix + itemsSuffix;
+
+        return originalName;
+    }
+    private async Task DownloadZipAsync(List<(string FileName, CGameItemModel Item)> items)
+    {
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var (fileName, item) in items)
+            {
+                var entry = archive.CreateEntry(fileName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                item.Save(entryStream);
+            }
+        }
+        zipStream.Position = 0;
+        var streamRef = new DotNetStreamReference(zipStream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", "MovingItems.zip", streamRef);
+    }
+
+}

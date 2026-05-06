@@ -1,24 +1,24 @@
-
 using GBX.NET;
+using GBX.NET.Engines.GameData;
 using Microsoft.AspNetCore.Components.Forms;
-using TM_GenericMapping.IO;
 using TM_MappingTools.Utils;
 
 namespace TM_MappingTools.Services;
 
-public class ClipFileService : GbxFileService
+public class ItemFileService : GbxFileService
 {
-    public Clip? Clip { get; private set; }
+    public CGameItemModel? Item { get; private set; }
 
-    public override object? LoadedContent => Clip;
-    public override string SupportedExtension => ".Clip.Gbx";
-    public override string ContentTypeName => "Clip";
-    
+    public override object? LoadedContent => Item;
+    public override string SupportedExtension => ".Item.Gbx";
+    public override string ContentTypeName => "Item";
+
     public override void Clear()
     {
-        Clip = null;
+        Item = null;
         base.Clear();
     }
+
     public override async Task SetFileAsync(IBrowserFile file)
     {
         try
@@ -28,29 +28,26 @@ public class ClipFileService : GbxFileService
             await browserStream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
-            Clip = new Clip() { 
-                SavePath = file.Name,
-                WriteSettings = new GbxWriteSettings()
-                {
-                    CloseStream = false,
-                }
-            };
-            await Clip.OpenAsync(memoryStream);
+            Item = await Gbx.ParseAsync<CGameItemModel>(memoryStream);
+            if (Item is null)
+            {
+                throw new InvalidDataException("Parsed item content was null.");
+            }
+
             await base.SetFileAsync(file);
             InvokeContentLoaded();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error opening file: {ex.Message}");
+            Console.WriteLine($"Error opening item file: {ex.Message}");
             Clear();
-            throw;
         }
     }
 
     public Stream GetDownloadStream()
     {
         var stream = new MemoryStream();
-        Clip!.Save(stream);
+        Item!.Save(stream);
         stream.Position = 0;
         return stream;
     }

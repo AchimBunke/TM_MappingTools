@@ -17,31 +17,56 @@
 
         <hr class="nav-separator" />
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="player-attached-triangles">
-                <i class="nav-menu-icon bi-paperclip" aria-hidden="true"></i>Player-Attached 3DTriangles
-            </NavLink>
+        @* Clip Tools *@
+        <div class="nav-tools-section @(IsToolSectionActive("Clip") ? "nav-tools-section-active" : "")">
+            <div class="nav-item px-3 @(IsToolSectionActive("Clip") ? "nav-item-active" : "")">
+                <NavLink class="nav-link" href="player-attached-triangles">
+                    <i class="nav-menu-icon bi-paperclip" aria-hidden="true"></i>Player-Attached 3DTriangles
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3 @(IsToolSectionActive("Clip") ? "nav-item-active" : "")">
+                <NavLink class="nav-link" href="optimize-keyframe-animations">
+                    <i class="nav-menu-icon bi-bezier"></i> Optimize Keyframe Animations
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3 @(IsToolSectionActive("Clip") ? "nav-item-active" : "")">
+                <NavLink class="nav-link" href="optimize-triangle-compression">
+                    <i class="nav-menu-icon bi-grid-3x3"></i> Optimize Triangle Compression
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3 @(IsToolSectionActive("Clip") ? "nav-item-active" : "")">
+                <NavLink class="nav-link" href="import-triangle-animation">
+                    <i class="nav-menu-icon bi-collection-play"></i> Import Triangle Animation
+                </NavLink>
+            </div>
+
+            <hr class="nav-separator" />
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="optimize-keyframe-animations">
-                <i class="nav-menu-icon bi-bezier"></i> Optimize Keyframe Animations
-            </NavLink>
+        @* Map Tools *@
+        <div class="nav-tools-section @(IsToolSectionActive("Map") ? "nav-tools-section-active" : "")">
+            <div class="nav-item px-3 @(IsToolSectionActive("Map") ? "nav-item-active" : "")">
+                <NavLink class="nav-link" href="map-item-replacer">
+                    <i class="nav-menu-icon bi-shuffle" aria-hidden="true"></i> Map Item Replacer
+                </NavLink>
+            </div>
+
+            <hr class="nav-separator" />
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="optimize-triangle-compression">
-                <i class="nav-menu-icon bi-grid-3x3"></i> Optimize Triangle Compression
-            </NavLink>
-        </div>
+        @* Item Tools *@
+        <div class="nav-tools-section nav-tools-section-active">
+            <div class="nav-item px-3 nav-item-active">
+                <NavLink class="nav-link" href="moving-item-creator">
+                    <i class="nav-menu-icon bi-box-arrow-in-right" aria-hidden="true"></i> Moving Item Creator
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="import-triangle-animation">
-                <i class="nav-menu-icon bi-collection-play"></i> Import Triangle Animation
-            </NavLink>
+            <hr class="nav-separator" />
         </div>
-
-        <hr class="nav-separator" />
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="about">
@@ -53,12 +78,32 @@
 </div>
 
 @code {
+    @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
+
     private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        FileTypeManager.FileTypeChanged += OnFileTypeChanged;
+    }
+
+    private void OnFileTypeChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
+
+    private bool IsToolSectionActive(string contentType)
+    {
+        return string.IsNullOrEmpty(FileTypeManager.CurrentContentType)
+            || string.Equals(FileTypeManager.CurrentContentType, contentType, StringComparison.Ordinal);
+    }
 }
+

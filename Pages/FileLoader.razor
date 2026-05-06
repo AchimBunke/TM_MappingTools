@@ -6,7 +6,7 @@
 
 <div @ref="dropZoneElement" class="file-drop-area" @ondrop:preventDefault="true" @ondrop="OnDrop"
      @ondragover:preventDefault="true" @ondragover="OnDragOver">
-    <InputFile @ref="inputFile" id="@inputId" OnChange="OnFileSelected" class="visually-hidden" accept="@Accept"
+    <InputFile @ref="inputFile" id="@inputId" OnChange="OnFileSelectedHandler" class="visually-hidden" accept="@Accept"
                multiple="@AllowMultiple"  />
 
     <div class="file-drop-content">
@@ -51,6 +51,7 @@
     const int maximumFileCount = 10000;
     [Parameter] public string Accept { get; set; } = "";
     [Parameter] public bool AllowMultiple { get; set; } = false;
+    [Parameter] public EventCallback<Microsoft.AspNetCore.Components.Forms.IBrowserFile> OnFileSelected { get; set; }
     private readonly string inputId = $"filePicker-{Guid.NewGuid():N}";
     ElementReference dropZoneElement;
     InputFile? inputFile;
@@ -76,8 +77,11 @@
             await JS.InvokeVoidAsync("initializeFileDropZone", dropZoneElement, inputFile.Element);
         }
     }
-    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    private async Task OnFileSelectedHandler(InputFileChangeEventArgs e)
     {
+        // Reset displayed file info for a new selection. Callbacks can set it again on success.
+        FileService.Clear();
+
         var allowed =
             Accept.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(ext => ext.StartsWith('.') ? ext.ToLower() : "." + ext.ToLower());
@@ -86,14 +90,65 @@
         {
             var allowedFiles = e.GetMultipleFiles(maximumFileCount)
             .Where(file => !allowed.Any() || allowed.Any(a => file.Name.ToLower().EndsWith(a)));
-            await FileService.SetFilesAsync(allowedFiles);
+            
+            // Invoke the custom callback if provided
+            if (OnFileSelected.HasDelegate)
+            {
+                foreach (var file in allowedFiles)
+                {
+                    try
+                    {
+                        await OnFileSelected.InvokeAsync(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"FileLoader callback failed for {file.Name}: {ex.Message}");
+                        FileService.Clear();
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    await FileService.SetFilesAsync(allowedFiles);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"FileLoader SetFilesAsync failed: {ex.Message}");
+                    FileService.Clear();
+                }
+            }
         }
         else
         {
             var file = e.File;
             if (file != null && (!allowed.Any() || allowed.Any(a => file.Name.ToLower().EndsWith(a))))
             {
-                await FileService.SetFileAsync(file);
+                if (OnFileSelected.HasDelegate)
+                {
+                    try
+                    {
+                        await OnFileSelected.InvokeAsync(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"FileLoader callback failed for {file.Name}: {ex.Message}");
+                        FileService.Clear();
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        await FileService.SetFileAsync(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"FileLoader SetFileAsync failed for {file.Name}: {ex.Message}");
+                        FileService.Clear();
+                    }
+                }
             }
         }
     }

@@ -7,42 +7,46 @@
         <span class="bi-house-door-fill" aria-hidden="true"></span>
     </div>
     <h1 class="home-hero-title">TM Mapping Tools</h1>
-    <p class="home-hero-subtitle">A collection of tools for TrackMania mappers to edit and optimize MediaTracker clips.</p>
+    <p class="home-hero-subtitle">A collection of tools for TrackMania mappers to edit and optimize Maps.</p>
     <p class="home-hero-hint">
-        Load a <code>.Clip.Gbx</code> file using the drop zone above, then select a tool from the sidebar.
+        Select a tool from the sidebar and load a <code>.Clip.Gbx</code>, <code>.Map.Gbx</code> or <code>.Item.Gbx</code> using the drop zone above.
     </p>
 </div>
 
 <div class="home-tools-section">
-    <h2 class="home-section-title">Available Tools</h2>
-    <div class="home-tool-cards">
-        <a href="player-attached-triangles" class="home-tool-card">
-            <span class="bi bi-paperclip home-tool-card-icon" aria-hidden="true"></span>
-            <div class="home-tool-card-body">
-                <div class="home-tool-card-title">Player-Attached 3D Triangles</div>
-                <div class="home-tool-card-desc">Attach 3D Triangles to the Player.</div>
-            </div>
-        </a>
-        <a href="optimize-keyframe-animations" class="home-tool-card">
-            <i class="bi-bezier home-tool-card-icon" aria-hidden="true"></i>
-            <div class="home-tool-card-body">
-                <div class="home-tool-card-title">Optimize Keyframe Animations</div>
-                <div class="home-tool-card-desc">Reduce redundant keyframes in MediaTracker animations to reduce filesize.</div>
-            </div>
-        </a>
-        <a href="optimize-triangle-compression" class="home-tool-card">
-            <i class="bi-grid-3x3 home-tool-card-icon" aria-hidden="true"></i>
-            <div class="home-tool-card-body">
-                <div class="home-tool-card-title">Optimize Triangle Compression</div>
-                <div class="home-tool-card-desc">Optimize triangle compression for MediaTracker clips to reduce filesize.</div>
-            </div>
-        </a>
-        <a href="import-triangle-animation" class="home-tool-card">
-            <i class="bi-collection-play home-tool-card-icon" aria-hidden="true"></i>
-            <div class="home-tool-card-body">
-                <div class="home-tool-card-title">Import Triangle Animation</div>
-                <div class="home-tool-card-desc">Import .obj animation from Blender and create triangle animations.</div>
-            </div>
-        </a>
+    <h2 class="home-section-title">Available Tools (@ToolEntries.Count)</h2>
+    <div class="home-tool-groups">
+        @foreach (var group in ToolEntries.GroupBy(t => t.Category))
+        {
+            <section class="home-tool-group">
+                <h3 class="home-group-title">@group.Key</h3>
+                <div class="home-tool-grid">
+                    @foreach (var tool in group)
+                    {
+                        <a href="@tool.Href" class="home-tool-card">
+                            <span class="home-tool-card-top">
+                                <i class="@tool.IconClass home-tool-card-icon" aria-hidden="true"></i>
+                                <span class="home-tool-card-title">@tool.Title</span>
+                            </span>
+                            <span class="home-tool-card-desc">@tool.Description</span>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
     </div>
 </div>
+
+@code {
+    private static readonly IReadOnlyList<HomeToolLink> ToolEntries = new List<HomeToolLink>
+    {
+        new("Clip", "player-attached-triangles", "bi bi-paperclip", "Player-Attached 3D Triangles", "Attach 3D triangles to the player."),
+        new("Clip", "optimize-keyframe-animations", "bi-bezier", "Optimize Keyframe Animations", "Reduce redundant animation keyframes to shrink filesize."),
+        new("Clip", "optimize-triangle-compression", "bi-grid-3x3", "Optimize Triangle Compression", "Improve MediaTracker triangle compression."),
+        new("Clip", "import-triangle-animation", "bi-collection-play", "Import Triangle Animation", "Import .obj animation from Blender and create triangle animations."),
+        new("Map", "map-item-replacer", "bi bi-shuffle", "Map Item Replacer", "Coming Soon..."),
+        new("Item", "moving-item-creator", "bi bi-box-arrow-in-right", "Moving Item Creator", "Create moving items from source items."),
+    };
+
+    private sealed record HomeToolLink(string Category, string Href, string IconClass, string Title, string Description);
+}

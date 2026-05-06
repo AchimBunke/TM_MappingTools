@@ -2,11 +2,11 @@
 @using TM_GenericMapping.IO
 @using TM_MappingTools.Model
 @using TM_MappingTools.Services
-@inject ClipFileService FileService
+@inject FileTypeManager FileTypeManager
 @implements IDisposable
 
 
-@if (!FileService.HasFile)
+@if (FileTypeManager.CurrentService?.HasFile != true)
 {
     <div class="track-selector-body">
         <p class="track-selector-empty">No clip loaded.</p>
@@ -75,8 +75,16 @@ else
 
     protected override void OnInitialized()
     {
-        FileService.FileChanged += OnFileChanged;
+        FileTypeManager.CurrentService?.FileChanged += OnFileChanged;
+        FileTypeManager.FileTypeChanged += OnFileTypeChanged;
         ReloadFromService();
+    }
+
+    private void OnFileTypeChanged()
+    {
+        FileTypeManager.CurrentService?.FileChanged += OnFileChanged;
+        ReloadFromService();
+        InvokeAsync(StateHasChanged);
     }
 
     private void OnFileChanged()
@@ -87,7 +95,7 @@ else
 
     private void ReloadFromService()
     {
-        var clip = FileService.Clip;
+        var clip = FileTypeManager.GetClip();
 
         if (clip == null)
         {
@@ -147,7 +155,8 @@ else
 
     public void Dispose()
     {
-        FileService.FileChanged -= OnFileChanged;
+        FileTypeManager.CurrentService?.FileChanged -= OnFileChanged;
+        FileTypeManager.FileTypeChanged -= OnFileTypeChanged;
     }
 }
 

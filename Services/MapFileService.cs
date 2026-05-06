@@ -1,26 +1,26 @@
-
 using GBX.NET;
+using GBX.NET.Engines.Game;
 using Microsoft.AspNetCore.Components.Forms;
-using TM_GenericMapping.IO;
 using TM_MappingTools.Utils;
 
 namespace TM_MappingTools.Services;
 
-public class ClipFileService : GbxFileService
+public class MapFileService : GbxFileService
 {
-    public Clip? Clip { get; private set; }
+    public CGameCtnChallenge? Challenge { get; private set; }
 
-    public override object? LoadedContent => Clip;
-    public override string SupportedExtension => ".Clip.Gbx";
-    public override string ContentTypeName => "Clip";
-    
+    public override object? LoadedContent => Challenge;
+    public override string SupportedExtension => ".Map.Gbx";
+    public override string ContentTypeName => "Map";
+
     public override void Clear()
     {
-        Clip = null;
+        Challenge = null;
         base.Clear();
     }
+
     public override async Task SetFileAsync(IBrowserFile file)
-    {
+    { 
         try
         {
             using var browserStream = file.OpenReadStream(FileHelper.MaxAllowedFileSize);
@@ -28,29 +28,26 @@ public class ClipFileService : GbxFileService
             await browserStream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
-            Clip = new Clip() { 
-                SavePath = file.Name,
-                WriteSettings = new GbxWriteSettings()
-                {
-                    CloseStream = false,
-                }
-            };
-            await Clip.OpenAsync(memoryStream);
+            Challenge = await Gbx.ParseAsync<CGameCtnChallenge>(memoryStream);
+            if (Challenge is null)
+            {
+                throw new InvalidDataException("Parsed map content was null.");
+            }
+
             await base.SetFileAsync(file);
             InvokeContentLoaded();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error opening file: {ex.Message}");
+            Console.WriteLine($"Error opening map file: {ex.Message}");
             Clear();
-            throw;
         }
     }
 
     public Stream GetDownloadStream()
     {
         var stream = new MemoryStream();
-        Clip!.Save(stream);
+        Challenge!.Save(stream);
         stream.Position = 0;
         return stream;
     }
