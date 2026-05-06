@@ -13,6 +13,16 @@
 
 <div class="tool-page">
     <ToolPageHeader IconClass="bi-box-arrow-in-right" Title="Moving Item Creator" Description="Create moving items.">
+         <HeaderActions>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
+                    @onclick="ToggleHelpPanel"
+                    aria-expanded="@showHelpPanel"
+                    aria-controls="optimizeHelpPanel">
+                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
+                @(showHelpPanel ? "Hide details" : "How this works")
+            </button>
+        </HeaderActions>
     </ToolPageHeader>
     <div class="tool-page-body">
         <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
@@ -51,9 +61,20 @@
                 <ToolHelpSidebar PanelId="movingItemCreatorHelpPanel" Title="Detailed Info"
                                  Description="What this tool changes and how to tune it safely.">
                     <h3>What happens when you click Execute</h3>
-                    <p>The optimizer iterates over each selected MediaTracker track and analyzes the vertices. It reduces
-                        the precision of vertex positions to improve compression efficiency of LZO.</p>
-                      
+                    <p>The MovingItemCreator will generate moving items based on the loaded source items and the specified parameters. At the end a zip file containing all the generated moving items is downloaded.</p>
+                    <p>The generated moving item animations are based on the <strong>source item loaded at the top</strong> if it exists, otherwise they will contain a default rotating animation.</p>
+                    <p>The generater will try to create the same properties as the source item (like mesh, materials, etc.) but some differences might occur. Some materials might not be visible in moving items. Some moving  items might contain more vertices and triangles as the source item depending which mesh encoding was used.</p>
+                    <p>This is a list of the compatibility of many default materials: <a href="https://github.com/AchimBunke/TM_MovingTrackGenerator/wiki">TM_MovingTrackGenerator Github</a>.</p>
+                    <h3>Author Name</h3>
+                    <p>The author name encoded in the moving item.</p>
+                    <h3>Item Name Postfix</h3>
+                    <p>The postfix appended to the name of the source item for the generated moving item. This is useful to easily distinguish the generated moving items from the source items.</p>
+                    <h3>Practical workflow</h3>
+                    <p>If you want to copy a specific animation to all moving items, load the item containing those at the top.</p>
+                    <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the file loader to the left.</p>
+                    <p>Insert your desired author name and item name postfix in the parameters section.</p>
+                    <p>Wait until you downloaded a zip and extract those files into your Items folder.</p>
+                    <p><strong>Note:</strong> If you create new items that didnt exist when you opened Trackmania, you might need to restart the game to see them. To avoid this, instead of creating new files, overwrite existing items. Then only the Editor needs to be reopened. (Sometimes this does not work)</p>
                     </ToolHelpSidebar>
                 }
             </div>
