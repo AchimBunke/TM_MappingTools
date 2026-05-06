@@ -98,11 +98,19 @@
         },
         new()
         {
-            Key = "namePostfix",
-            Label = "Item Name Postfix",
-            Tooltip = "The postfix to append to the name of the source item.",
+            Key = "nameSuffix",
+            Label = "Item Name Suffix",
+            Tooltip = "The suffix to append to the name of the source item.",
             Kind = ToolParameterKind.Text,
-            DefaultValue = "_Moving",
+            DefaultValue = "",
+        },
+        new()
+        {
+            Key = "namePrefix",
+            Label = "Item Name Prefix",
+            Tooltip = "The prefix to prepend to the name of the source item.",
+            Kind = ToolParameterKind.Text,
+            DefaultValue = "",
         }
     };
 
@@ -167,7 +175,8 @@
             meshBuilder,
             movingItemCreatorSettings);
         
-        string namePostfix = parameterValues.GetString("namePostfix", string.Empty);
+        string namePrefix = parameterValues.GetString("namePrefix", string.Empty);
+        string nameSuffix = parameterValues.GetString("nameSuffix", string.Empty);
 
         StringBuilder messageBuilder = new();
         var generatedItems = new List<(string FileName, CGameItemModel Item)>();
@@ -186,46 +195,58 @@
                 messageBuilder.AppendLine($"Failed to create moving item for file: {file.Name}");
             else
             {
-                movingItemResult.Value.Name = item.Name + namePostfix;
+                movingItemResult.Value.Name = namePrefix + item.Name + nameSuffix;
 
-                generatedItems.Add((FixFileName(file.Name, namePostfix), movingItemResult.Value));
+                generatedItems.Add((FixFileName(file.Name, namePrefix, nameSuffix), movingItemResult.Value));
             }
         }
 
         if (generatedItems.Count > 0)
-            await DownloadZipAsync(generatedItems);
+            await DownloadAsync(generatedItems);
 
         OperationHistoryService.AddOperation("Create Moving Items");
 
         return messageBuilder.ToString();
     }
 
-    string FixFileName(string originalName, string postFix)
+    string FixFileName(string originalName, string prefix, string suffix)
     {
-        if (string.IsNullOrEmpty(originalName) || string.IsNullOrEmpty(postFix))
+        if (string.IsNullOrEmpty(originalName) || (string.IsNullOrEmpty(suffix) && string.IsNullOrEmpty(prefix)))
             return originalName;
 
         const string itemsSuffix = ".Item.Gbx";
         if (originalName.EndsWith(itemsSuffix, StringComparison.OrdinalIgnoreCase))
-            return originalName[..^itemsSuffix.Length] + postFix + itemsSuffix;
+            return prefix + originalName[..^itemsSuffix.Length] + suffix + itemsSuffix;
 
         return originalName;
     }
-    private async Task DownloadZipAsync(List<(string FileName, CGameItemModel Item)> items)
+    private async Task DownloadAsync(List<(string FileName, CGameItemModel Item)> items)
     {
-        using var zipStream = new MemoryStream();
-        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+       
+        if(items.Count == 1)
         {
-            foreach (var (fileName, item) in items)
-            {
-                var entry = archive.CreateEntry(fileName, CompressionLevel.Optimal);
-                using var entryStream = entry.Open();
-                item.Save(entryStream);
-            }
+            using var stream = new MemoryStream();
+            items[0].Item!.Save(stream, new GBX.NET.GbxWriteSettings { CloseStream = false });
+            stream.Position = 0;
+            var streamRef = new DotNetStreamReference(stream);
+            await JS.InvokeVoidAsync("downloadFileFromStream", items[0].FileName, streamRef);
         }
-        zipStream.Position = 0;
-        var streamRef = new DotNetStreamReference(zipStream);
-        await JS.InvokeVoidAsync("downloadFileFromStream", "MovingItems.zip", streamRef);
+        else
+        {
+            using var zipStream = new MemoryStream();
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach (var (fileName, item) in items)
+                {
+                    var entry = archive.CreateEntry(fileName, CompressionLevel.Optimal);
+                    using var entryStream = entry.Open();
+                    item.Save(entryStream);
+                }
+            }
+            zipStream.Position = 0;
+            var streamRef = new DotNetStreamReference(zipStream);
+            await JS.InvokeVoidAsync("downloadFileFromStream", "MovingItems.zip", streamRef);
+        }
     }
 
 }
