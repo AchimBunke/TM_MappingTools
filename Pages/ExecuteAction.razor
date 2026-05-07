@@ -1,4 +1,5 @@
 ﻿@using TM_MappingTools.Model
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3">
     <span class="text-muted small">
@@ -34,11 +35,18 @@
     </button>
 </div>
 
-
-@if (!string.IsNullOrWhiteSpace(ExecutionMessage))
+@if (lastRunState != ExecuteRunState.None)
 {
-    <div class="alert alert-info" role="status">@ExecutionMessage</div>
+    <div class="execute-status execute-status-@lastRunState.ToString().ToLowerInvariant()" role="status" aria-live="polite">
+        <span class="bi @GetRunStateIcon(lastRunState)" aria-hidden="true"></span>
+        <span class="execute-status-text">@lastRunSummary</span>
+        <button type="button" class="btn btn-link btn-sm execute-status-link" @onclick="OpenOutput">
+            Open output
+        </button>
+    </div>
 }
+
+
 
 @code {
     private const int FullPreviewTrackCount = 5;
@@ -48,46 +56,67 @@
     [Parameter] public IReadOnlyList<TrackData> SelectedTracks { get; set; } = Array.Empty<TrackData>();
     [Parameter] public bool UseSelectedTracks { get; set; } = true;
     [Parameter] public string ExecutionTargetOverwrite { get; set; } = string.Empty;
+    [Parameter] public string MessageSource { get; set; } = string.Empty;
     [Parameter] public string Tooltip { get; set; } = string.Empty;
   
     [Parameter] public Func<bool>? CanExecute { get; set; }
-    [Parameter] public string? ExecutionMessage { get; set; }
     [Parameter] public Func<Task<string?>>? Execute { get; set; }
 
     private bool isExecuting;
+    private ExecuteRunState lastRunState = ExecuteRunState.None;
+    private string lastRunSummary = string.Empty;
     private bool EffectiveCanExecute =>
         !isExecuting &&
         Execute != null &&
         (CanExecute?.Invoke() ?? true) &&
         (!UseSelectedTracks || SelectedTracks.Count > 0);
+
+    private string? ResolvedMessageSource =>
+        !string.IsNullOrWhiteSpace(MessageSource)
+            ? MessageSource
+            : (!string.IsNullOrWhiteSpace(ExecutionTargetOverwrite) ? ExecutionTargetOverwrite : null);
+
     private async Task ExecuteAsync()
     {
         if (!EffectiveCanExecute) return;
 
         isExecuting = true;
-        ExecutionMessage = null;
+        lastRunState = ExecuteRunState.None;
+        lastRunSummary = string.Empty;
 
         StateHasChanged();
         await Task.Yield(); 
         try
         {
             var result = await Execute!.Invoke();
-            if(!string.IsNullOrEmpty(result))
+            if (!string.IsNullOrEmpty(result))
             {
-                ExecutionMessage = result;
+                ToolMessageService.AddSuccess(result, ResolvedMessageSource);
+                lastRunState = ExecuteRunState.Success;
+                lastRunSummary = result;
             }
             else if (UseSelectedTracks)
             {
-                ExecutionMessage = $"Action finished for {SelectedTracks.Count} track(s).";
+                var message = $"Action finished for {SelectedTracks.Count} track(s).";
+                ToolMessageService.AddSuccess(message, ResolvedMessageSource);
+                lastRunState = ExecuteRunState.Success;
+                lastRunSummary = message;
             }
             else
             {
-                ExecutionMessage = $"Action finished.";
+                const string message = "Action finished.";
+                ToolMessageService.AddSuccess(message, ResolvedMessageSource);
+                lastRunState = ExecuteRunState.Success;
+                lastRunSummary = message;
             }
         }
         catch (Exception ex)
         {
-            ExecutionMessage = $"Action failed: {ex.Message}";
+            var message = $"Action failed: {ex.Message}";
+            ToolMessageService.AddError(message, ResolvedMessageSource);
+            ToolMessageService.RequestReveal();
+            lastRunState = ExecuteRunState.Error;
+            lastRunSummary = message;
         }
         finally
         {
@@ -136,6 +165,22 @@
         }
 
         return $"Track {track.TrackIndex}";
+    }
+
+    private void OpenOutput() => ToolMessageService.RequestReveal();
+
+    private static string GetRunStateIcon(ExecuteRunState state) => state switch
+    {
+        ExecuteRunState.Success => "bi-check-circle-fill",
+        ExecuteRunState.Error => "bi-exclamation-octagon-fill",
+        _ => "bi-info-circle-fill",
+    };
+
+    private enum ExecuteRunState
+    {
+        None,
+        Success,
+        Error,
     }
 
     

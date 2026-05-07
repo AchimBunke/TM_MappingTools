@@ -19,6 +19,8 @@ builder.Services.AddSingleton<MapFileService>();
 builder.Services.AddSingleton<ItemFileService>();
 builder.Services.AddSingleton<FileTypeManager>();
 builder.Services.AddSingleton<OperationHistoryService>();
+builder.Services.AddSingleton<ToolMessageService>();
+builder.Services.AddSingleton<ToolRegistryService>();
 
 GbxExtensions.Setup();
 

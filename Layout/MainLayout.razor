@@ -2,6 +2,8 @@
 @using TM_MappingTools.Utils
 @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+@inject TM_MappingTools.Services.ToolRegistryService ToolRegistryService
 @inject IJSRuntime JS
 @inherits LayoutComponentBase
 @implements IDisposable
@@ -60,17 +62,98 @@
         <article class="content px-4">
             @Body
         </article>
+
+        <div @ref="logPanelRef" class="message-log-row @(messageLogCollapsed ? "message-log-collapsed" : string.Empty) @(HasUnreadAttention ? "message-log-attention" : string.Empty)">
+            @if (!messageLogCollapsed)
+            {
+                <div @ref="resizeHandleRef" class="message-log-resize-handle" title="Drag to resize"></div>
+            }
+            <div class="message-log-body">
+                <div class="message-log-header">
+                    <button class="btn btn-link btn-sm message-log-toggle" @onclick="ToggleMessageLog"
+                            title="@(messageLogCollapsed ? "Show output" : "Hide output")">
+                        <span class="bi @(messageLogCollapsed ? "bi-chevron-up" : "bi-chevron-down")" aria-hidden="true"></span>
+                        <span class="message-log-title">Output</span>
+                    </button>
+                    @if (unreadCount > 0 && lastUnreadLevel.HasValue)
+                    {
+                        <span class="message-log-unread bi @GetMessageIcon(lastUnreadLevel.Value) message-log-unread-@lastUnreadLevel.Value.ToString().ToLowerInvariant() @(HasUnreadAttention ? "message-log-unread-pulse" : string.Empty)"
+                              title="@unreadCount unread message(s)" aria-label="@unreadCount unread"></span>
+                        <span class="message-log-unread-count">@unreadCount</span>
+                    }
+                    @if (ToolMessageService.Messages.Count > 0)
+                    {
+                        <div class="message-log-display-toggles ms-auto" role="group" aria-label="Output display toggles">
+                            <button class="btn btn-link btn-sm message-log-toggle-btn @(showLabel ? "active" : string.Empty)" @onclick="() => showLabel = !showLabel" title="Toggle level label">Label</button>
+                            <button class="btn btn-link btn-sm message-log-toggle-btn @(showTime ? "active" : string.Empty)" @onclick="() => showTime = !showTime" title="Toggle time">Time</button>
+                            <button class="btn btn-link btn-sm message-log-toggle-btn @(showSourceIcon ? "active" : string.Empty)" @onclick="() => showSourceIcon = !showSourceIcon" title="Toggle source icon">Tool Icon</button>
+                            <button class="btn btn-link btn-sm message-log-toggle-btn @(showSource ? "active" : string.Empty)" @onclick="() => showSource = !showSource" title="Toggle source">Tool</button>
+                        </div>
+                        <button class="btn btn-link btn-sm message-log-clear ms-auto" @onclick="() => ToolMessageService.Clear()">Clear</button>
+                    }
+                </div>
+                @if (!messageLogCollapsed)
+                {
+                    @if (ToolMessageService.Messages.Count > 0)
+                    {
+                        <ul @ref="logListRef" class="message-log-list list-unstyled mb-0" @onscroll="OnLogScroll">
+                            @foreach (var msg in ToolMessageService.Messages)
+                            {
+                                <li class="message-log-entry message-log-@msg.Level.ToString().ToLowerInvariant()">
+                                    @if (showLabel)
+                                    {
+                                        <span class="message-log-level-chip">@GetMessageLevelLabel(msg.Level)</span>
+                                    }
+                                    <span class="message-log-icon bi @GetMessageIcon(msg.Level)" aria-hidden="true"></span>
+                                    @if (showTime)
+                                    {
+                                        <span class="message-log-time">@msg.Timestamp.ToLocalTime().ToString("HH:mm:ss")</span>
+                                    }
+                                    @if (showSourceIcon && !string.IsNullOrWhiteSpace(msg.Source))
+                                    {
+                                        <span class="message-log-source-icon bi @GetSourceIcon(msg.Source)" aria-hidden="true"></span>
+                                    }
+                                    @if (showSource && !string.IsNullOrWhiteSpace(msg.Source))
+                                    {
+                                        <span class="message-log-source">@msg.Source</span>
+                                    }
+                                    <span class="message-log-text">@msg.Text</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="message-log-empty-hint">(no output yet)</div>
+                    }
+                }
+            </div>
+        </div>
     </main>
 </div>
 
 @code {
     private Services.FileService CurrentFileService = new();
 
+    private bool messageLogCollapsed = true;
+    private int unreadCount = 0;
+    private Services.ToolMessageLevel? lastUnreadLevel;
+    private bool showLabel = true;
+    private bool showTime = true;
+    private bool showSource = true;
+    private bool showSourceIcon = true;
+    private ElementReference logListRef;
+    private ElementReference logPanelRef;
+    private ElementReference resizeHandleRef;
+    private bool _resizeInitialized;
+
     protected override void OnInitialized()
     {
         CurrentFileService.FileChanged += OnFileChanged;
         FileTypeManager.FileTypeChanged += OnFileTypeChanged;
         OperationHistoryService.HistoryChanged += OnOperationHistoryChanged;
+        ToolMessageService.MessagesChanged += OnMessagesChanged;
+        ToolMessageService.RevealRequested += OnRevealRequested;
     }
 
     public void Dispose()
@@ -78,9 +161,62 @@
         CurrentFileService.FileChanged -= OnFileChanged;
         FileTypeManager.FileTypeChanged -= OnFileTypeChanged;
         OperationHistoryService.HistoryChanged -= OnOperationHistoryChanged;
+        ToolMessageService.MessagesChanged -= OnMessagesChanged;
+        ToolMessageService.RevealRequested -= OnRevealRequested;
     }
 
     private void OnOperationHistoryChanged() => InvokeAsync(StateHasChanged);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!messageLogCollapsed && !_resizeInitialized)
+        {
+            _resizeInitialized = true;
+            try { await JS.InvokeVoidAsync("initOutputPanelResize", logPanelRef, resizeHandleRef); }
+            catch { /* panel may not be mounted yet */ }
+        }
+        else if (messageLogCollapsed)
+        {
+            try { await JS.InvokeVoidAsync("syncArticlePadding", logPanelRef); }
+            catch { }
+        }
+    }
+
+    private void OnMessagesChanged() => InvokeAsync(async () =>
+    {
+        var lastMsg = ToolMessageService.Messages.LastOrDefault();
+        if (lastMsg != null)
+        {
+            bool atBottom = !messageLogCollapsed && await JS.InvokeAsync<bool>("isScrolledToBottom", logListRef);
+            if (!atBottom)
+            {
+                unreadCount++;
+                lastUnreadLevel = lastMsg.Level;
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("scrollToBottom", logListRef);
+            }
+        }
+        StateHasChanged();
+    });
+
+    private void OnRevealRequested() => InvokeAsync(async () =>
+    {
+        if (messageLogCollapsed)
+        {
+            messageLogCollapsed = false;
+            _resizeInitialized = false;
+        }
+
+        unreadCount = 0;
+        lastUnreadLevel = null;
+
+        StateHasChanged();
+        await Task.Yield();
+
+        try { await JS.InvokeVoidAsync("scrollToBottom", logListRef); } catch { }
+    });
 
     private void OnFileTypeChanged() => InvokeAsync(StateHasChanged);
 
@@ -119,6 +255,54 @@
         {
             var streamRef = new DotNetStreamReference(stream);
             await JS.InvokeVoidAsync("downloadFileFromStream", FileTypeManager.CurrentService.FileName, streamRef);
+        }
+    }
+
+    private static string GetMessageIcon(Services.ToolMessageLevel level) => level switch
+    {
+        Services.ToolMessageLevel.Success => "bi-check-circle-fill",
+        Services.ToolMessageLevel.Warning => "bi-exclamation-triangle-fill",
+        Services.ToolMessageLevel.Error   => "bi-x-circle-fill",
+        _                                 => "bi-info-circle-fill",
+    };
+
+    private static string GetMessageLevelLabel(Services.ToolMessageLevel level) => level switch
+    {
+        Services.ToolMessageLevel.Success => "OK",
+        Services.ToolMessageLevel.Warning => "WARN",
+        Services.ToolMessageLevel.Error   => "ERROR",
+        _                                 => "INFO",
+    };
+
+    private string GetSourceIcon(string source) => ToolRegistryService.GetIconForSource(source);
+
+    private bool HasUnreadAttention =>
+        unreadCount > 0 &&
+        lastUnreadLevel is Services.ToolMessageLevel.Warning or Services.ToolMessageLevel.Error;
+
+    private async Task ToggleMessageLog()
+    {
+        messageLogCollapsed = !messageLogCollapsed;
+        _resizeInitialized = false;
+        if (!messageLogCollapsed)
+        {
+            unreadCount = 0;
+            lastUnreadLevel = null;
+            await Task.Yield();
+            try { await JS.InvokeVoidAsync("scrollToBottom", logListRef); } catch { }
+        }
+    }
+
+    private async Task OnLogScroll()
+    {
+        if (await JS.InvokeAsync<bool>("isScrolledToBottom", logListRef))
+        {
+            if (unreadCount > 0)
+            {
+                unreadCount = 0;
+                lastUnreadLevel = null;
+                StateHasChanged();
+            }
         }
     }
 
