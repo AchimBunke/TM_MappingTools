@@ -121,6 +121,8 @@
         zipStream.Position = 0;
         var streamRef = new DotNetStreamReference(zipStream);
         await JS.InvokeVoidAsync("downloadFileFromStream", $"{challenge.MapName}_EmbeddedItems.zip", streamRef);
+
+        OperationHistoryService.AddOperation("Extracted Embedded Items");
         return new ExecuteActionResult(ExecuteActionResultStatus.Success, "Successfully extracted embedded items.");
     }
 
