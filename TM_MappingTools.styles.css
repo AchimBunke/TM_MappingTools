@@ -189,6 +189,362 @@ main[b-yrpmrvqeod] {
     box-shadow: var(--tm-shadow-sm);
 }
 
+/* ── Message log ─────────────────────────────────────── */
+.message-log-row[b-yrpmrvqeod] {
+    position: fixed;
+    bottom: 0;
+    left: 250px; /* matches sidebar width on desktop */
+    right: 0;
+    z-index: 200;
+    background: var(--tm-surface);
+    border-top: 2px solid var(--tm-border);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    height: 180px; /* default expanded height, overridden by JS drag */
+    transition: height 0ms;
+}
+
+.message-log-attention[b-yrpmrvqeod] {
+    border-top-color: #ea868f;
+    box-shadow: 0 -2px 14px rgba(234, 134, 143, 0.45);
+}
+
+.message-log-collapsed[b-yrpmrvqeod] {
+    height: 44px !important;
+    min-height: 44px;
+}
+
+.message-log-collapsed .message-log-body[b-yrpmrvqeod] {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+/* When collapsed the panel shrinks to header height (auto) */
+.message-log-resize-handle[b-yrpmrvqeod] {
+    flex-shrink: 0;
+    height: 6px;
+    cursor: ns-resize;
+    background: transparent;
+    border-top: 1px solid var(--tm-border);
+}
+
+    .message-log-resize-handle:hover[b-yrpmrvqeod] {
+        background: color-mix(in srgb, var(--tm-border) 60%, transparent);
+    }
+
+/* inner wrapper that holds header + list must also stretch */
+.message-log-body[b-yrpmrvqeod] {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 1rem;
+}
+
+.message-log-header[b-yrpmrvqeod] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0;
+}
+
+.message-log-header-left[b-yrpmrvqeod] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.message-log-toggle[b-yrpmrvqeod] {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    color: var(--tm-text-muted);
+    text-decoration: none;
+    font-size: 0.7rem;
+}
+
+    .message-log-toggle:hover[b-yrpmrvqeod] {
+        color: var(--tm-text);
+    }
+
+.message-log-title[b-yrpmrvqeod] {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+}
+
+.message-log-unread[b-yrpmrvqeod] {
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.message-log-unread-count[b-yrpmrvqeod] {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.15rem 0.38rem;
+    border-radius: 999px;
+    color: var(--tm-surface);
+    background: #6ea8fe;
+}
+
+.message-log-unread-pulse[b-yrpmrvqeod] {
+    animation: message-log-pulse-b-yrpmrvqeod 1.15s ease-in-out infinite;
+}
+
+@keyframes message-log-pulse-b-yrpmrvqeod {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.22); }
+    100% { transform: scale(1); }
+}
+
+.message-log-unread-info[b-yrpmrvqeod]    { color: #6ea8fe; }
+.message-log-unread-success[b-yrpmrvqeod] { color: #75b798; }
+.message-log-unread-warning[b-yrpmrvqeod] { color: #ffda6a; }
+.message-log-unread-error[b-yrpmrvqeod]   { color: #ea868f; }
+
+.message-log-unread-warning + .message-log-unread-count[b-yrpmrvqeod] { background: #ffda6a; color: #3f3700; }
+.message-log-unread-error + .message-log-unread-count[b-yrpmrvqeod] { background: #ea868f; }
+
+.message-log-clear[b-yrpmrvqeod] {
+    font-size: 0.7rem;
+    padding: 0;
+    color: var(--tm-text-muted);
+    text-decoration: none;
+}
+
+.message-log-download[b-yrpmrvqeod] {
+    font-size: 0.7rem;
+    padding: 0;
+    color: var(--tm-text-muted);
+    text-decoration: none;
+}
+
+.message-log-actions[b-yrpmrvqeod] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-self: end;
+}
+
+.message-log-display-toggles[b-yrpmrvqeod] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    justify-self: center;
+}
+
+.message-log-toggle-btn[b-yrpmrvqeod] {
+    font-size: 0.62rem;
+    line-height: 1;
+    padding: 0.15rem 0.28rem;
+    border: 1px solid var(--tm-border);
+    border-radius: 0.25rem;
+    color: var(--tm-text-muted);
+    text-decoration: none;
+    min-width: 1.5rem;
+}
+
+    .message-log-toggle-btn.active[b-yrpmrvqeod] {
+        color: var(--tm-text);
+        border-color: var(--tm-accent);
+        background: color-mix(in srgb, var(--tm-accent) 18%, transparent);
+    }
+
+    .message-log-clear:hover[b-yrpmrvqeod] {
+        color: var(--tm-text);
+        text-decoration: underline;
+    }
+
+    .message-log-download:hover[b-yrpmrvqeod] {
+        color: var(--tm-text);
+        text-decoration: underline;
+    }
+
+.message-log-list[b-yrpmrvqeod] {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.message-log-empty-hint[b-yrpmrvqeod] {
+    font-size: 0.75rem;
+    color: var(--tm-text-muted);
+    margin-top: 0.25rem;
+}
+
+.message-log-entry[b-yrpmrvqeod] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    border-left: 3px solid transparent;
+    padding: 0.15rem 0.4rem 0.15rem 0.35rem;
+    border-radius: 0.2rem;
+}
+
+.message-log-entry-main[b-yrpmrvqeod] {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.message-log-entry-main-singleline[b-yrpmrvqeod] {
+    flex-wrap: nowrap;
+}
+
+.message-log-level-chip[b-yrpmrvqeod] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    min-width: 2.75rem;
+    padding: 0.06rem 0.35rem;
+    border-radius: 999px;
+    color: var(--tm-surface);
+    background: #6ea8fe;
+}
+
+.message-log-icon[b-yrpmrvqeod] {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+
+.message-log-time[b-yrpmrvqeod] {
+    color: var(--tm-text-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.72rem;
+}
+
+.message-log-source-icon[b-yrpmrvqeod] {
+    color: var(--tm-text-muted);
+    font-size: 0.78rem;
+}
+
+.message-log-source[b-yrpmrvqeod] {
+    color: var(--tm-text-muted);
+    font-size: 0.75rem;
+    padding: 0.03rem 0.32rem;
+    border: 1px solid var(--tm-border);
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.message-log-text[b-yrpmrvqeod] {
+    overflow-wrap: anywhere;
+}
+
+.message-log-entry-main-singleline .message-log-text[b-yrpmrvqeod] {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Nested (inner) messages ─────────────────────────── */
+.message-log-inner-details[b-yrpmrvqeod] {
+    width: 100%;
+    margin-top: 0.25rem;
+}
+
+.message-log-inner-toggle[b-yrpmrvqeod] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    font-size: 0.7rem;
+    color: var(--tm-text-muted);
+    list-style: none;
+    user-select: none;
+}
+
+.message-log-inner-toggle[b-yrpmrvqeod]::-webkit-details-marker {
+    display: none;
+}
+
+.message-log-inner-chevron[b-yrpmrvqeod] {
+    font-size: 0.6rem;
+    transition: transform 120ms ease;
+}
+
+.message-log-inner-details[open] .message-log-inner-chevron[b-yrpmrvqeod] {
+    transform: rotate(90deg);
+}
+
+.message-log-inner-list[b-yrpmrvqeod] {
+    margin-top: 0.25rem;
+    padding-left: 0.6rem;
+    border-left: 1px dashed color-mix(in srgb, var(--tm-border) 80%, transparent);
+}
+
+.message-log-entry-inner[b-yrpmrvqeod] {
+    font-size: 0.76rem;
+    border-left-width: 2px;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
+
+.message-log-technical-details[b-yrpmrvqeod] {
+    width: 100%;
+    margin: 0.25rem 0 0;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--tm-border);
+    border-radius: 0.25rem;
+    background: color-mix(in srgb, var(--tm-surface-soft) 70%, transparent);
+    color: var(--tm-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.message-log-info .message-log-icon[b-yrpmrvqeod]    { color: #6ea8fe; }
+.message-log-success .message-log-icon[b-yrpmrvqeod] { color: #75b798; }
+.message-log-warning .message-log-icon[b-yrpmrvqeod] { color: #ffda6a; }
+.message-log-error .message-log-icon[b-yrpmrvqeod]   { color: #ea868f; }
+
+.message-log-info[b-yrpmrvqeod]    { color: var(--tm-text); }
+.message-log-success[b-yrpmrvqeod] { color: var(--tm-text); }
+.message-log-warning[b-yrpmrvqeod] {
+    color: var(--tm-text);
+    border-left-color: #ffda6a;
+    background: rgba(255, 218, 106, 0.12);
+}
+.message-log-error[b-yrpmrvqeod] {
+    color: var(--tm-text);
+    border-left-color: #ea868f;
+    background: rgba(234, 134, 143, 0.14);
+}
+
+.message-log-warning .message-log-level-chip[b-yrpmrvqeod] {
+    background: #ffda6a;
+    color: #3f3700;
+}
+
+.message-log-error .message-log-level-chip[b-yrpmrvqeod] {
+    background: #ea868f;
+}
+
+.message-log-success .message-log-level-chip[b-yrpmrvqeod] {
+    background: #75b798;
+}
+
 @media (max-width: 1100px) {
     .file-io-split[b-yrpmrvqeod] {
         grid-template-columns: minmax(0, 1fr) auto;
@@ -228,6 +584,23 @@ main[b-yrpmrvqeod] {
     .file-download-area[b-yrpmrvqeod] {
         justify-content: flex-start;
         min-width: 0;
+    }
+
+    .message-log-row[b-yrpmrvqeod] {
+        left: 0;
+    }
+
+    .message-log-header[b-yrpmrvqeod] {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .message-log-display-toggles[b-yrpmrvqeod] {
+        justify-self: start;
+    }
+
+    .message-log-actions[b-yrpmrvqeod] {
+        justify-self: start;
     }
 }
 
@@ -420,6 +793,67 @@ main[b-yrpmrvqeod] {
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }
+}
+/* /Pages/ExecuteAction.razor.rz.scp.css */
+.execute-status[b-0uij2y1ggg] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 1rem 1rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: var(--tm-radius-sm);
+    border: 1px solid var(--tm-border);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.execute-status-success[b-0uij2y1ggg] {
+    background: rgba(117, 183, 152, 0.12);
+    border-color: rgba(117, 183, 152, 0.45);
+    color: var(--tm-text);
+}
+
+.execute-status-error[b-0uij2y1ggg] {
+    background: rgba(234, 134, 143, 0.14);
+    border-color: rgba(234, 134, 143, 0.55);
+    color: var(--tm-text);
+}
+
+.execute-status-warning[b-0uij2y1ggg] {
+    background: rgba(255, 218, 106, 0.14);
+    border-color: rgba(255, 218, 106, 0.45);
+    color: var(--tm-text);
+}
+
+.execute-status .bi[b-0uij2y1ggg] {
+    flex-shrink: 0;
+}
+
+.execute-status-success .bi[b-0uij2y1ggg] {
+    color: #75b798;
+}
+
+.execute-status-error .bi[b-0uij2y1ggg] {
+    color: #ea868f;
+}
+
+.execute-status-warning .bi[b-0uij2y1ggg] {
+    color: #ffda6a;
+}
+
+.execute-status-text[b-0uij2y1ggg] {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.execute-status-link[b-0uij2y1ggg] {
+    padding: 0;
+    font-size: 0.78rem;
+    text-decoration: none;
+}
+
+.execute-status-link:hover[b-0uij2y1ggg] {
+    text-decoration: underline;
 }
 /* /Pages/FileLoader.razor.rz.scp.css */
 .file-drop-area[b-6u4mseu3x4] {
