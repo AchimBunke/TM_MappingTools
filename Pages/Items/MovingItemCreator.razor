@@ -2,10 +2,12 @@
 @using GBX.NET.Engines.GameData
 @using System.Text
 @using System.IO.Compression
+@using TM_GenericMapping.Messaging
 @using TM_MappingTools.Services
 @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject TM_MappingTools.Services.SessionStorage SessionStorage
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 @inject IJSRuntime JS
 
 
@@ -13,12 +15,9 @@
 
 <div class="tool-page">
     <ToolPageHeader IconClass="bi-box-arrow-in-right" Title="Moving Item Creator" Description="Create moving items.">
-         <HeaderActions>
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
-                    @onclick="ToggleHelpPanel"
-                    aria-expanded="@showHelpPanel"
-                    aria-controls="optimizeHelpPanel">
+        <HeaderActions>
+            <button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" @onclick="ToggleHelpPanel"
+                    aria-expanded="@showHelpPanel" aria-controls="optimizeHelpPanel">
                 <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
                 @(showHelpPanel ? "Hide details" : "How this works")
             </button>
@@ -32,8 +31,8 @@
                         <h2 class="tool-panel-title">Items to convert to moving</h2>
                     </div>
                     <FileLoader FileService="FileService" NoFileMessage="No files loaded."
-                                DropHintMessage="Drop all items you want to convert to moving here"
-                                Accept=".Item.Gbx" AllowMultiple="true" />
+                                DropHintMessage="Drop all items you want to convert to moving here" Accept=".Item.Gbx"
+                                AllowMultiple="true" MessageSource="Moving Item Creator" />
                 </div>
             </div>
             <div class="tool-page-main">
@@ -42,8 +41,7 @@
                         <h2 class="tool-panel-title">Actions</h2>
                     </div>
                     <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
-                                   MessageSource="Moving Item Creator"
-                                   ExecutionTargetOverwrite="Generate Moving Items"
+                                   MessageSource="Moving Item Creator" ExecutionTargetOverwrite="Generate Moving Items"
                                    Tooltip="Execute the tool with the loaded items." CanExecute="CanExecuteTool" />
                 </div>
 
@@ -62,25 +60,37 @@
                 <ToolHelpSidebar PanelId="movingItemCreatorHelpPanel" Title="Detailed Info"
                                  Description="What this tool changes and how to tune it safely.">
                     <h3>What happens when you click Execute</h3>
-                    <p>The MovingItemCreator will generate moving items based on the loaded source items and the specified parameters. At the end a zip file containing all the generated moving items is downloaded.</p>
-                    <p>The generated moving item animations are based on the <strong>source item loaded at the top</strong> if it exists, otherwise they will contain a default rotating animation.</p>
-                    <p>The generater will try to create the same properties as the source item (like mesh, materials, etc.) but some differences might occur. Some materials might not be visible in moving items. Some moving  items might contain more vertices and triangles as the source item depending which mesh encoding was used.</p>
-                    <p>This is a list of the compatibility of many default materials: <a href="https://github.com/AchimBunke/TM_MovingTrackGenerator/wiki">TM_MovingTrackGenerator Github</a>.</p>
-                    <h3>Author Name</h3>
-                    <p>The author name encoded in the moving item.</p>
-                    <h3>Item Name Postfix</h3>
-                    <p>The postfix appended to the name of the source item for the generated moving item. This is useful to easily distinguish the generated moving items from the source items.</p>
-                    <h3>Practical workflow</h3>
-                    <p>If you want to copy a specific animation to all moving items, load the item containing those at the top.</p>
-                    <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the file loader to the left.</p>
-                    <p>Insert your desired author name and item name postfix in the parameters section.</p>
-                    <p>Wait until you downloaded a zip and extract those files into your Items folder.</p>
-                    <p><strong>Note:</strong> If you create new items that didnt exist when you opened Trackmania, you might need to restart the game to see them. To avoid this, instead of creating new files, overwrite existing items. Then only the Editor needs to be reopened. (Sometimes this does not work)</p>
-                    </ToolHelpSidebar>
-                }
-            </div>
-        </div>
-    </div>
+                    <p>The MovingItemCreator will generate moving items based on the loaded source items and the specified
+                        parameters. At the end a zip file containing all the generated moving items is downloaded.</p>
+                        <p>The generated moving item animations are based on the <strong>source item loaded at the top</strong>
+                            if it exists, otherwise they will contain a default rotating animation.</p>
+                            <p>The generater will try to create the same properties as the source item (like mesh, materials, etc.)
+                                but some differences might occur. Some materials might not be visible in moving items. Some moving
+                                items might contain more vertices and triangles as the source item depending which mesh encoding was
+                                used.</p>
+                                <p>This is a list of the compatibility of many default materials: <a
+                                    href="https://github.com/AchimBunke/TM_MovingTrackGenerator/wiki">TM_MovingTrackGenerator
+                                    Github</a>.</p>
+                                    <h3>Author Name</h3>
+                                    <p>The author name encoded in the moving item.</p>
+                                    <h3>Item Name Postfix</h3>
+                                    <p>The postfix appended to the name of the source item for the generated moving item. This is useful to
+                                        easily distinguish the generated moving items from the source items.</p>
+                                        <h3>Practical workflow</h3>
+                                        <p>If you want to copy a specific animation to all moving items, load the item containing those at the
+                                            top.</p>
+                                            <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the
+                                                file loader to the left.</p>
+                                                <p>Insert your desired author name and item name postfix in the parameters section.</p>
+                                                <p>Wait until you downloaded a zip and extract those files into your Items folder.</p>
+                                                <p><strong>Note:</strong> If you create new items that didnt exist when you opened Trackmania, you might
+                                                    need to restart the game to see them. To avoid this, instead of creating new files, overwrite
+                                                    existing items. Then only the Editor needs to be reopened. (Sometimes this does not work)</p>
+                                                </ToolHelpSidebar>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
 
     
 @code {
@@ -97,6 +107,14 @@
             Kind = ToolParameterKind.Text,
             DefaultValue = string.Empty,
         },
+         new()
+        {
+            Key = "namePrefix",
+            Label = "Item Name Prefix",
+            Tooltip = "The prefix to prepend to the name of the source item.",
+            Kind = ToolParameterKind.Text,
+            DefaultValue = "",
+        },
         new()
         {
             Key = "nameSuffix",
@@ -104,15 +122,8 @@
             Tooltip = "The suffix to append to the name of the source item.",
             Kind = ToolParameterKind.Text,
             DefaultValue = "",
-        },
-        new()
-        {
-            Key = "namePrefix",
-            Label = "Item Name Prefix",
-            Tooltip = "The prefix to prepend to the name of the source item.",
-            Kind = ToolParameterKind.Text,
-            DefaultValue = "",
         }
+       
     };
 
     private ToolParameterValues parameterValues = new();
@@ -152,7 +163,7 @@
     {
         return FileService.HasFiles;
     }
-    private async Task<string?> ExecuteToolAsync()
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
         var sourceAnimationItem = FileTypeManager.GetItem();
         bool hasSourceAnimation = sourceAnimationItem != null;
@@ -163,7 +174,7 @@
 
         var meshBuilderSettings = new TM_GenericMapping.Items.MeshBuilder.MeshBuilderSettings
         {
-            Author = parameterValues.GetString("author","TM_MappingTools.MovingItemCreator"),
+            Author = parameterValues.GetString("author", "TM_MappingTools.MovingItemCreator"),
         };
         var meshBuilder = new TM_GenericMapping.Items.MeshBuilder(meshBuilderSettings);
 
@@ -172,42 +183,61 @@
             MovingItemAnimationTemplate = sourceAnimationItem,
         };
         var movingItemCreator = new TM_GenericMapping.Items.MovingItemCreator(
-            meshExtractor, 
+            meshExtractor,
             meshBuilder,
             movingItemCreatorSettings);
         
         string namePrefix = parameterValues.GetString("namePrefix", string.Empty);
         string nameSuffix = parameterValues.GetString("nameSuffix", string.Empty);
 
-        StringBuilder messageBuilder = new();
+   
         var generatedItems = new List<(string FileName, CGameItemModel Item)>();
 
-        foreach(var file in FileService.Files)
+        int numFails = 0;
+        int numSuccess = 0;
+        foreach (var file in FileService.Files)
         {
-            await itemFileService.SetFileAsync(file);
-            var item = itemFileService.Item;
-            if(item == null)
+            try
             {
-                messageBuilder.AppendLine($"Failed to create moving item for file: {file.Name}");
-                continue;
-            }
-            var movingItemResult = movingItemCreator.CreateMovingItem(item);
-            if(!movingItemResult.IsSuccess)
-                messageBuilder.AppendLine($"Failed to create moving item for file: {file.Name}");
-            else
-            {
-                movingItemResult.Value.Name = namePrefix + item.Name + nameSuffix;
+                await itemFileService.SetFileAsync(file);
+                var item = itemFileService.Item;
+                if (item == null)
+                {
+                    ToolMessageService.AddError($"Failed to load item from file: {file.Name}", "Moving Item Creator");
+                    continue;
+                }
+           
+                var movingItemResult = movingItemCreator.CreateMovingItem(item);
 
-                generatedItems.Add((FixFileName(file.Name, namePrefix, nameSuffix), movingItemResult.Value));
+                if (movingItemResult.IsFailure)
+                {
+                    ToolMessageService.AddError($"Failed to create moving item for file: {file.Name}", movingItemResult, "Moving Item Creator");
+                    numFails++;
+                }
+                else
+                {
+                    movingItemResult.Value.Name = namePrefix + item.Name + nameSuffix;
+                    generatedItems.Add((FixFileName(file.Name, namePrefix, nameSuffix), movingItemResult.Value));
+                    numSuccess++;
+                }
+            }
+            catch (Exception e)
+            {
+                ToolMessageService.AddException(e, $"Failed to create moving item for file: {file.Name}", "Moving Item Creator");
+                numFails++;
             }
         }
-
         if (generatedItems.Count > 0)
             await DownloadAsync(generatedItems);
 
         OperationHistoryService.AddOperation("Create Moving Items");
 
-        return messageBuilder.ToString();
+        if (numFails > 0 && numSuccess > 0)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Warning, $"{numSuccess} moving items created successfully, but {numFails} failed. Check output for details.");
+        else if (numFails > 0)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to create moving items from all files. Check output for details.");
+        else
+            return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Successfully created moving items from all files.");
     }
 
     string FixFileName(string originalName, string prefix, string suffix)
@@ -224,7 +254,7 @@
     private async Task DownloadAsync(List<(string FileName, CGameItemModel Item)> items)
     {
        
-        if(items.Count == 1)
+        if (items.Count == 1)
         {
             using var stream = new MemoryStream();
             items[0].Item!.Save(stream, new GBX.NET.GbxWriteSettings { CloseStream = false });

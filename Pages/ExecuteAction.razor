@@ -1,4 +1,5 @@
-﻿@using TM_MappingTools.Model
+﻿@using TM_GenericMapping.Messaging
+@using TM_MappingTools.Model
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3">
@@ -18,20 +19,17 @@
         }
             
     </span>
-    <button type="button" 
-        class="btn btn-primary @(isExecuting ? "executing" : "")" 
-        @onclick="ExecuteAsync" 
-        disabled="@(!EffectiveCanExecute || isExecuting)"
-        title="@Tooltip">
-    @if (isExecuting)
-    {
-        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <span>Executing...</span>
-    }
-    else
-    {
-        <span>Execute</span>
-    }
+    <button type="button" class="btn btn-primary @(isExecuting ? "executing" : "")" @onclick="ExecuteAsync"
+            disabled="@(!EffectiveCanExecute || isExecuting)" title="@Tooltip">
+        @if (isExecuting)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <span>Executing...</span>
+        }
+        else
+        {
+            <span>Execute</span>
+        }
     </button>
 </div>
 
@@ -60,7 +58,7 @@
     [Parameter] public string Tooltip { get; set; } = string.Empty;
   
     [Parameter] public Func<bool>? CanExecute { get; set; }
-    [Parameter] public Func<Task<string?>>? Execute { get; set; }
+    [Parameter] public Func<Task<ExecuteActionResult>>? Execute { get; set; }
 
     private bool isExecuting;
     private ExecuteRunState lastRunState = ExecuteRunState.None;
@@ -76,6 +74,7 @@
             ? MessageSource
             : (!string.IsNullOrWhiteSpace(ExecutionTargetOverwrite) ? ExecutionTargetOverwrite : null);
 
+    
     private async Task ExecuteAsync()
     {
         if (!EffectiveCanExecute) return;
@@ -85,38 +84,70 @@
         lastRunSummary = string.Empty;
 
         StateHasChanged();
-        await Task.Yield(); 
+        await Task.Yield();
         try
         {
-            var result = await Execute!.Invoke();
-            if (!string.IsNullOrEmpty(result))
+            ExecuteActionResult result = await Execute!.Invoke();
+            if (result.Status == ExecuteActionResultStatus.Success)
             {
-                ToolMessageService.AddSuccess(result, ResolvedMessageSource);
+                if (result.Message == null)
+                {
+                    if (UseSelectedTracks)
+                    {
+                        result = result with { Message = $"Action finished successfully for {SelectedTracks.Count} track(s)." };
+                    }
+                    else
+                    {
+                        result = result with { Message = "Action finished successfully." };
+                    }
+                }
+                ToolMessageService.AddSuccess(result.Message, ResolvedMessageSource);
                 lastRunState = ExecuteRunState.Success;
-                lastRunSummary = result;
+                lastRunSummary = result.Message;
             }
-            else if (UseSelectedTracks)
+            else if (result.Status == ExecuteActionResultStatus.Warning)
             {
-                var message = $"Action finished for {SelectedTracks.Count} track(s).";
-                ToolMessageService.AddSuccess(message, ResolvedMessageSource);
-                lastRunState = ExecuteRunState.Success;
-                lastRunSummary = message;
+                if (result.Message == null)
+                {
+                    if (UseSelectedTracks)
+                    {
+                        result = result with { Message = $"Action completed with warnings for {SelectedTracks.Count} track(s)." };
+                    }
+                    else
+                    {
+                        result = result with { Message = "Action completed with warnings." };
+                    }
+                }
+                ToolMessageService.AddWarning(result.Message, ResolvedMessageSource);
+                ToolMessageService.RequestReveal();
+                lastRunState = ExecuteRunState.Warning;
+                lastRunSummary = result.Message;
             }
-            else
+            else if (result.Status == ExecuteActionResultStatus.Failure)
             {
-                const string message = "Action finished.";
-                ToolMessageService.AddSuccess(message, ResolvedMessageSource);
-                lastRunState = ExecuteRunState.Success;
-                lastRunSummary = message;
+                if (result.Message == null)
+                {
+                    if (UseSelectedTracks)
+                    {
+                        result = result with { Message = $"Action failed for {SelectedTracks.Count} track(s)." };
+                    }
+                    else
+                    {
+                        result = result with { Message = "Action failed." };
+                    }
+                }
+                ToolMessageService.AddError(result.Message, ResolvedMessageSource);
+                ToolMessageService.RequestReveal();
+                lastRunState = ExecuteRunState.Error;
+                lastRunSummary = result.Message;
             }
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            var message = $"Action failed: {ex.Message}";
-            ToolMessageService.AddError(message, ResolvedMessageSource);
+            ToolMessageService.AddException(ex, source: ResolvedMessageSource);
             ToolMessageService.RequestReveal();
             lastRunState = ExecuteRunState.Error;
-            lastRunSummary = message;
+            lastRunSummary = ex.Message;
         }
         finally
         {
@@ -180,6 +211,7 @@
     {
         None,
         Success,
+        Warning,
         Error,
     }
 

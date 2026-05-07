@@ -124,7 +124,7 @@
         showHelpPanel = !showHelpPanel;
     }
 
-    private async Task<string?> ExecuteToolAsync()
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
         foreach (var trackData in selectedTracks)
         {
@@ -134,6 +134,6 @@
         }
         OperationHistoryService.AddOperation("Player Attached Triangles");
 
-        return null;
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success);
     }
 }

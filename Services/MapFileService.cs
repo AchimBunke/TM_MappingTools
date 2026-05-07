@@ -39,8 +39,8 @@ public class MapFileService : GbxFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error opening map file: {ex.Message}");
             Clear();
+            throw new InvalidDataException($"Failed to parse map file '{file.Name}': {ex.Message}", ex);
         }
     }
 

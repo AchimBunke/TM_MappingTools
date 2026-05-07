@@ -2,6 +2,8 @@
 @using TM_MappingTools.Utils
 
 @inject IJSRuntime JS
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
 
 
 <div @ref="dropZoneElement" class="file-drop-area" @ondrop:preventDefault="true" @ondrop="OnDrop"
@@ -51,7 +53,6 @@
     const int maximumFileCount = 10000;
     [Parameter] public string Accept { get; set; } = "";
     [Parameter] public bool AllowMultiple { get; set; } = false;
-    [Parameter] public EventCallback<Microsoft.AspNetCore.Components.Forms.IBrowserFile> OnFileSelected { get; set; }
     private readonly string inputId = $"filePicker-{Guid.NewGuid():N}";
     ElementReference dropZoneElement;
     InputFile? inputFile;
@@ -59,6 +60,7 @@
     [Parameter] public IFileService FileService { get; set; } = default!;
     [Parameter] public string NoFileMessage { get; set; } = "No file loaded.";
     [Parameter] public string DropHintMessage { get; set; } = "Drop a file anywhere in this area, or choose a file from disk.";
+    [Parameter] public string MessageSource { get; set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -90,34 +92,15 @@
         {
             var allowedFiles = e.GetMultipleFiles(maximumFileCount)
             .Where(file => !allowed.Any() || allowed.Any(a => file.Name.ToLower().EndsWith(a)));
-            
-            // Invoke the custom callback if provided
-            if (OnFileSelected.HasDelegate)
+
+            try
             {
-                foreach (var file in allowedFiles)
-                {
-                    try
-                    {
-                        await OnFileSelected.InvokeAsync(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"FileLoader callback failed for {file.Name}: {ex.Message}");
-                        FileService.Clear();
-                    }
-                }
+                await FileService.SetFilesAsync(allowedFiles);
             }
-            else
+            catch (Exception ex)
             {
-                try
-                {
-                    await FileService.SetFilesAsync(allowedFiles);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"FileLoader SetFilesAsync failed: {ex.Message}");
-                    FileService.Clear();
-                }
+                ToolMessageService.AddError(ex.Message, MessageSource);
+                FileService.Clear();
             }
         }
         else
@@ -125,29 +108,14 @@
             var file = e.File;
             if (file != null && (!allowed.Any() || allowed.Any(a => file.Name.ToLower().EndsWith(a))))
             {
-                if (OnFileSelected.HasDelegate)
+                try
                 {
-                    try
-                    {
-                        await OnFileSelected.InvokeAsync(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"FileLoader callback failed for {file.Name}: {ex.Message}");
-                        FileService.Clear();
-                    }
+                    await FileService.SetFileAsync(file);
                 }
-                else
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        await FileService.SetFileAsync(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"FileLoader SetFileAsync failed for {file.Name}: {ex.Message}");
-                        FileService.Clear();
-                    }
+                    ToolMessageService.AddError(ex.Message, MessageSource);
+                    FileService.Clear();
                 }
             }
         }

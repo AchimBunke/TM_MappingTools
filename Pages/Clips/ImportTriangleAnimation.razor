@@ -8,6 +8,8 @@
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject TM_MappingTools.Services.SessionStorage SessionStorage
 @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
 
 
 <PageTitle>Import Triangle Animation</PageTitle>
@@ -32,7 +34,7 @@
                     </div>
                     <FileLoader FileService="FileService" NoFileMessage="No files loaded."
                                 DropHintMessage="Drop all files related to the animation (including .obj and .mtl files) anywhere in this area"
-                                Accept=".obj,.mtl" AllowMultiple="true" />
+                                Accept=".obj,.mtl" AllowMultiple="true" MessageSource="Import Triangle Animation" />
                 </div>
             </div>
             <div class="tool-page-main">
@@ -192,16 +194,16 @@
     {
         return FileService.HasFiles && FileTypeManager.GetClip() != null;
     }
-    private async Task<string?> ExecuteToolAsync()
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
         var clip = FileTypeManager.GetClip();
         if (clip == null)
-            return "No clip loaded.";
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No clip loaded.");
 
         var frameCount = ObjSerializer.GetOrderedFrameNames(FileService.Files.Select(f => f.Name)).Count;
         if (frameCount == 0)
         {
-            return "No valid animation frames found in the loaded files.";
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No valid animation frames found in the loaded files.");
         }
         var animLength = parameterValues.GetFloat("animationLength");
         var minRequiredFrameRateMillis = Time.Millis(animLength / frameCount);
@@ -214,6 +216,7 @@
         var scene = new SceneTimeline();
         var builder = new AnimationBuilder
         {
+            ToolMessageService = ToolMessageService,
             AnimationObjSource = await CreateStreamObjSource(),
             FileService = FileService,
             LoadSettings = new ObjSerializer.ObjLoadSettings()
@@ -226,18 +229,14 @@
             Rotation = parameterValues.GetQuaternion("transformRotation", Quaternion.Identity),
         };
    
-        try
-        {
-            scene.Animate(clip.MediaClip, sceneAnimationSettings, builder);
-        }
-        catch (Exception ex)
-        {
-            return $"Error while building animation: {ex.Message}";
-        }
+     
+        scene.Animate(clip.MediaClip, sceneAnimationSettings, builder);
+        
+
 
        
         OperationHistoryService.AddOperation("Import Triangle Animation");
-        return builder.Message;
+        return new ExecuteActionResult(builder.Success ? ExecuteActionResultStatus.Success : ExecuteActionResultStatus.Failure);
     }
 
     async Task<IObjSource> CreateStreamObjSource()
@@ -266,8 +265,8 @@
         public Vector3 Position { get; set; } = Vector3.Zero;
         public Vector3 Scale { get; set; } = Vector3.One;
         public Quaternion Rotation { get; set; } = Quaternion.Identity;
-
-        public string Message { get; private set; } = string.Empty;
+        public bool Success { get; private set;} = true;
+        public required TM_MappingTools.Services.ToolMessageService ToolMessageService { get; set; }
         protected override void Build()
         {
             var orderedFiles = ObjSerializer.GetOrderedFrameNames(FileService.Files.Select(f => f.Name));
@@ -292,12 +291,13 @@
             
             if (animation.VertexAnimationFrames.Length > 0)
             {
-                Message = $"Animation created with {animation.VertexAnimationFrames.Length} keyframes.";
+                ToolMessageService.AddInfo($"Animation created with {animation.VertexAnimationFrames.Length} keyframes.");
                 scene.Play(baseObj.Animate().StoredVertexAnimation(animation, time: Time));
             }
             else
             {
-                Message = $"Animation could not be loaded or has no keyframes. Added first frame only!";
+                ToolMessageService.AddError($"Animation could not be loaded or has no keyframes. Added first frame only!");
+                Success = false;
             }
 
           

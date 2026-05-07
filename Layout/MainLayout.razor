@@ -1,6 +1,7 @@
 ﻿@using TM_MappingTools.Pages
 @using TM_MappingTools.Utils
 @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
+@inject TM_MappingTools.Services.FileTypeManagedFileService CurrentFileService
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 @inject TM_MappingTools.Services.ToolRegistryService ToolRegistryService
@@ -24,8 +25,7 @@
                 <FileLoader FileService="CurrentFileService"
                             NoFileMessage="No file loaded."
                             DropHintMessage="Drop a .Clip.Gbx, .Map.Gbx, or .Item.Gbx file anywhere in this area"
-                            Accept="@TM_MappingTools.Services.FileTypeManager.GetFileFilter()"
-                            OnFileSelected="OnFileSelected" />
+                            Accept="@TM_MappingTools.Services.FileTypeManager.GetFileFilter()" />
                 <div class="operations-history-list small">
                     <div class="operations-history-title">Operations Done</div>
                     <ul class="list-unstyled mb-0">
@@ -70,26 +70,32 @@
             }
             <div class="message-log-body">
                 <div class="message-log-header">
-                    <button class="btn btn-link btn-sm message-log-toggle" @onclick="ToggleMessageLog"
-                            title="@(messageLogCollapsed ? "Show output" : "Hide output")">
-                        <span class="bi @(messageLogCollapsed ? "bi-chevron-up" : "bi-chevron-down")" aria-hidden="true"></span>
-                        <span class="message-log-title">Output</span>
-                    </button>
-                    @if (unreadCount > 0 && lastUnreadLevel.HasValue)
-                    {
-                        <span class="message-log-unread bi @GetMessageIcon(lastUnreadLevel.Value) message-log-unread-@lastUnreadLevel.Value.ToString().ToLowerInvariant() @(HasUnreadAttention ? "message-log-unread-pulse" : string.Empty)"
-                              title="@unreadCount unread message(s)" aria-label="@unreadCount unread"></span>
-                        <span class="message-log-unread-count">@unreadCount</span>
-                    }
+                    <div class="message-log-header-left">
+                        <button class="btn btn-link btn-sm message-log-toggle" @onclick="ToggleMessageLog"
+                                title="@(messageLogCollapsed ? "Show output" : "Hide output")">
+                            <span class="bi @(messageLogCollapsed ? "bi-chevron-up" : "bi-chevron-down")" aria-hidden="true"></span>
+                            <span class="message-log-title">Output</span>
+                        </button>
+                        @if (unreadCount > 0 && lastUnreadLevel.HasValue)
+                        {
+                            <span class="message-log-unread bi @GetMessageIcon(lastUnreadLevel.Value) message-log-unread-@lastUnreadLevel.Value.ToString().ToLowerInvariant() @(HasUnreadAttention ? "message-log-unread-pulse" : string.Empty)"
+                                  title="@unreadCount unread message(s)" aria-label="@unreadCount unread"></span>
+                            <span class="message-log-unread-count">@unreadCount</span>
+                        }
+                    </div>
                     @if (ToolMessageService.Messages.Count > 0)
                     {
-                        <div class="message-log-display-toggles ms-auto" role="group" aria-label="Output display toggles">
+                        <div class="message-log-display-toggles" role="group" aria-label="Output display toggles">
                             <button class="btn btn-link btn-sm message-log-toggle-btn @(showLabel ? "active" : string.Empty)" @onclick="() => showLabel = !showLabel" title="Toggle level label">Label</button>
                             <button class="btn btn-link btn-sm message-log-toggle-btn @(showTime ? "active" : string.Empty)" @onclick="() => showTime = !showTime" title="Toggle time">Time</button>
                             <button class="btn btn-link btn-sm message-log-toggle-btn @(showSourceIcon ? "active" : string.Empty)" @onclick="() => showSourceIcon = !showSourceIcon" title="Toggle source icon">Tool Icon</button>
                             <button class="btn btn-link btn-sm message-log-toggle-btn @(showSource ? "active" : string.Empty)" @onclick="() => showSource = !showSource" title="Toggle source">Tool</button>
+                            <button class="btn btn-link btn-sm message-log-toggle-btn @(showDetails ? "active" : string.Empty)" @onclick="() => showDetails = !showDetails" title="Toggle nested detail messages">Details</button>
                         </div>
-                        <button class="btn btn-link btn-sm message-log-clear ms-auto" @onclick="() => ToolMessageService.Clear()">Clear</button>
+                        <div class="message-log-actions">
+                            <button class="btn btn-link btn-sm message-log-clear" @onclick="() => ToolMessageService.Clear()">Clear</button>
+                            <button class="btn btn-link btn-sm message-log-download" @onclick="DownloadLog">Download Log</button>
+                        </div>
                     }
                 </div>
                 @if (!messageLogCollapsed)
@@ -100,24 +106,73 @@
                             @foreach (var msg in ToolMessageService.Messages)
                             {
                                 <li class="message-log-entry message-log-@msg.Level.ToString().ToLowerInvariant()">
-                                    @if (showLabel)
+                                    <div class="message-log-entry-main @(showDetails ? "message-log-entry-main-singleline" : string.Empty)">
+                                        @if (showLabel)
+                                        {
+                                            <span class="message-log-level-chip">@GetMessageLevelLabel(msg.Level)</span>
+                                        }
+                                        <span class="message-log-icon bi @GetMessageIcon(msg.Level)" aria-hidden="true"></span>
+                                        @if (showTime)
+                                        {
+                                            <span class="message-log-time">@msg.Timestamp.ToLocalTime().ToString("HH:mm:ss")</span>
+                                        }
+                                        @if (showSourceIcon && !string.IsNullOrWhiteSpace(msg.Source))
+                                        {
+                                            <span class="message-log-source-icon bi @GetSourceIcon(msg.Source)" aria-hidden="true"></span>
+                                        }
+                                        @if (showSource && !string.IsNullOrWhiteSpace(msg.Source))
+                                        {
+                                            <span class="message-log-source">@msg.Source</span>
+                                        }
+                                        <span class="message-log-text">@msg.Text</span>
+                                    </div>
+                                    @if (showDetails && (msg.HasInnerMessages || msg.HasTechnicalDetails))
                                     {
-                                        <span class="message-log-level-chip">@GetMessageLevelLabel(msg.Level)</span>
+                                        <details class="message-log-inner-details">
+                                            <summary class="message-log-inner-toggle">
+                                                <span class="message-log-inner-chevron bi bi-chevron-right" aria-hidden="true"></span>
+                                                <span>Details</span>
+                                            </summary>
+                                            @if (msg.HasTechnicalDetails)
+                                            {
+                                                <pre class="message-log-technical-details">@msg.TechnicalDetails</pre>
+                                            }
+                                            @if (msg.HasInnerMessages)
+                                            {
+                                            <ul class="message-log-inner-list list-unstyled mb-0">
+                                                @foreach (var inner in msg.InnerMessages!)
+                                                {
+                                                    <li class="message-log-entry message-log-entry-inner message-log-@inner.Level.ToString().ToLowerInvariant()">
+                                                        <div class="message-log-entry-main message-log-entry-main-singleline">
+                                                            @if (showLabel)
+                                                            {
+                                                                <span class="message-log-level-chip">@GetMessageLevelLabel(inner.Level)</span>
+                                                            }
+                                                            <span class="message-log-icon bi @GetMessageIcon(inner.Level)" aria-hidden="true"></span>
+                                                            @if (showTime)
+                                                            {
+                                                                <span class="message-log-time">@inner.Timestamp.ToLocalTime().ToString("HH:mm:ss")</span>
+                                                            }
+                                                            @if (showSourceIcon && !string.IsNullOrWhiteSpace(inner.Source))
+                                                            {
+                                                                <span class="message-log-source-icon bi @GetSourceIcon(inner.Source)" aria-hidden="true"></span>
+                                                            }
+                                                            @if (showSource && !string.IsNullOrWhiteSpace(inner.Source))
+                                                            {
+                                                                <span class="message-log-source">@inner.Source</span>
+                                                            }
+                                                            <span class="message-log-text">@inner.Text</span>
+                                                        </div>
+                                                        @if (inner.HasTechnicalDetails)
+                                                        {
+                                                            <pre class="message-log-technical-details">@inner.TechnicalDetails</pre>
+                                                        }
+                                                    </li>
+                                                }
+                                            </ul>
+                                            }
+                                        </details>
                                     }
-                                    <span class="message-log-icon bi @GetMessageIcon(msg.Level)" aria-hidden="true"></span>
-                                    @if (showTime)
-                                    {
-                                        <span class="message-log-time">@msg.Timestamp.ToLocalTime().ToString("HH:mm:ss")</span>
-                                    }
-                                    @if (showSourceIcon && !string.IsNullOrWhiteSpace(msg.Source))
-                                    {
-                                        <span class="message-log-source-icon bi @GetSourceIcon(msg.Source)" aria-hidden="true"></span>
-                                    }
-                                    @if (showSource && !string.IsNullOrWhiteSpace(msg.Source))
-                                    {
-                                        <span class="message-log-source">@msg.Source</span>
-                                    }
-                                    <span class="message-log-text">@msg.Text</span>
                                 </li>
                             }
                         </ul>
@@ -133,8 +188,6 @@
 </div>
 
 @code {
-    private Services.FileService CurrentFileService = new();
-
     private bool messageLogCollapsed = true;
     private int unreadCount = 0;
     private Services.ToolMessageLevel? lastUnreadLevel;
@@ -142,6 +195,7 @@
     private bool showTime = true;
     private bool showSource = true;
     private bool showSourceIcon = true;
+    private bool showDetails = false;
     private ElementReference logListRef;
     private ElementReference logPanelRef;
     private ElementReference resizeHandleRef;
@@ -225,29 +279,6 @@
         OperationHistoryService.Clear();
     }
 
-    private async Task OnFileSelected(Microsoft.AspNetCore.Components.Forms.IBrowserFile file)
-    {
-        try
-        {
-            await FileTypeManager.LoadFileAsync(file);
-
-            // Sync UI state only when the typed service actually loaded content.
-            if (FileTypeManager.CurrentService?.HasFile == true)
-            {
-                await CurrentFileService.SetFileAsync(file);
-            }
-            else
-            {
-                CurrentFileService.Clear();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading file: {ex.Message}");
-            CurrentFileService.Clear();
-        }
-    }
-
     private async Task Download()
     {
         var stream = FileTypeManager.GetDownloadStream();
@@ -256,6 +287,14 @@
             var streamRef = new DotNetStreamReference(stream);
             await JS.InvokeVoidAsync("downloadFileFromStream", FileTypeManager.CurrentService.FileName, streamRef);
         }
+    }
+
+    private async Task DownloadLog()
+    {
+        using var stream = ToolMessageService.BuildLogStream();
+        var streamRef = new DotNetStreamReference(stream);
+        var fileName = $"TM_MappingTools_OutputLog_{DateTimeOffset.Now:yyyyMMdd_HHmmss}.txt";
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
     }
 
     private static string GetMessageIcon(Services.ToolMessageLevel level) => level switch

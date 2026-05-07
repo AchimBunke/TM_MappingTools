@@ -139,7 +139,7 @@
         showHelpPanel = !showHelpPanel;
     }
 
-    private async Task<string?> ExecuteToolAsync()
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
         var errorMetricStr = parameterValues.GetString("errorMetric");
         var errorMetric = Enum.TryParse<KeyFrameAnimationOptimizer.ErrorMetric>(errorMetricStr, out var parsedErrorMetric)
@@ -160,16 +160,17 @@
         }
 
         OperationHistoryService.AddOperation("Optimized Keyframe Animations");
-        return BuildSuccessMessage(optimizationInfo);
+        return BuildActionResult(optimizationInfo);
     }
 
-    private string? BuildSuccessMessage(KeyFrameAnimationOptimizer.ClipOptimizationInfo optimizationInfo)
+
+    private ExecuteActionResult BuildActionResult(KeyFrameAnimationOptimizer.ClipOptimizationInfo optimizationInfo)
     {
         if (optimizationInfo == null || optimizationInfo.TrackOptimizationInfos.Count == 0)
         {
-            return null;
+            return new ExecuteActionResult(ExecuteActionResultStatus.Warning, $"Optimization completed but no keyframe animations were processed. Please check if the selected tracks contain MediaTracker keyframe animations and if the parameters are set correctly.");
         }
 
-        return $"Optimization completed for {optimizationInfo.TrackOptimizationInfos.Count} track(s)! Removed {optimizationInfo.TotalRemovedKeyFrameCount} keyframes and {optimizationInfo.TotalRemovedPositionCount} positions across all optimized tracks.";
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Optimization completed for {optimizationInfo.TrackOptimizationInfos.Count} track(s)! Removed {optimizationInfo.TotalRemovedKeyFrameCount} keyframes and {optimizationInfo.TotalRemovedPositionCount} positions across all optimized tracks.");
     }
 }

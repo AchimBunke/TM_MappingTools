@@ -176,7 +176,7 @@
         showHelpPanel = !showHelpPanel;
     }
 
-    private async Task<string?> ExecuteToolAsync()
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
         
         var optimizer = new TriangleOptimizer();
@@ -194,17 +194,16 @@
         var optimizationResult = optimizer.OptimizeTracks(selectedTracks.Select(t=>t.MediaTrack.Track).ToArray());
 
         OperationHistoryService.AddOperation("Optimized Triangle Compression");
-        return BuildSuccessMessage(optimizationResult);
+        return BuildActionResult(optimizationResult);
     }
 
-    private string? BuildSuccessMessage(TriangleOptimizer.OptimizationResult optimizationInfo)
+    private ExecuteActionResult BuildActionResult(TriangleOptimizer.OptimizationResult optimizationInfo)
     {
         if (optimizationInfo == null || optimizationInfo.BlocksProcessed == 0)
         {
-            return null;
+            return new ExecuteActionResult(ExecuteActionResultStatus.Warning, $"Optimization completed but no triangle blocks were processed. Please check if the selected tracks contain MediaTracker triangles and if the parameters are set correctly.");
         }
 
-        return $"Optimization completed for {optimizationInfo.BlocksProcessed} block(s) with {optimizationInfo.KeysProcessed} keys.{(optimizationInfo.IsStepComputed ? "Computed quantization size: " + optimizationInfo.ComputedStep + "." : "")} Processed {optimizationInfo.VerticesProcessed} vertices and changed {optimizationInfo.VerticesChanged} ({optimizationInfo.VertexChangePercent}%). Zeroed {optimizationInfo.VerticesZeroed} vertices. Temporally snapped {optimizationInfo.VerticesTemporallySnapped} vertices. Maximum possible 0-Bytes: {optimizationInfo.MaximumPossibleZeroBytes}; 0-Bytes before optimization: {optimizationInfo.ZeroBytesBeforeOptimization}({optimizationInfo.ZeroBytePercentagBefore}%); 0-Bytes after optimization: {optimizationInfo.ZeroBytesAfterOptimization}({optimizationInfo.ZeroBytePercentagAfter}%).";
-
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Optimization completed for {optimizationInfo.BlocksProcessed} block(s) with {optimizationInfo.KeysProcessed} keys.{(optimizationInfo.IsStepComputed ? "Computed quantization size: " + optimizationInfo.ComputedStep + "." : "")} Processed {optimizationInfo.VerticesProcessed} vertices and changed {optimizationInfo.VerticesChanged} ({optimizationInfo.VertexChangePercent}%). Zeroed {optimizationInfo.VerticesZeroed} vertices. Temporally snapped {optimizationInfo.VerticesTemporallySnapped} vertices. Maximum possible 0-Bytes: {optimizationInfo.MaximumPossibleZeroBytes}; 0-Bytes before optimization: {optimizationInfo.ZeroBytesBeforeOptimization}({optimizationInfo.ZeroBytePercentagBefore}%); 0-Bytes after optimization: {optimizationInfo.ZeroBytesAfterOptimization}({optimizationInfo.ZeroBytePercentagAfter}%).");
     }
 }

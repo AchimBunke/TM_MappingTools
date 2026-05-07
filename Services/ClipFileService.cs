@@ -36,14 +36,17 @@ public class ClipFileService : GbxFileService
                 }
             };
             await Clip.OpenAsync(memoryStream);
+            if(Clip.MediaClip == null)
+            {
+                throw new InvalidDataException("Parsed clip content was null.");
+            }
             await base.SetFileAsync(file);
             InvokeContentLoaded();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error opening file: {ex.Message}");
             Clear();
-            throw;
+            throw new InvalidDataException($"Failed to parse clip file '{file.Name}': {ex.Message}", ex);
         }
     }
 

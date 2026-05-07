@@ -19,7 +19,13 @@
 .execute-status-error {
     background: rgba(234, 134, 143, 0.14);
     border-color: rgba(234, 134, 143, 0.55);
-    color: #f8d7da;
+    color: var(--tm-text);
+}
+
+.execute-status-warning {
+    background: rgba(255, 218, 106, 0.14);
+    border-color: rgba(255, 218, 106, 0.45);
+    color: var(--tm-text);
 }
 
 .execute-status .bi {
@@ -32,6 +38,10 @@
 
 .execute-status-error .bi {
     color: #ea868f;
+}
+
+.execute-status-warning .bi {
+    color: #ffda6a;
 }
 
 .execute-status-text {

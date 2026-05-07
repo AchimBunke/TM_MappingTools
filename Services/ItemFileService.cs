@@ -39,8 +39,8 @@ public class ItemFileService : GbxFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error opening item file: {ex.Message}");
             Clear();
+            throw new InvalidDataException($"Failed to parse item file '{file.Name}': {ex.Message}", ex);
         }
     }
 
