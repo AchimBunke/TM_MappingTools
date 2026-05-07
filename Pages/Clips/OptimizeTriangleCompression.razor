@@ -1,4 +1,5 @@
 ﻿@page "/optimize-triangle-compression"
+@using TM_GenericMapping.Messaging
 @inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
 @inject TM_MappingTools.Services.SessionStorage SessionStorage
 
@@ -192,9 +193,12 @@
             ZeroThreshold = parameterValues.GetFloat("zeroClampingThreshold"),
         };
         var optimizationResult = optimizer.OptimizeTracks(selectedTracks.Select(t=>t.MediaTrack.Track).ToArray());
+        if(optimizationResult.IsFailure)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"An error occurred during optimization.");
+        
 
         OperationHistoryService.AddOperation("Optimized Triangle Compression");
-        return BuildActionResult(optimizationResult);
+        return BuildActionResult(optimizationResult.Value);
     }
 
     private ExecuteActionResult BuildActionResult(TriangleOptimizer.OptimizationResult optimizationInfo)

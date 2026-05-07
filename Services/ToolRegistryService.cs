@@ -59,6 +59,15 @@ public class ToolRegistryService
             Description: "Create moving items from source items.",
             SelectionActive: ToolSelectionActive.All,
             SourceAliases: new[] { "moving item", "item creator" }),
+
+        new(
+            Category: "Map",
+            Href: "embedded-item-extractor",
+            IconClass: "bi-box-arrow-up",
+            Title: "Embedded Item Extractor",
+            Description: "Extract embedded items and blocks from a map.",
+            SelectionActive: ToolSelectionActive.Map,
+            SourceAliases: new[] { "embedded item", "item extractor" }),
     };
 
     public string GetIconForSource(string? source)

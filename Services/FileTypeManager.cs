@@ -16,7 +16,7 @@ public class FileTypeManager
     private GbxFileService? _currentService;
 
     public event Action? FileTypeChanged;
-
+    public event Action? FileChanged;
     public FileTypeManager(
         ClipFileService clipService,
         MapFileService mapService,
@@ -25,6 +25,10 @@ public class FileTypeManager
         _clipService = clipService;
         _mapService = mapService;
         _itemService = itemService;
+        
+        _clipService.FileChanged += () => FileChanged?.Invoke();
+        _mapService.FileChanged += () => FileChanged?.Invoke();
+        _itemService.FileChanged += () => FileChanged?.Invoke();
     }
 
     /// <summary>
