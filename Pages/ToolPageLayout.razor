@@ -1,0 +1,85 @@
+<div class="tool-page">
+    <ToolPageHeader IconClass="@IconClass" Title="@Title" Description="@Description">
+        <HeaderActions>
+            @if (HelpContent is not null)
+            {
+                <button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" @onclick="ToggleHelp"
+                        aria-expanded="@_showHelp" aria-controls="@_helpPanelId">
+                    <span class="bi @(_showHelp ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
+                    @(_showHelp ? "Hide Help" : "Show Help")
+                </button>
+            }
+        </HeaderActions>
+    </ToolPageHeader>
+
+    @if (IORow is not null)
+    {
+        @IORow
+    }
+
+    <div class="tool-page-body">
+        <div
+            class="tool-page-layout @((_showHelp && HelpContent is not null) ? "tool-page-layout-with-help" : string.Empty)">
+            <div class="tool-page-sidebar">
+                @Sidebar
+            </div>
+            <div class="tool-page-main">
+                @Main
+            </div>
+            @if (HelpContent is not null && _showHelp)
+            {
+                <aside id="@_helpPanelId" class="tool-page-help" aria-live="polite">
+                    <div class="tool-panel tool-help-panel">
+                        <div class="tool-panel-header">
+                            <h2 class="tool-panel-title">@HelpTitle</h2>
+                            @if (!string.IsNullOrWhiteSpace(HelpDescription))
+                            {
+                                <p class="tool-panel-desc">@Description</p>
+                            }
+                        </div>
+                        <div class="tool-help-content">
+                            @HelpContent
+                        </div>
+                    </div>
+                </aside>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _showHelp;
+    private string _helpPanelId => $"{Title.ToLowerInvariant().Replace(" ", "-")}-help";
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string IconClass { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string HelpTitle { get; set; } = "Detailed Info";
+
+    [Parameter]
+    public string? HelpDescription { get; set; }
+
+    /// <summary>Optional ToolIORow area rendered between the header and the main body.</summary>
+    [Parameter]
+    public RenderFragment? IORow { get; set; }
+
+    /// <summary>Optional sidebar column. Renders as an empty column when null to preserve grid layout.</summary>
+    [Parameter]
+    public RenderFragment? Sidebar { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment? Main { get; set; }
+
+    /// <summary>When provided a help-toggle button appears in the header and this content is shown in the
+    [Parameter]
+    public RenderFragment? HelpContent { get; set; }
+
+    private void ToggleHelp() => _showHelp = !_showHelp;
+}

@@ -1,0 +1,42 @@
+@using TM_MappingTools.Services
+
+@implements IDisposable
+
+<div class="tool-operation-history-content">
+    <ul class="tool-operation-history-list list-unstyled mb-0">
+        @for (var i = 0; i < OperationHistoryService.OperationsHistory.Count; i++)
+        {
+            var op = OperationHistoryService.OperationsHistory[i];
+            <li class="d-flex align-items-center gap-2 mb-1 export-panel-row">
+                <span class="tool-operation-id">@(i + 1)</span>
+                <span class="tool-operation-key" title="@op">@op</span>
+            </li>
+        }
+        @if (OperationHistoryService.OperationsHistory.Count == 0)
+        {
+            <li class="tool-operation-empty-row">@EmptyMessage</li>
+        }
+    </ul>
+</div>
+
+
+@code {
+    [Parameter] public GlobalClipHistoryService OperationHistoryService { get; set; } = default!;
+    [Parameter]
+    public string EmptyMessage { get; set; } = "(empty)";
+
+    protected override void OnInitialized()
+    {
+        OperationHistoryService.HistoryChanged += OnHistoryChanged;
+    }
+
+    public void Dispose()
+    {
+        OperationHistoryService.HistoryChanged -= OnHistoryChanged;
+    }
+
+    private void OnHistoryChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+}

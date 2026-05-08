@@ -1,83 +1,71 @@
 ﻿@page "/player-attached-triangles"
-@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
-@inject TM_MappingTools.Services.SessionStorage SessionStorage
-
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@inject TM_MappingTools.Services.GlobalClipHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.ClipFileService SharedClipFileService
+@implements IDisposable
 
 <PageTitle>Player Attached Triangles</PageTitle>
 
-<div class="tool-page">
-    <ToolPageHeader IconClass="bi-paperclip"
-                    Title="Player-Attached 3D Triangles"
-                    Description="Attach 3D triangles to the player. These tracks will move relative to the car.">
-        <HeaderActions>
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
-                    @onclick="ToggleHelpPanel"
-                    aria-expanded="@showHelpPanel"
-                    aria-controls="playerTrianglesHelpPanel">
-                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
-                @(showHelpPanel ? "Hide details" : "How this works")
-            </button>
-        </HeaderActions>
-    </ToolPageHeader>
-    <div class="tool-page-body">
-        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Track Selection</h2>
-                    </div>
-                    <TrackSelector @bind-SelectedTracks="selectedTracks" />
-                </div>
-            </div>
-            <div class="tool-page-main">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Actions</h2>
-                    </div>
-                    <ExecuteAction SelectedTracks="selectedTracks"
-                                Execute="ExecuteToolAsync"
-                                UseSelectedTracks="true" 
-                                MessageSource="Player-Attached 3D Triangles"
-                                Tooltip="Execute the tool with the selected tracks."/>
-                </div>
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Parameters</h2>
-                    </div>
-                    <ParameterInput Definitions="parameterDefinitions"
-                                    Values="parameterValues"
-                                    ValuesChanged="OnParameterValuesChanged" />
-                </div>
-
-            </div>
-
-            @if (showHelpPanel)
-            {
-                <ToolHelpSidebar PanelId="playerTrianglesHelpPanel"
-                                 Title="Detailed Info"
-                                 Description="How player-attached triangles work and when to use visibility ensurance.">
-                    <h3>What happens when you click Execute</h3>
-                    <p>For each selected track, this tool converts triangle geometry so it moves relative to the player vehicle rather than staying fixed in world space.</p>
-
-                    <h3>Ensure Visibility</h3>
-                    <p>When enabled, extra vertices are added to reduce culling artifacts so triangles remain visible from all camera angles and distances.</p>
-
-                    <h3>Ensurance Vertex Distance</h3>
-                    <p>This sets how far those helper vertices are placed. Larger values may improve culling robustness.</p>
-
-                    <h3>Practical workflow</h3>
-                    <p>If you want your relative triangles to remain visible from all camera angles, enable Ensure Visibility. The only time you should disable it is if you purposely want to only show these triangles when driving in a certain direction. Though even then the culling behavior is insanely hard to predict and depends on screen resolution and camera settings.</p>
-                </ToolHelpSidebar>
-            }
-        </div>
-    </div>
-</div>
+<ToolPageLayout IconClass="bi-paperclip" Title="Player-Attached 3D Triangles"
+                Description="Attach 3D triangles to the player. These tracks will move relative to the car."
+                HelpDescription="How player-attached triangles work and when to use visibility ensurance.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Clip" Description="Load the clip that should be modified.">
+                    <FileLoader FileService="SharedClipFileService" NoFileMessage="No clip loaded."
+                                DropHintMessage="Drop a .Clip.Gbx file in this area" Accept=".Clip.Gbx"
+                                MessageSource="Player-Attached 3D Triangles" />
+                </ToolCard>
+            </InputContent>
+            <HistoryContent>
+                <ToolCard Title="Operation History" Description="Recent clip operations in this session."
+                          Class="tool-operation-history-panel">
+                    <ToolOperationHistory EmptyMessage="(nothing yet)" OperationHistoryService="OperationHistoryService" />
+                </ToolCard>
+            </HistoryContent>
+            <ExportContent>
+                <ToolCard Title="Export" Description="Export the updated clip." Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                    <ExportPanel FileService="SharedClipFileService" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Track Selection">
+            <TrackSelector Clip="SharedClipFileService.Clip" @bind-SelectedTracks="selectedTracks" />
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction SelectedTracks="selectedTracks" Execute="ExecuteToolAsync" UseSelectedTracks="true"
+                           MessageSource="Player-Attached 3D Triangles" Tooltip="Execute the tool with the selected tracks." />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>For each selected track, this tool converts triangle geometry so it moves relative to the player vehicle
+            rather than staying fixed in world space.</p>
+            <h3>Ensure Visibility</h3>
+            <p>When enabled, extra vertices are added to reduce culling artifacts so triangles remain visible from all
+                camera angles and distances.</p>
+                <h3>Ensurance Vertex Distance</h3>
+                <p>This sets how far those helper vertices are placed. Larger values may improve culling robustness.</p>
+                <h3>Practical workflow</h3>
+                <p>If you want your relative triangles to remain visible from all camera angles, enable Ensure Visibility. The
+                    only time you should disable it is if you purposely want to only show these triangles when driving in a
+                    certain direction. Though even then the culling behavior is insanely hard to predict and depends on screen
+                    resolution and camera settings.</p>
+                </HelpContent>
+            </ToolPageLayout>
 
 @code {
-    private List<TrackData> selectedTracks = new();
-    private bool showHelpPanel;
+    [SessionStored] private List<TrackData> selectedTracks = new();
 
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -102,34 +90,29 @@
         },
     };
 
-    private ToolParameterValues parameterValues = new();
+    [SessionStored] private ToolParameterValues parameterValues = new();
 
-    protected override void OnInitialized(){
+    protected override void OnInitialized()
+    {
         base.OnInitialized();
-
-        if(SessionStorage.Has(member: nameof(parameterDefinitions)))
-            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
-        else
-            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
-
+        SharedClipFileService.FileChanged += OnClipFileChanged;
     }
+
+    public void Dispose() => SharedClipFileService.FileChanged -= OnClipFileChanged;
+
+    private async void OnClipFileChanged() => await InvokeAsync(StateHasChanged);
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
         return Task.CompletedTask;
     }
 
-    private void ToggleHelpPanel()
-    {
-        showHelpPanel = !showHelpPanel;
-    }
-
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
         foreach (var trackData in selectedTracks)
         {
-            TracksUtils.MakeTrianglesRelative(trackData.MediaTrack.Track, 
-                parameterValues.GetBool("ensureVisibility"), 
+            TracksUtils.MakeTrianglesRelative(trackData.MediaTrack.Track,
+                parameterValues.GetBool("ensureVisibility"),
                 parameterValues.GetFloat("ensuranceVertexDistance"));
         }
         OperationHistoryService.AddOperation("Player Attached Triangles");

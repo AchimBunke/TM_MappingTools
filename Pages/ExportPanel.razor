@@ -1,0 +1,128 @@
+@inject IJSRuntime JS
+@using System.IO.Compression
+@using TM_MappingTools.Services
+@implements IDisposable
+
+
+<div class="export-panel-content">
+    @if (HasItems)
+    {
+        @if (HasMultiple)
+        {
+            <div class="export-panel-multi">
+                <button class="btn btn-primary btn-sm w-100 mb-2" @onclick="DownloadAllAsync">
+                    <span class="bi bi-download me-1" aria-hidden="true"></span>Download All (ZIP)
+                </button>
+                <ul class="list-unstyled mb-0 export-panel-list">
+                    @foreach (var item in Items!)
+                    {
+                        var captured = item;
+                        <li class="d-flex align-items-center gap-2 mb-1 export-panel-row">
+                            <span class="text-truncate small flex-grow-1" title="@captured.FileName">@captured.FileName</span>
+                            <button class="btn btn-sm btn-outline-primary flex-shrink-0" @onclick="() => DownloadItemAsync(captured)"
+                                    title="Download @captured.FileName">
+                                <span class="bi bi-download" aria-hidden="true"></span>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+        else
+        {
+            <button class="btn btn-primary" @onclick="() => DownloadItemAsync(Items![0])">
+                <span class="bi bi-download me-1" aria-hidden="true"></span>@Items![0].FileName
+            </button>
+        }
+    }
+    else
+    {
+        <span class="text-muted small">@EmptyMessage</span>
+    }
+</div>
+
+
+@code {
+    [Parameter] public string EmptyMessage { get; set; } = "No export available.";
+    [Parameter] public string DownloadAllFileName { get; set; } = "export_all.zip";
+    [Parameter] public IReadOnlyList<ExportableItem>? Items { get; set; }
+    [Parameter] public FileService? FileService { get; set; }
+
+    private bool HasItems => Items is { Count: > 0 };
+    private bool HasMultiple => Items is { Count: > 1 };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (FileService != null)
+        {
+            FileService.FileChanged += OnFileChanged;
+            OnFileChanged();
+        }
+    }
+    public void Dispose()
+    {
+        if (FileService != null)
+            FileService.FileChanged -= OnFileChanged;
+    }
+    private void OnFileChanged()
+    {
+        if (FileService?.HasFile == true)
+        {
+            Items = new[]
+            {
+                new ExportableItem
+                {
+                    FileName = FileService.FileName,
+                    GetBytes = () =>
+                    {
+                        using var stream = FileService.GetDownloadStream()!;
+                        using var ms = new MemoryStream();
+                        stream.CopyTo(ms);
+                        return ms.ToArray();
+                    }
+                }
+            };
+        }
+        else
+        {
+            Items = null;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DownloadItemAsync(ExportableItem item)
+    {
+        var bytes = item.GetBytes();
+        using var stream = new MemoryStream(bytes, writable: false);
+        var streamRef = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", item.FileName, streamRef);
+    }
+
+    private async Task DownloadAllAsync()
+    {
+        if (Items is null || Items.Count == 0) return;
+
+        if (Items.Count == 1)
+        {
+            await DownloadItemAsync(Items[0]);
+            return;
+        }
+
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var item in Items)
+            {
+                var entry = archive.CreateEntry(item.FileName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                var bytes = item.GetBytes();
+                await entryStream.WriteAsync(bytes);
+            }
+        }
+        zipStream.Position = 0;
+        var streamRef = new DotNetStreamReference(zipStream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", DownloadAllFileName, streamRef);
+    }
+
+}

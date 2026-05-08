@@ -2,11 +2,11 @@
 @using TM_GenericMapping.IO
 @using TM_MappingTools.Model
 @using TM_MappingTools.Services
-@inject FileTypeManager FileTypeManager
+
 @implements IDisposable
 
 
-@if (FileTypeManager.CurrentService?.HasFile != true)
+@if (Clip == null)
 {
     <div class="track-selector-body">
         <p class="track-selector-empty">No clip loaded.</p>
@@ -60,6 +60,7 @@ else
 
 
 @code {
+    [Parameter] public Clip? Clip { get; set; } = default!;
     [Parameter] public List<TrackData> SelectedTracks { get; set; } = new();
     [Parameter] public EventCallback<List<TrackData>> SelectedTracksChanged { get; set; }
 
@@ -75,29 +76,29 @@ else
 
     protected override void OnInitialized()
     {
-        FileTypeManager.CurrentService?.FileChanged += OnFileChanged;
-        FileTypeManager.FileTypeChanged += OnFileTypeChanged;
-        ReloadFromService();
+        Reload();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Reload();
     }
 
     private void OnFileTypeChanged()
     {
-        FileTypeManager.CurrentService?.FileChanged += OnFileChanged;
-        ReloadFromService();
+        Reload();
         InvokeAsync(StateHasChanged);
     }
 
     private void OnFileChanged()
     {
-        ReloadFromService();
+        Reload();
         InvokeAsync(StateHasChanged);
     }
 
-    private void ReloadFromService()
+    private void Reload()
     {
-        var clip = FileTypeManager.GetClip();
-
-        if (clip == null)
+        if (Clip == null)
         {
             tracks.Clear();
             selectedTracksLocal.Clear();
@@ -106,10 +107,10 @@ else
             return;
         }
 
-        if (!ReferenceEquals(previousClip, clip))
+        if (!ReferenceEquals(previousClip, Clip))
         {
-            previousClip = clip;
-            tracks = LoadTracks(clip).ToList();
+            previousClip = Clip;
+            tracks = LoadTracks(Clip).ToList();
             selectedTracksLocal.Clear();
             PushSelectionToParent();
         }
@@ -155,8 +156,6 @@ else
 
     public void Dispose()
     {
-        FileTypeManager.CurrentService?.FileChanged -= OnFileChanged;
-        FileTypeManager.FileTypeChanged -= OnFileTypeChanged;
     }
 }
 

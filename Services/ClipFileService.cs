@@ -50,7 +50,7 @@ public class ClipFileService : GbxFileService
         }
     }
 
-    public Stream GetDownloadStream()
+    public override Stream GetDownloadStream()
     {
         var stream = new MemoryStream();
         Clip!.Save(stream);

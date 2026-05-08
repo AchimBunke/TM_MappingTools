@@ -1,0 +1,31 @@
+<div class="tool-panel @Class">
+    <div class="tool-panel-header">
+        <h2 class="tool-panel-title">@Title</h2>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="tool-panel-desc">@Description</p>
+        }
+    </div>
+    <div class="tool-panel-body @BodyClass">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    /// <summary>Extra CSS classes appended to the outer .tool-panel div.</summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>Extra CSS classes appended to the inner body div (alongside tool-panel-body).</summary>
+    [Parameter]
+    public string? BodyClass { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

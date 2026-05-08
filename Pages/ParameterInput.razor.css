@@ -139,6 +139,6 @@
 
     .parameter-vector-grid-2,
     .parameter-vector-grid-3 {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr);
     }
 }

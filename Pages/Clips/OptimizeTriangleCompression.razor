@@ -1,90 +1,84 @@
 ﻿@page "/optimize-triangle-compression"
 @using TM_GenericMapping.Messaging
-@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
-@inject TM_MappingTools.Services.SessionStorage SessionStorage
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@inject TM_MappingTools.Services.GlobalClipHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.ClipFileService SharedClipFileService
+@implements IDisposable
 
 <PageTitle>Optimize Triangle Compression</PageTitle>
 
-<div class="tool-page">
-    <ToolPageHeader IconClass="bi bi-grid-3x3"
-                    Title="Optimize Triangle Compression"
-                    Description="Optimize vertex values of MediaTracker triangles for LZO compression to reduce filesize.">
-        <HeaderActions>
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
-                    @onclick="ToggleHelpPanel"
-                    aria-expanded="@showHelpPanel"
-                    aria-controls="optimizeHelpPanel">
-                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
-                @(showHelpPanel ? "Hide details" : "How this works")
-            </button>
-        </HeaderActions>
-    </ToolPageHeader>
-    <div class="tool-page-body">
-        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Track Selection</h2>
-                    </div>
-                    <TrackSelector @bind-SelectedTracks="selectedTracks" />
-                </div>
-            </div>
-            <div class="tool-page-main">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Actions</h2>
-                    </div>
-                    <ExecuteAction SelectedTracks="selectedTracks" Execute="ExecuteToolAsync" UseSelectedTracks="true"
-                                   MessageSource="Optimize Triangle Compression"
-                                   Tooltip="Execute the tool with the selected tracks. This may take some time!" />
-                </div>
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Parameters</h2>
-                    </div>
-                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
-                                    ValuesChanged="OnParameterValuesChanged" />
-                </div>
-
-            </div>
-
-            @if (showHelpPanel)
-            {
-                <ToolHelpSidebar PanelId="optimizeHelpPanel"
-                                 Title="Detailed Info"
-                                 Description="What this tool changes and how to tune it safely.">
-                    <h3>What happens when you click Execute</h3>
-                    <p>The optimizer iterates over each selected MediaTracker track and analyzes the vertices. It reduces the precision of vertex positions to improve compression efficiency of LZO.</p>
-                    <p>It quantizes vertex positions to a grid based on the specified precision and snaps values to 0 if possible. It also can create temporal coherence by snapping values consistently across animation keys.</p>
-                    <p>LZO compression reduces file size by efficiently encoding repeated patterns and minimizing redundancy in the data. By using quantized position and 0-snapping we try to maximize those repeating patterns create longer strings of zeros which helps the compression.</p>
-                    <h3>Enable Quantization</h3>
-                    <p>When enabled, the optimizer will quantize vertex positions to a grid based on the specified precision.</p>
-                    <h3>Quantization Step</h3>
-                    <p>The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality. The chosen step size should depend on your specific mesh size, small intricate meshes require smaller steps while larger, coarser meshes can use larger steps. Using a float value that has a lot of trailing zeros such as 0.0078125, 0.125, 0.5 or 1 in its binary representation can improve compression efficiency.</p>
-                    <h3>Enable Zero Clamping</h3>
-                    <p>When enabled, the optimizer will clamp values below the specified threshold to zero.</p>
-                    <h3>Zero Clamping Threshold</h3>
-                    <p>The threshold for zero clamping. Values below this threshold will be clamped to zero. Typically half of Quantization Step.</p>
-                    <h3>Enable Temporal Stabilizing</h3>
-                    <p>When enabled, the optimizer will snap animation keys to create temporal coherence. This means that vertex movement between 2 keyframes that fall under a certain threshold will be snapped to the same position.</p>
-                    <h3>Temporal Stabilizing Threshold Factor</h3>
-                    <p>The threshold factor for temporal stabilizing (snapping of animation keys). Impacts threshold under which vertices will snap to positions of older animation keys. Threshold is calculated by <b>ThresholdFactor * QuantizationStep</b>.</p>
-                    <h3>Enable Color Optimization</h3>
-                    <p>When enabled, the optimizer will also optimize vertex colors by quantizing them to 8 bits per channel (0-255 range). Most triangle blocks are dominated in size by their keyframes so Color Optimization does not matter in almost all cases.</p> 
-                    <h3>Practical workflow</h3>
-                    <p>Start with a low quantization step for your mesh size (e.g. 0.001 or 0.01) and check the results in-game and in the resulting filesize. Gradually increase the step until you find a good balance between compression and visual quality. Enabling zero clamping helps a lot! Temporal stabilizing is hard to finetune and can quickly lead to heavy distortion in the movement, so you should use the Optimize KeyFrame Animation tool to minimize keyframes first. Color optimization can be enabled for minimal additional compression, but may not be necessary in most cases.</p>
-                    
-                </ToolHelpSidebar>
-            }
-        </div>
-    </div>
-</div>
+<ToolPageLayout IconClass="bi bi-grid-3x3"
+                Title="Optimize Triangle Compression"
+                Description="Optimize vertex values of MediaTracker triangles for LZO compression to reduce filesize."
+                HelpDescription="What this tool changes and how to tune it safely.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Clip"
+                          Description="Load the clip that should be optimized.">
+                    <FileLoader FileService="SharedClipFileService"
+                                NoFileMessage="No clip loaded."
+                                DropHintMessage="Drop a .Clip.Gbx file in this area"
+                                Accept=".Clip.Gbx"
+                                MessageSource="Optimize Triangle Compression" />
+                </ToolCard>
+            </InputContent>
+            <HistoryContent>
+               <ToolCard Title="Operation History" Description="Recent clip operations in this session."
+                          Class="tool-operation-history-panel">
+                    <ToolOperationHistory EmptyMessage="(nothing yet)" OperationHistoryService="OperationHistoryService" />
+                </ToolCard>
+            </HistoryContent>
+            <ExportContent>
+                <ToolCard Title="Export" Description="Export the updated clip." Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                    <ExportPanel FileService="SharedClipFileService" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Track Selection">
+            <TrackSelector Clip="SharedClipFileService.Clip" @bind-SelectedTracks="selectedTracks" />
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction SelectedTracks="selectedTracks" Execute="ExecuteToolAsync" UseSelectedTracks="true"
+                           MessageSource="Optimize Triangle Compression"
+                           Tooltip="Execute the tool with the selected tracks. This may take some time!" />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The optimizer iterates over each selected MediaTracker track and analyzes the vertices. It reduces the precision of vertex positions to improve compression efficiency of LZO.</p>
+        <p>It quantizes vertex positions to a grid based on the specified precision and snaps values to 0 if possible. It also can create temporal coherence by snapping values consistently across animation keys.</p>
+        <p>LZO compression reduces file size by efficiently encoding repeated patterns and minimizing redundancy in the data. By using quantized position and 0-snapping we try to maximize those repeating patterns create longer strings of zeros which helps the compression.</p>
+        <h3>Enable Quantization</h3>
+        <p>When enabled, the optimizer will quantize vertex positions to a grid based on the specified precision.</p>
+        <h3>Quantization Step</h3>
+        <p>The step size for quantization. Higher values result in coarser quantization for better compression but lower triangle quality. The chosen step size should depend on your specific mesh size, small intricate meshes require smaller steps while larger, coarser meshes can use larger steps. Using a float value that has a lot of trailing zeros such as 0.0078125, 0.125, 0.5 or 1 in its binary representation can improve compression efficiency.</p>
+        <h3>Enable Zero Clamping</h3>
+        <p>When enabled, the optimizer will clamp values below the specified threshold to zero.</p>
+        <h3>Zero Clamping Threshold</h3>
+        <p>The threshold for zero clamping. Values below this threshold will be clamped to zero. Typically half of Quantization Step.</p>
+        <h3>Enable Temporal Stabilizing</h3>
+        <p>When enabled, the optimizer will snap animation keys to create temporal coherence. This means that vertex movement between 2 keyframes that fall under a certain threshold will be snapped to the same position.</p>
+        <h3>Temporal Stabilizing Threshold Factor</h3>
+        <p>The threshold factor for temporal stabilizing (snapping of animation keys). Impacts threshold under which vertices will snap to positions of older animation keys. Threshold is calculated by <b>ThresholdFactor * QuantizationStep</b>.</p>
+        <h3>Enable Color Optimization</h3>
+        <p>When enabled, the optimizer will also optimize vertex colors by quantizing them to 8 bits per channel (0-255 range). Most triangle blocks are dominated in size by their keyframes so Color Optimization does not matter in almost all cases.</p>
+        <h3>Practical workflow</h3>
+        <p>Start with a low quantization step for your mesh size (e.g. 0.001 or 0.01) and check the results in-game and in the resulting filesize. Gradually increase the step until you find a good balance between compression and visual quality. Enabling zero clamping helps a lot! Temporal stabilizing is hard to finetune and can quickly lead to heavy distortion in the movement, so you should use the Optimize KeyFrame Animation tool to minimize keyframes first. Color optimization can be enabled for minimal additional compression, but may not be necessary in most cases.</p>
+    </HelpContent>
+</ToolPageLayout>
 
 @code {
-    private List<TrackData> selectedTracks = new();
-    private bool showHelpPanel;
+    [SessionStored] private List<TrackData> selectedTracks = new();
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
         new()
@@ -154,27 +148,22 @@
         },
     };
 
-    private ToolParameterValues parameterValues = new();
+    [SessionStored] private ToolParameterValues parameterValues = new();
     
-    protected override void OnInitialized(){
+    protected override void OnInitialized()
+    {
         base.OnInitialized();
-
-        if(SessionStorage.Has(member: nameof(parameterDefinitions)))
-            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
-        else
-            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
-
+        SharedClipFileService.FileChanged += OnClipFileChanged;
     }
+
+    public void Dispose() => SharedClipFileService.FileChanged -= OnClipFileChanged;
+
+    private async void OnClipFileChanged() => await InvokeAsync(StateHasChanged);
 
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
         return Task.CompletedTask;
-    }
-
-    private void ToggleHelpPanel()
-    {
-        showHelpPanel = !showHelpPanel;
     }
 
     private async Task<ExecuteActionResult> ExecuteToolAsync()

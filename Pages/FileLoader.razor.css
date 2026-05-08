@@ -3,8 +3,8 @@
     border: 1px dashed var(--tm-border);
     border-radius: var(--tm-radius-md);
     background: var(--tm-surface);
-    padding: 0.875rem 1rem;
-    min-height: 118px;
+    padding: 0.6rem 0.875rem;
+    min-height: 90px;
     cursor: pointer;
     transition: border-color 120ms ease, box-shadow 120ms ease;
     box-shadow: var(--tm-shadow-sm);
@@ -21,6 +21,35 @@
     gap: 0.2rem;
 }
 
+.file-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.file-clear-btn {
+    flex-shrink: 0;
+    padding: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-radius: var(--tm-radius-sm, 4px);
+    color: var(--tm-text-muted);
+    cursor: pointer;
+    line-height: 1;
+    transition: color 100ms ease, background 100ms ease;
+}
+
+.file-clear-btn:hover {
+    color: var(--tm-danger, #dc3545);
+    background: var(--tm-surface-soft);
+}
+
 .file-drop-title {
     font-weight: 600;
     color: var(--tm-text);
@@ -29,17 +58,24 @@
 .file-name {
     font-weight: 500;
     color: var(--tm-text);
-    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1 1 0;
 }
 
 .file-size {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--tm-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .file-drop-hint {
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     color: var(--tm-text-muted);
+    font-size: 0.78rem;
 }
 
 .file-open-hint {

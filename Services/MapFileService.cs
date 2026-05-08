@@ -8,7 +8,6 @@ namespace TM_MappingTools.Services;
 public class MapFileService : GbxFileService
 {
     public CGameCtnChallenge? Challenge { get; private set; }
-
     public override object? LoadedContent => Challenge;
     public override string SupportedExtension => ".Map.Gbx";
     public override string ContentTypeName => "Map";
@@ -44,7 +43,7 @@ public class MapFileService : GbxFileService
         }
     }
 
-    public Stream GetDownloadStream()
+    public override Stream GetDownloadStream()
     {
         var stream = new MemoryStream();
         Challenge!.Save(stream);

@@ -2,7 +2,7 @@ using System;
 
 namespace TM_MappingTools.Services;
 
-public class OperationHistoryService
+public abstract class OperationHistoryService
 {
     public List<string> OperationsHistory { get; private set; } = new();
     public event Action? HistoryChanged;
@@ -17,5 +17,21 @@ public class OperationHistoryService
     {
         OperationsHistory.Clear();
         HistoryChanged?.Invoke();
+    }
+}
+
+public class GlobalClipHistoryService : OperationHistoryService
+{
+    ClipFileService _clipFileService;
+
+    public GlobalClipHistoryService(
+        ClipFileService clipFileService)
+    {
+        _clipFileService = clipFileService;
+        _clipFileService.FileChanged += OnClipFileChanged;
+    }
+    void OnClipFileChanged()
+    {
+        Clear();
     }
 }

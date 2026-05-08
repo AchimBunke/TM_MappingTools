@@ -1,91 +1,75 @@
 ﻿@page "/embedded-item-extractor"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using TM_GenericMapping.Messaging
-@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
-@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
-@inject TM_MappingTools.Services.SessionStorage SessionStorage
+@using TM_MappingTools.Services
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
-@inject IJSRuntime JS
 
 
 <PageTitle>Embedded Item Extractor</PageTitle>
 
-<div class="tool-page">
-    <ToolPageHeader IconClass="bi-box-arrow-up"
-                    Title="Embedded Item Extractor"
-                    Description="Extract embedded items and blocks from a map.">
-                    <HeaderActions>
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm tool-help-toggle"
-                    @onclick="ToggleHelpPanel"
-                    aria-expanded="@showHelpPanel"
-                    aria-controls="optimizeHelpPanel">
-                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
-                @(showHelpPanel ? "Hide details" : "How this works")
-            </button>
-        </HeaderActions>
-    </ToolPageHeader>
-
-    <div class="tool-page-body">
-        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar">
-
+<ToolPageLayout IconClass="bi-box-arrow-up" Title="Embedded Item Extractor"
+                Description="Extract embedded items and blocks from a map."
+                HelpDescription="What this tool changes and how to tune it safely.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Map" Description="Load the map that contains embedded blocks and items.">
+                    <FileLoader FileService="MapFileService" NoFileMessage="No map loaded."
+                                DropHintMessage="Drop a .Map.Gbx file in this area" Accept=".Map.Gbx"
+                                MessageSource="Embedded Item Extractor" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export"
+                          Class="tool-export-panel" BodyClass="tool-export-panel-body">
+                    <ExportPanel EmptyMessage="Run Execute to generate export content." Items="_exportItems" />
+                </ToolCard>
+               
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection">
+            <div class="small text-muted">
+                <div>Map loaded: @(MapFileService.Challenge != null ? "Yes" : "No")</div>
             </div>
-            <div class="tool-page-main">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Actions</h2>
-                    </div>
-                    <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
-                                    CanExecute="CanExecuteTool"
-                                    ExecutionTargetOverwrite="Extract embedded Items and Blocks"
-                                    MessageSource="Embedded Item Extractor"
-                                    Tooltip="Extract embedded items and blocks from a map." />
-                </div>
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Parameters</h2>
-                    </div>
-                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
-                                    ValuesChanged="OnParameterValuesChanged" />
-                </div>
-
-            </div>
-
-            @if (showHelpPanel)
-            {
-                <ToolHelpSidebar PanelId="embeddedItemExtractorHelpPanel"
-                                 Title="Detailed Info"
-                                 Description="What this tool changes and how to tune it safely.">
-                    <h3>What happens when you click Execute</h3>
-                    <p>The tool will extract embedded items and blocks from the selected map and save them in a zip file.</p>
-                    <p>The extracted zip contains a folder structure according to the embedded items and blocks hierarchy.</p>
-                </ToolHelpSidebar>
-            }
-        </div>
-    </div>
-</div>
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" CanExecute="CanExecuteTool"
+                           ExecutionTargetOverwrite="Extract embedded Items and Blocks" MessageSource="Embedded Item Extractor"
+                           Tooltip="Extract embedded items and blocks from a map." />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The tool will extract embedded items and blocks from the selected map and save them in a zip file.</p>
+        <p>The extracted zip contains a folder structure according to the embedded items and blocks hierarchy.</p>
+    </HelpContent>
+</ToolPageLayout>
 
 @code {
- private bool showHelpPanel;
+    [SessionStored] private MapFileService MapFileService = default!;
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
     };
 
-    private ToolParameterValues parameterValues = new();
-    
-    protected override void OnInitialized(){
-        base.OnInitialized();
+    [SessionStored] private ToolParameterValues parameterValues = new();
 
-        if(SessionStorage.Has(member: nameof(parameterDefinitions)))
-            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
-        else
-            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
-        FileTypeManager.FileChanged += OnFileChanged;
-    }
-     public void Dispose()
+    protected override void OnInitialized()
     {
-        FileTypeManager.FileChanged -= OnFileChanged;
+        base.OnInitialized();
+        MapFileService.FileChanged += OnFileChanged;
+    }
+    public void Dispose()
+    {
+        MapFileService.FileChanged -= OnFileChanged;
     }
 
     private Task OnParameterValuesChanged(ToolParameterValues values)
@@ -95,34 +79,41 @@
     }
     async void OnFileChanged()
     {
+        _exportItems = null;
         await InvokeAsync(StateHasChanged);
     }
-    private void ToggleHelpPanel()
-    {
-        showHelpPanel = !showHelpPanel;
-    }
 
-     private bool CanExecuteTool()
+    private bool CanExecuteTool()
     {
-        return FileTypeManager.GetChallenge() != null;
-    } 
+        return MapFileService.Challenge != null;
+    }
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
-        var challenge = FileTypeManager.GetChallenge();
+        var challenge = MapFileService.Challenge;
+        if (challenge is null)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No map loaded.");
+
         var embeddedItemExtractor = new TM_GenericMapping.Maps.EmbeddedItemExtractor();
 
         var zipStramResult = embeddedItemExtractor.GetEmbeddedZipStream(challenge);
-        if(zipStramResult.IsFailure)
+        if (zipStramResult.IsFailure)
         {
             ToolMessageService.AddError($"Failed to extract embedded items.", zipStramResult, "Embedded Item Extractor");
             return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Failed to extract embedded items.");
         }
         using var zipStream = zipStramResult.Value;
         zipStream.Position = 0;
-        var streamRef = new DotNetStreamReference(zipStream);
-        await JS.InvokeVoidAsync("downloadFileFromStream", $"{challenge.MapName}_EmbeddedItems.zip", streamRef);
+        using var zipBytesStream = new MemoryStream();
+        await zipStream.CopyToAsync(zipBytesStream);
+        var zipBytes = zipBytesStream.ToArray();
+        var zipFileName = $"{challenge.MapName}_EmbeddedItems.zip";
 
-        OperationHistoryService.AddOperation("Extracted Embedded Items");
+        _exportItems = new[]
+        {
+            new ExportableItem { FileName = zipFileName, GetBytes = () => zipBytes }
+        };
+        StateHasChanged();
+
         return new ExecuteActionResult(ExecuteActionResultStatus.Success, "Successfully extracted embedded items.");
     }
 

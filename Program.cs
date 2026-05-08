@@ -13,15 +13,18 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 builder.Services.AddScoped<SessionStorage>();
 
-builder.Services.AddSingleton<ToolMessageService>();
-builder.Services.AddSingleton<FileService>();
+
+
+// global instances of file services for shared access across tools
 builder.Services.AddSingleton<ClipFileService>();
 builder.Services.AddSingleton<MapFileService>();
 builder.Services.AddSingleton<ItemFileService>();
-builder.Services.AddSingleton<FileTypeManager>();
-builder.Services.AddSingleton<FileTypeManagedFileService>();
-builder.Services.AddSingleton<OperationHistoryService>();
+
+builder.Services.AddSingleton<ToolMessageService>();
 builder.Services.AddSingleton<ToolRegistryService>();
+builder.Services.AddSingleton<GlobalClipHistoryService>();
+
+
 
 GbxExtensions.Setup();
 

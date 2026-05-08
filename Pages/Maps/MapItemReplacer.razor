@@ -1,19 +1,45 @@
 @page "/map-item-replacer"
-@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
 
 <PageTitle>Item Replacer</PageTitle>
 
-<div class="tool-page">
-    <ToolPageHeader IconClass="bi-shuffle"
-                    Title="Item Replacer"
-                    Description="Replace blocks and items in a map with other ones.">
-    </ToolPageHeader>
-
-    <div class="tool-page-body">
-
+<ToolPageLayout IconClass="bi-shuffle"
+                Title="Item Replacer"
+                Description="Replace blocks and items in a map with other ones."
+                HelpDescription="Planned behavior for this tool.">
+    @* <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Map"
+                          Description="Load the map that should be updated.">
+                    <FileLoader FileService="CurrentFileService"
+                                NoFileMessage="No map loaded."
+                                DropHintMessage="Drop a .Map.Gbx file in this area"
+                                Accept=".Map.Gbx"
+                                MessageSource="Map Item Replacer" />
+                </ToolCard>
+            </InputContent>
+            <HistoryContent>
+                <ToolOperationHistoryPanel Title="Generated Content"
+                                           Description="Recent tool operations in this session."
+                                           EmptyMessage="(no generated content yet)" />
+            </HistoryContent>
+            <ExportContent>
+                <ToolCurrentFileExportPanel Title="Export"
+                                            Description="Download the modified map file."
+                                            EmptyMessage="Load a map to enable export." />
+            </ExportContent>
+        </ToolIORow>
+    </IORow> *@
+    <Main>
         <div class="alert alert-warning">
             This tool is coming soon!
         </div>
-        
-    </div>
-</div>
+    </Main>
+    <HelpContent>
+        <h3>Current status</h3>
+        <p>This tool is currently a placeholder. The layout already supports map-specific input, generated content, and export.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+}

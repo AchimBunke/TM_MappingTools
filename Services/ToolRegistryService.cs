@@ -12,7 +12,6 @@ public class ToolRegistryService
             IconClass: "bi-paperclip",
             Title: "Player-Attached 3D Triangles",
             Description: "Attach 3D triangles to the player.",
-            SelectionActive: ToolSelectionActive.Clip,
             SourceAliases: new[] { "player-attached", "triangles", "player triangles" }),
 
         new(
@@ -21,7 +20,6 @@ public class ToolRegistryService
             IconClass: "bi-bezier",
             Title: "Optimize Keyframe Animations",
             Description: "Reduce redundant animation keyframes to shrink filesize.",
-            SelectionActive: ToolSelectionActive.Clip,
             SourceAliases: new[] { "keyframe", "optimize keyframe" }),
 
         new(
@@ -30,7 +28,6 @@ public class ToolRegistryService
             IconClass: "bi-grid-3x3",
             Title: "Optimize Triangle Compression",
             Description: "Improve MediaTracker triangle compression.",
-            SelectionActive: ToolSelectionActive.Clip,
             SourceAliases: new[] { "triangle compression", "optimize triangle" }),
 
         new(
@@ -39,7 +36,6 @@ public class ToolRegistryService
             IconClass: "bi-collection-play",
             Title: "Import Triangle Animation",
             Description: "Import .obj animation from Blender and create triangle animations.",
-            SelectionActive: ToolSelectionActive.Clip,
             SourceAliases: new[] { "import triangle", "triangle animation import" }),
 
         new(
@@ -48,7 +44,6 @@ public class ToolRegistryService
             IconClass: "bi-shuffle",
             Title: "Map Item Replacer",
             Description: "Coming Soon...",
-            SelectionActive: ToolSelectionActive.Map,
             SourceAliases: new[] { "map replacer", "item replacer" }),
 
         new(
@@ -57,7 +52,6 @@ public class ToolRegistryService
             IconClass: "bi-box-arrow-in-right",
             Title: "Moving Item Creator",
             Description: "Create moving items from source items.",
-            SelectionActive: ToolSelectionActive.All,
             SourceAliases: new[] { "moving item", "item creator" }),
 
         new(
@@ -66,7 +60,6 @@ public class ToolRegistryService
             IconClass: "bi-box-arrow-up",
             Title: "Embedded Item Extractor",
             Description: "Extract embedded items and blocks from a map.",
-            SelectionActive: ToolSelectionActive.Map,
             SourceAliases: new[] { "embedded item", "item extractor" }),
     };
 

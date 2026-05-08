@@ -1,100 +1,132 @@
 ﻿@page "/import-triangle-animation"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using System.Runtime.Serialization
 @using System.Numerics
 @using TM_GenericMapping.MediaTracker.IO
 @using TM_MappingTools.Services
 @using TM_MappingTools.Utils
 @using static TM_GenericMapping.MediaTracker.IO.ObjSerializer
-@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
-@inject TM_MappingTools.Services.SessionStorage SessionStorage
-@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
+@inject TM_MappingTools.Services.GlobalClipHistoryService OperationHistoryService
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+@inject ClipFileService SharedClipFileService
 
 
 
 <PageTitle>Import Triangle Animation</PageTitle>
 
-<div class="tool-page">
-    <ToolPageHeader IconClass="bi-collection-play" Title="Import Triangle Animation"
-                    Description="Import .obj animation from Blender and create triangle animations. Operations with lots of vertices may take a while to execute.">
-        <HeaderActions>
-            <button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" @onclick="ToggleHelpPanel"
-                    aria-expanded="@showHelpPanel" aria-controls="playerTrianglesHelpPanel">
-                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
-                @(showHelpPanel ? "Hide details" : "How this works")
-            </button>
-        </HeaderActions>
-    </ToolPageHeader>
-    <div class="tool-page-body">
-        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Animation Import</h2>
-                    </div>
+<ToolPageLayout IconClass="bi-collection-play" Title="Import Triangle Animation"
+                Description="Import .obj animation from Blender and create triangle animations. Operations with lots of vertices may take a while to execute."
+                HelpDescription="How player-attached triangles work and when to use visibility ensurance.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Clip" Description="Load the clip that receives the generated track.">
+                    <FileLoader FileService="SharedClipFileService" NoFileMessage="No clip loaded."
+                                DropHintMessage="Drop a .Clip.Gbx file in this area" Accept=".Clip.Gbx"
+                                MessageSource="Import Triangle Animation" />
+                </ToolCard>
+                <ToolCard Title="Animation Source Files"
+                          Description="Load all .obj and .mtl files for the animation sequence.">
                     <FileLoader FileService="FileService" NoFileMessage="No files loaded."
                                 DropHintMessage="Drop all files related to the animation (including .obj and .mtl files) anywhere in this area"
                                 Accept=".obj,.mtl" AllowMultiple="true" MessageSource="Import Triangle Animation" />
-                </div>
-            </div>
-            <div class="tool-page-main">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Actions</h2>
-                    </div>
-                    <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
-                                   MessageSource="Import Triangle Animation"
-                                   ExecutionTargetOverwrite="Generate Triangle Animation"
-                                   Tooltip="Execute the tool with the loaded .obj animation." CanExecute="CanExecuteTool" />
-                </div>
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Parameters</h2>
-                    </div>
-                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
-                                    ValuesChanged="OnParameterValuesChanged" />
-                </div>
-
-            </div>
-
-            @if (showHelpPanel)
-            {
-                <ToolHelpSidebar PanelId="playerTrianglesHelpPanel" Title="Detailed Info"
-                                 Description="How player-attached triangles work and when to use visibility ensurance.">
-                    <h3>What happens when you click Execute</h3>
-                    <p>The tool will process the loaded .obj and .mtl animation files and generate a new triangle3D track
-                        from the animation based on the specified parameters.</p>
-                    <h3>Animation Length</h3>
-                    <p>This parameter specifies the total length of the generated animation in seconds. The tool will automatically determine the required frame rate based on the number of animation frames in the loaded .obj files to fit the entire animation within the specified length. Setting a shorter animation length will result in a faster animation, while a longer length will create a slower animation.</p>
-                    <h3>Material Colors</h3>
-                    <p>When enabled, the tool will attempt to extract material colors from .mtl files that are provided with the .obj animation files. If a .mtl file with matching material definitions is found, the tool will use the colors defined in the .mtl file for the corresponding vertices in the generated triangle animation. If no .mtl file is found or if a material definition is missing, the tool will fall back to using default colors for those vertices.</p>
+                </ToolCard>
+            </InputContent>
+            <HistoryContent>
+                <ToolCard Title="Operation History" Description="Recent clip operations in this session."
+                          Class="tool-operation-history-panel">
+                    <ToolOperationHistory EmptyMessage="(nothing yet)" OperationHistoryService="OperationHistoryService" />
+                </ToolCard>
+            </HistoryContent>
+            <ExportContent>
+                <ToolCard Title="Export" Description="Export the updated clip." Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                    <ExportPanel FileService="SharedClipFileService" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection" BodyClass="small text-muted">
+            <div>Clip loaded: @(SharedClipFileService.Clip != null ? "Yes" : "No")</div>
+            <div>Animation files loaded: @FileService.Files.Count</div>
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
+                           MessageSource="Import Triangle Animation" ExecutionTargetOverwrite="Generate Triangle Animation"
+                           Tooltip="Execute the tool with the loaded .obj animation." CanExecute="CanExecuteTool" />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The tool will process the loaded .obj and .mtl animation files and generate a new triangle3D track
+            from the animation based on the specified parameters.</p>
+            <h3>Animation Length</h3>
+            <p>This parameter specifies the total length of the generated animation in seconds. The tool will automatically
+                determine the required frame rate based on the number of animation frames in the loaded .obj files to fit
+                the entire animation within the specified length. Setting a shorter animation length will result in a faster
+                animation, while a longer length will create a slower animation.</p>
+                <h3>Material Colors</h3>
+                <p>When enabled, the tool will attempt to extract material colors from .mtl files that are provided with the
+                    .obj animation files. If a .mtl file with matching material definitions is found, the tool will use the
+                    colors defined in the .mtl file for the corresponding vertices in the generated triangle animation. If no
+                    .mtl file is found or if a material definition is missing, the tool will fall back to using default colors
+                    for those vertices.</p>
                     <h3>Material Extraction Mode</h3>
-                    <p>This parameter defines how the tool extracts material colors from .mtl files and applies them to the generated triangle animation. The available modes are:</p>
-                    <ul class="text-muted small">
-                        <li><strong>Per Vertex Color:</strong> In this mode, the tool assigns a single color to each vertex based on the first material it encounters for that vertex in the .obj files. This means that if a vertex is shared by multiple faces with different materials, only the color from the first material will be used.</li>
-                        <li><strong>Per Vertex Color (Interpolated):</strong> This mode also assigns colors on a per-vertex basis, but instead of taking just the first material, it considers all materials associated with the vertex across different faces. The tool then interpolates the colors from all these materials to determine the final color for that vertex. This can result in smoother color transitions for vertices that are shared by faces with different materials but it might look weird depending on the color variation.</li>
-                        <li><strong>Per Face Color:</strong> In this mode, the tool creates additional vertices for each face so that colors can be assigned individually to each face. This means that even if multiple faces share the same vertex position, they can have different colors based on their respective materials. This mode can produce more accurate color representation at the cost of increased vertex count. This can increase the vertext count by a lot so be aware how many shared vertices the animation contains.</li>
-                    </ul>
-                    <h3>Position Offset, Scale and Rotation</h3>
-                    <p>These parameters allow you to apply a transformation to the entire imported animation. The Position Offset translates the animation by the specified amount in the X, Y, and Z directions. The Scale parameter allows you to scale the animation independently along each axis, which can be useful for resizing the animation to fit your scene. The Rotation parameter applies an Euler rotation (in degrees) to the animation around the X, Y, and Z axes. You can use these transformation parameters to adjust the placement, size, and orientation of the imported triangle animation in your scene.</p>
-                    <h3>Practical workflow</h3>
-                    <p>You will need to create an animation in Blender and have it exported as .obj and .mtl files. When exporting from Blender, make sure to export as series of .obj files and also include materials (.mtl) files for each .obj file. The animations must be named sequentially, for example: animation_1.obj, animation_2.obj, etc.</p>
-                    <p>You need to have a clip imported. Then you either drag/drop or select <strong>all</strong> the animation files (.obj, .mtl) you want to generate from into the tool.</p>
-                    <p>Adjust the parameters as needed and click "Execute". The tool will create a new triangle animation track based on the imported .obj animation and add it as a new Track into to the clip.</p>
-                    <p>Depending on the complexity of the animation and the number of vertices, the generation process may take some time. In some tests it even took minutes, during which the website becomes unresponsive. Once completed, you can preview the animation in-game to see how it looks and make adjustments to the parameters if necessary. If the animation import failed, only the first frame will be imported.</p>
-                    <p><strong>Important:</strong> Make sure your animation does not create new objects or change the vertex/triangle count in between frames... this will not be handled correctly.</p>
-                    <p>See <a href="https://github.com/Mokuura/Triangle3DAnimation" target="_blank">Triangle3DAnimation from Mokuura</a> if you want a similar locally installed tool.</p>
-                    </ToolHelpSidebar>
-                }
-            </div>
-        </div>
-    </div>
+                    <p>This parameter defines how the tool extracts material colors from .mtl files and applies them to the
+                        generated triangle animation. The available modes are:</p>
+                        <ul class="text-muted small">
+                            <li><strong>Per Vertex Color:</strong> In this mode, the tool assigns a single color to each vertex based on
+                                the first material it encounters for that vertex in the .obj files. This means that if a vertex is
+                                shared by multiple faces with different materials, only the color from the first material will be used.
+                            </li>
+                            <li><strong>Per Vertex Color (Interpolated):</strong> This mode also assigns colors on a per-vertex basis,
+                                but instead of taking just the first material, it considers all materials associated with the vertex
+                                across different faces. The tool then interpolates the colors from all these materials to determine the
+                                final color for that vertex. This can result in smoother color transitions for vertices that are shared
+                                by faces with different materials but it might look weird depending on the color variation.</li>
+                                <li><strong>Per Face Color:</strong> In this mode, the tool creates additional vertices for each face so
+                                    that colors can be assigned individually to each face. This means that even if multiple faces share the
+                                    same vertex position, they can have different colors based on their respective materials. This mode can
+                                    produce more accurate color representation at the cost of increased vertex count. This can increase the
+                                    vertext count by a lot so be aware how many shared vertices the animation contains.</li>
+                                </ul>
+                                <h3>Position Offset, Scale and Rotation</h3>
+                                <p>These parameters allow you to apply a transformation to the entire imported animation. The Position Offset
+                                    translates the animation by the specified amount in the X, Y, and Z directions. The Scale parameter allows
+                                    you to scale the animation independently along each axis, which can be useful for resizing the animation to
+                                    fit your scene. The Rotation parameter applies an Euler rotation (in degrees) to the animation around the X,
+                                    Y, and Z axes. You can use these transformation parameters to adjust the placement, size, and orientation of
+                                    the imported triangle animation in your scene.</p>
+                                    <h3>Practical workflow</h3>
+                                    <p>You will need to create an animation in Blender and have it exported as .obj and .mtl files. When exporting
+                                        from Blender, make sure to export as series of .obj files and also include materials (.mtl) files for each
+                                        .obj file. The animations must be named sequentially, for example: animation_1.obj, animation_2.obj, etc.
+                                    </p>
+                                    <p>You need to have a clip imported. Then you either drag/drop or select <strong>all</strong> the animation
+                                        files (.obj, .mtl) you want to generate from into the tool.</p>
+                                        <p>Adjust the parameters as needed and click "Execute". The tool will create a new triangle animation track
+                                            based on the imported .obj animation and add it as a new Track into to the clip.</p>
+                                            <p>Depending on the complexity of the animation and the number of vertices, the generation process may take some
+                                                time. In some tests it even took minutes, during which the website becomes unresponsive. Once completed, you
+                                                can preview the animation in-game to see how it looks and make adjustments to the parameters if necessary.
+                                                If the animation import failed, only the first frame will be imported.</p>
+                                                <p><strong>Important:</strong> Make sure your animation does not create new objects or change the
+                                                    vertex/triangle count in between frames... this will not be handled correctly.</p>
+                                                    <p>See <a href="https://github.com/Mokuura/Triangle3DAnimation" target="_blank">Triangle3DAnimation from
+                                                        Mokuura</a> if you want a similar locally installed tool.</p>
+                                                    </HelpContent>
+                                                </ToolPageLayout>
 
 @code {
     
-    private FileService FileService = new();
-    private bool showHelpPanel;
+    [SessionStored] private FileService FileService = default!;
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
          new()
@@ -158,16 +190,12 @@
         },
     };
 
-    private ToolParameterValues parameterValues = new();
+    [SessionStored] private ToolParameterValues parameterValues = new();
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        if (SessionStorage.Has(member: nameof(parameterDefinitions)))
-            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
-        else
-            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
         FileService.FileChanged += OnFileChanged;
 
     }
@@ -185,18 +213,13 @@
         return Task.CompletedTask;
     }
 
-    private void ToggleHelpPanel()
-    {
-        showHelpPanel = !showHelpPanel;
-    }
-
     private bool CanExecuteTool()
     {
-        return FileService.HasFiles && FileTypeManager.GetClip() != null;
+        return FileService.HasFiles && SharedClipFileService.Clip != null;
     }
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
-        var clip = FileTypeManager.GetClip();
+        var clip = SharedClipFileService.Clip;
         if (clip == null)
             return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No clip loaded.");
 
@@ -228,13 +251,13 @@
             Scale = parameterValues.GetVector3("transformScale", Vector3.One),
             Rotation = parameterValues.GetQuaternion("transformRotation", Quaternion.Identity),
         };
+
    
-     
         scene.Animate(clip.MediaClip, sceneAnimationSettings, builder);
+
         
 
 
-       
         OperationHistoryService.AddOperation("Import Triangle Animation");
         return new ExecuteActionResult(builder.Success ? ExecuteActionResultStatus.Success : ExecuteActionResultStatus.Failure);
     }
@@ -265,7 +288,7 @@
         public Vector3 Position { get; set; } = Vector3.Zero;
         public Vector3 Scale { get; set; } = Vector3.One;
         public Quaternion Rotation { get; set; } = Quaternion.Identity;
-        public bool Success { get; private set;} = true;
+        public bool Success { get; private set; } = true;
         public required TM_MappingTools.Services.ToolMessageService ToolMessageService { get; set; }
         protected override void Build()
         {

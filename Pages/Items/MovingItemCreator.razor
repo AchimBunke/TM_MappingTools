@@ -1,64 +1,70 @@
 @page "/moving-item-creator"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using GBX.NET.Engines.GameData
 @using System.Text
 @using System.IO.Compression
 @using TM_GenericMapping.Messaging
 @using TM_MappingTools.Services
-@inject TM_MappingTools.Services.FileTypeManager FileTypeManager
-@inject TM_MappingTools.Services.OperationHistoryService OperationHistoryService
-@inject TM_MappingTools.Services.SessionStorage SessionStorage
+
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
-@inject IJSRuntime JS
 
 
 <PageTitle>Moving Item Creator</PageTitle>
 
-<div class="tool-page">
-    <ToolPageHeader IconClass="bi-box-arrow-in-right" Title="Moving Item Creator" Description="Create moving items.">
-        <HeaderActions>
-            <button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" @onclick="ToggleHelpPanel"
-                    aria-expanded="@showHelpPanel" aria-controls="optimizeHelpPanel">
-                <span class="bi @(showHelpPanel ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
-                @(showHelpPanel ? "Hide details" : "How this works")
-            </button>
-        </HeaderActions>
-    </ToolPageHeader>
-    <div class="tool-page-body">
-        <div class="tool-page-layout @(showHelpPanel ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Items to convert to moving</h2>
-                    </div>
-                    <FileLoader FileService="FileService" NoFileMessage="No files loaded."
-                                DropHintMessage="Drop all items you want to convert to moving here" Accept=".Item.Gbx"
-                                AllowMultiple="true" MessageSource="Moving Item Creator" />
-                </div>
-            </div>
-            <div class="tool-page-main">
-                <div class="tool-panel tool-action-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Actions</h2>
-                    </div>
-                    <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
-                                   MessageSource="Moving Item Creator" ExecutionTargetOverwrite="Generate Moving Items"
-                                   Tooltip="Execute the tool with the loaded items." CanExecute="CanExecuteTool" />
-                </div>
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <h2 class="tool-panel-title">Parameters</h2>
-                    </div>
-                    <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
-                                    ValuesChanged="OnParameterValuesChanged" />
-                </div>
-
-            </div>
-
-            @if (showHelpPanel)
-            {
-                <ToolHelpSidebar PanelId="movingItemCreatorHelpPanel" Title="Detailed Info"
-                                 Description="What this tool changes and how to tune it safely.">
+<ToolPageLayout IconClass="bi-box-arrow-in-right"
+                Title="Moving Item Creator"
+                Description="Create moving items."
+                HelpDescription="What this tool changes and how to tune it safely.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Animation Template (Optional)"
+                          Description="Load one .Item.Gbx to copy moving animation data and placement from.">
+                    <FileLoader FileService="TemplateItemFileService"
+                                NoFileMessage="No template item loaded."
+                                DropHintMessage="Drop a .Item.Gbx template item in this area"
+                                Accept=".Item.Gbx"
+                                MessageSource="Moving Item Creator" />
+                </ToolCard>
+                <ToolCard Title="Items To Convert"
+                          Description="Load all .Item.Gbx files that should become moving items.">
+                    <FileLoader FileService="ItemModelsFileService"
+                                NoFileMessage="No files loaded."
+                                DropHintMessage="Drop all items you want to convert to moving here"
+                                Accept=".Item.Gbx"
+                                AllowMultiple="true"
+                                MessageSource="Moving Item Creator" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                     <ExportPanel 
+                             EmptyMessage="Run Execute to generate export content."
+                             DownloadAllFileName="MovingItems.zip"
+                             Items="_exportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection" BodyClass="small text-muted">
+            <div>Template item loaded: @(TemplateItemFileService.Item != null ? "Yes" : "No")</div>
+            <div>Items to convert: @ItemModelsFileService.Files.Count</div>
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
+                           MessageSource="Moving Item Creator" ExecutionTargetOverwrite="Generate Moving Items"
+                           Tooltip="Execute the tool with the loaded items." CanExecute="CanExecuteTool" />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
                     <h3>What happens when you click Execute</h3>
                     <p>The MovingItemCreator will generate moving items based on the loaded source items and the specified
                         parameters. At the end a zip file containing all the generated moving items is downloaded.</p>
@@ -86,16 +92,14 @@
                                                 <p><strong>Note:</strong> If you create new items that didnt exist when you opened Trackmania, you might
                                                     need to restart the game to see them. To avoid this, instead of creating new files, overwrite
                                                     existing items. Then only the Editor needs to be reopened. (Sometimes this does not work)</p>
-                                                </ToolHelpSidebar>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
+    </HelpContent>
+</ToolPageLayout>
 
     
 @code {
-    private FileService FileService = new();
-    private bool showHelpPanel;
+    [SessionStored] private ItemFileService TemplateItemFileService = default!;
+    [SessionStored] private FileService ItemModelsFileService = default!;
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
     
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -126,22 +130,18 @@
        
     };
 
-    private ToolParameterValues parameterValues = new();
+    [SessionStored] private ToolParameterValues parameterValues = new();
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        if (SessionStorage.Has(member: nameof(parameterDefinitions)))
-            parameterValues = SessionStorage.Get<ToolParameterValues>(member: nameof(parameterDefinitions))!;
-        else
-            SessionStorage.Set(member: nameof(parameterDefinitions), value: parameterValues);
-        FileService.FileChanged += OnFileChanged;
+        ItemModelsFileService.FileChanged += OnFileChanged;
 
     }
     public void Dispose()
     {
-        FileService.FileChanged -= OnFileChanged;
+        ItemModelsFileService.FileChanged -= OnFileChanged;
     }
     async void OnFileChanged()
     {
@@ -153,20 +153,13 @@
         return Task.CompletedTask;
     }
 
-    private void ToggleHelpPanel()
-    {
-        showHelpPanel = !showHelpPanel;
-    }
-
-
     private bool CanExecuteTool()
     {
-        return FileService.HasFiles;
+        return ItemModelsFileService.HasFiles;
     }
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
-        var sourceAnimationItem = FileTypeManager.GetItem();
-        bool hasSourceAnimation = sourceAnimationItem != null;
+        var sourceAnimationItem = TemplateItemFileService.Item;
 
         var itemFileService = new ItemFileService();
 
@@ -195,7 +188,7 @@
 
         int numFails = 0;
         int numSuccess = 0;
-        foreach (var file in FileService.Files)
+        foreach (var file in ItemModelsFileService.Files)
         {
             try
             {
@@ -228,9 +221,16 @@
             }
         }
         if (generatedItems.Count > 0)
-            await DownloadAsync(generatedItems);
-
-        OperationHistoryService.AddOperation("Create Moving Items");
+        {
+            _exportItems = generatedItems.Select(x =>
+            {
+                using var s = new MemoryStream();
+                x.Item.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
+                var bytes = s.ToArray();
+                return new ExportableItem { FileName = x.FileName, GetBytes = () => bytes };
+            }).ToArray();
+            StateHasChanged();
+        }
 
         if (numFails > 0 && numSuccess > 0)
             return new ExecuteActionResult(ExecuteActionResultStatus.Warning, $"{numSuccess} moving items created successfully, but {numFails} failed. Check output for details.");
@@ -251,33 +251,4 @@
 
         return originalName;
     }
-    private async Task DownloadAsync(List<(string FileName, CGameItemModel Item)> items)
-    {
-       
-        if (items.Count == 1)
-        {
-            using var stream = new MemoryStream();
-            items[0].Item!.Save(stream, new GBX.NET.GbxWriteSettings { CloseStream = false });
-            stream.Position = 0;
-            var streamRef = new DotNetStreamReference(stream);
-            await JS.InvokeVoidAsync("downloadFileFromStream", items[0].FileName, streamRef);
-        }
-        else
-        {
-            using var zipStream = new MemoryStream();
-            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
-            {
-                foreach (var (fileName, item) in items)
-                {
-                    var entry = archive.CreateEntry(fileName, CompressionLevel.Optimal);
-                    using var entryStream = entry.Open();
-                    item.Save(entryStream);
-                }
-            }
-            zipStream.Position = 0;
-            var streamRef = new DotNetStreamReference(zipStream);
-            await JS.InvokeVoidAsync("downloadFileFromStream", "MovingItems.zip", streamRef);
-        }
-    }
-
 }

@@ -70,7 +70,6 @@
     align-items: center;
     gap: 0.55rem;
     padding: 0.3rem 0.65rem;
-    padding-left: 0.65rem;
     border-left: 3px solid transparent;
     border-radius: 0;
     margin: 0;
@@ -88,7 +87,7 @@
 }
 
 .track-item-selected {
-    background: color-mix(in srgb, var(--tm-accent-soft) 75%, white 25%);
+    background: color-mix(in srgb, var(--tm-accent-soft) 95%, white 5%);
     border-left-color: var(--tm-accent);
 }
 

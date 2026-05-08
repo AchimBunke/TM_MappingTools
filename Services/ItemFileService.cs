@@ -44,7 +44,7 @@ public class ItemFileService : GbxFileService
         }
     }
 
-    public Stream GetDownloadStream()
+    public override Stream GetDownloadStream()
     {
         var stream = new MemoryStream();
         Item!.Save(stream);

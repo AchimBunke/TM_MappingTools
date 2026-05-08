@@ -19,11 +19,10 @@
 
         @foreach (var group in ToolRegistryService.ToolEntries.GroupBy(t => t.Category))
         {
-            var isGroupActive = group.Any(t => IsToolSelectionActive(t.SelectionActive));
-            <div class="nav-tools-section @(isGroupActive ? "nav-tools-section-active" : "")">
+            <div class="nav-tools-section">
                 @foreach (var tool in group)
                 {
-                    <div class="nav-item px-3 @(IsToolSelectionActive(tool.SelectionActive) ? "nav-item-active" : "")">
+                    <div class="nav-item px-3">
                         <NavLink class="nav-link" href="@tool.Href">
                             <i class="nav-menu-icon bi @tool.IconClass" aria-hidden="true"></i> @tool.Title
                         </NavLink>
@@ -54,7 +53,6 @@
 </div>
 
 @code {
-    @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
     @inject TM_MappingTools.Services.ToolRegistryService ToolRegistryService
     @inject IJSRuntime JS
 
@@ -66,7 +64,6 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        FileTypeManager.FileTypeChanged += OnFileTypeChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -85,31 +82,10 @@
         isDark = newTheme == "dark";
     }
 
-    private void OnFileTypeChanged()
-    {
-        InvokeAsync(StateHasChanged);
-    }
-
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
 
-    private bool IsToolSelectionActive(TM_MappingTools.Model.ToolSelectionActive selectionActive)
-    {
-        if (selectionActive == TM_MappingTools.Model.ToolSelectionActive.All)
-            return true;
-
-        if (string.IsNullOrEmpty(FileTypeManager.CurrentContentType))
-            return true;
-
-        return selectionActive switch
-        {
-            TM_MappingTools.Model.ToolSelectionActive.Clip => string.Equals(FileTypeManager.CurrentContentType, "Clip", StringComparison.Ordinal),
-            TM_MappingTools.Model.ToolSelectionActive.Map => string.Equals(FileTypeManager.CurrentContentType, "Map", StringComparison.Ordinal),
-            TM_MappingTools.Model.ToolSelectionActive.Item => string.Equals(FileTypeManager.CurrentContentType, "Item", StringComparison.Ordinal),
-            _ => true
-        };
-    }
 }
 

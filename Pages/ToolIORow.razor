@@ -1,0 +1,27 @@
+<div class="tool-io-row @(HistoryContent is null ? "tool-io-row--no-history" : string.Empty)">
+    <div class="tool-io-inputs">
+        @InputContent
+    </div>
+    @if (HistoryContent is not null)
+    {
+        <div class="tool-io-history">
+            @HistoryContent
+        </div>
+    }
+    
+    <div class="tool-io-export">
+        @ExportContent
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public RenderFragment? InputContent { get; set; }
+
+    /// <summary>Optional operation history column. When null the row uses a two-column layout.</summary>
+    [Parameter]
+    public RenderFragment? HistoryContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment? ExportContent { get; set; }
+}

@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Components.Forms;
+using TM_MappingTools.Utils;
 
 namespace TM_MappingTools.Services;
 
@@ -54,4 +55,12 @@ public class FileService : IFileService
     }
 
     protected void InvokeFileChanged() => FileChanged?.Invoke();
+
+    public virtual Stream GetDownloadStream()
+    {
+        if (_browserFile == null)
+            throw new InvalidOperationException("No file is currently loaded.");
+
+        return _browserFile.OpenReadStream(maxAllowedSize: FileHelper.MaxAllowedFileSize);  
+    }
 }
