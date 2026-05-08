@@ -84,22 +84,11 @@ else
         Reload();
     }
 
-    private void OnFileTypeChanged()
-    {
-        Reload();
-        InvokeAsync(StateHasChanged);
-    }
-
-    private void OnFileChanged()
-    {
-        Reload();
-        InvokeAsync(StateHasChanged);
-    }
-
     private void Reload()
     {
         if (Clip == null)
         {
+            if (previousClip == null) return; // already in null state, nothing changed
             tracks.Clear();
             selectedTracksLocal.Clear();
             previousClip = null;
