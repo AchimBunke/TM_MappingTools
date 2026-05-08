@@ -40,14 +40,26 @@
             </NavLink>
         </div>
 
+        <hr class="nav-separator" />
+
+        <div class="nav-item px-3 nav-item-theme-toggle">
+            <button class="nav-link theme-toggle-btn" @onclick="ToggleTheme"
+                    title="@(isDark ? "Switch to Light Mode" : "Switch to Dark Mode")">
+                <i class="nav-menu-icon bi @(isDark ? "bi-sun-fill" : "bi-moon-stars-fill")" aria-hidden="true"></i>
+                @(isDark ? "Light Mode" : "Dark Mode")
+            </button>
+        </div>
+
     </nav>
 </div>
 
 @code {
     @inject TM_MappingTools.Services.FileTypeManager FileTypeManager
     @inject TM_MappingTools.Services.ToolRegistryService ToolRegistryService
+    @inject IJSRuntime JS
 
     private bool collapseNavMenu = true;
+    private bool isDark = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
@@ -55,6 +67,22 @@
     {
         base.OnInitialized();
         FileTypeManager.FileTypeChanged += OnFileTypeChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var theme = await JS.InvokeAsync<string>("getTheme");
+            isDark = theme == "dark";
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        var newTheme = await JS.InvokeAsync<string>("toggleTheme");
+        isDark = newTheme == "dark";
     }
 
     private void OnFileTypeChanged()

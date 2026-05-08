@@ -98,4 +98,19 @@ window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
             dropZoneElement.removeEventListener('paste', onPaste);
         }
     }
-}    
+}
+
+window.getTheme = () => localStorage.getItem('tm-theme') || 'dark';
+
+window.applyTheme = (theme) => {
+    if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('tm-theme', theme);
+};
+
+window.toggleTheme = () => {
+    var current = localStorage.getItem('tm-theme') || 'light';
+    var next = current === 'dark' ? 'light' : 'dark';
+    window.applyTheme(next);
+    return next;
+};
