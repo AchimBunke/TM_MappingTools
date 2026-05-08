@@ -46,6 +46,72 @@ body {
     --bs-focus-ring-color: rgba(29, 95, 191, 0.25);
 }
 
+/* ── Dark theme ─────────────────────────────────────────── */
+[data-theme="dark"] {
+    color-scheme: dark;
+    --tm-bg: #0f1623;
+    --tm-surface: #1a2233;
+    --tm-surface-soft: #141c2b;
+    --tm-text: #dce6f2;
+    --tm-text-muted: #7a93b2;
+    --tm-border: #253149;
+    --tm-accent: #4e8de0;
+    --tm-accent-strong: #6ba6f7;
+    --tm-accent-soft: #122040;
+    --tm-success: #3fcb78;
+    --tm-danger: #f07575;
+    --tm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --tm-focus-ring: 0 0 0 0.2rem rgba(78, 141, 224, 0.35);
+    --bs-primary-rgb: 78, 141, 224;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .input-group-text {
+    background-color: var(--tm-surface);
+    border-color: var(--tm-border);
+    color: var(--tm-text);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--tm-surface);
+    color: var(--tm-text);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--tm-text-muted);
+}
+
+[data-theme="dark"] .card {
+    background-color: var(--tm-surface);
+    border-color: var(--tm-border);
+    color: var(--tm-text);
+}
+
+[data-theme="dark"] .table {
+    --bs-table-bg: var(--tm-surface);
+    --bs-table-striped-bg: var(--tm-surface-soft);
+    --bs-table-hover-bg: var(--tm-accent-soft);
+    --bs-table-border-color: var(--tm-border);
+    color: var(--tm-text);
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--tm-surface);
+    border-color: var(--tm-border);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--tm-text);
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--tm-accent-soft);
+    color: var(--tm-text);
+}
+
 h1:focus {
     outline: none;
 }
@@ -183,150 +249,10 @@ code {
     text-align: start;
 }
 
-/* ── Home page ──────────────────────────────────────────────── */
-.home-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    
-    gap: 0.5rem;
-}
-
-.home-hero-icon {
-    font-size: 3rem;
-    color: var(--tm-accent);
-    line-height: 1;
-    margin-bottom: 0.5rem;
-}
-
-.home-hero-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--tm-text);
-    margin: 0;
-}
-
-.home-hero-subtitle {
-    font-size: 1.1rem;
-    color: var(--tm-text-muted);
-    max-width: 640px;
-    margin: 0.25rem 0 0;
-}
-
-.home-hero-hint {
-    font-size: 0.92rem;
-    color: var(--tm-text-muted);
-    background: var(--tm-accent-soft);
-    border: 1px solid var(--tm-border);
-    border-radius: var(--tm-radius-md);
-    padding: 0.55rem 1rem;
-    margin-top: 0.75rem;
-}
-
-.home-tools-section {
-    padding: 0 1.5rem 2.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-}
-
-.home-section-title {
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tm-text-muted);
-    margin-bottom: 0.85rem;
-}
-
-.home-tool-groups {
-    display: grid;
-    gap: 1rem;
-}
-
-.home-tool-group {
-    border: 1px solid var(--tm-border);
-    border-radius: var(--tm-radius-md);
-    background: var(--tm-surface-soft);
-    padding: 0.9rem;
-}
-
-.home-group-title {
-    font-size: 0.84rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--tm-text-muted);
-    margin: 0 0 0.8rem;
-}
-
-.home-tool-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 0.7rem;
-}
-
-.home-tool-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    min-height: 7.2rem;
-    padding: 0.85rem 1rem;
-    background: var(--tm-surface);
-    border: 1px solid var(--tm-border);
-    border-radius: var(--tm-radius-md);
-    box-shadow: var(--tm-shadow-sm);
-    text-decoration: none;
-    color: var(--tm-text);
-    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-}
-
-.home-tool-card-top {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.home-tool-card:hover {
-    border-color: var(--tm-accent);
-    box-shadow: 0 3px 10px rgba(29, 95, 191, 0.12);
-    background: var(--tm-accent-soft);
-    color: var(--tm-text);
-    text-decoration: none;
-}
-
-.home-tool-card-icon {
-    font-size: 1.2rem;
-    color: var(--tm-accent);
-    flex-shrink: 0;
-}
-
-.home-tool-card-title {
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.home-tool-card-desc {
-    font-size: 0.82rem;
-    color: var(--tm-text-muted);
-    margin-top: 0.05rem;
-    line-height: 1.35;
-}
-
-@media (max-width: 640px) {
-    .home-tools-section {
-        padding-left: 0.8rem;
-        padding-right: 0.8rem;
-    }
-
-    .home-tool-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
 /* ── Shared tool page layout ────────────────────────────────── */
 .tool-page {
+    display: flex;
+    flex-direction: column;
     padding: 0 1.5rem 2.5rem;
     max-width: 1600px;
     margin: 0 auto;
@@ -394,6 +320,129 @@ code {
     gap: 1.25rem;
 }
 
+.tool-io-row {
+    --tool-io-row-height: 155px;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1.2fr) minmax(210px, 0.8fr);
+    gap: 1rem;
+    align-items: stretch;
+    min-height: var(--tool-io-row-height);
+}
+
+.tool-io-row.tool-io-row--no-history {
+    grid-template-columns: minmax(0, 2fr) minmax(210px, 0.8fr);
+}
+
+.tool-page > .tool-io-row + .tool-page-body {
+    margin-top: 1.25rem;
+}
+
+.tool-io-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 1rem;
+    align-content: start;
+    min-height: var(--tool-io-row-height);
+}
+
+.tool-io-history,
+.tool-io-export {
+    min-width: 0;
+    min-height: var(--tool-io-row-height);
+}
+
+.tool-io-export {
+    position: relative;
+    padding-left: 0.7rem;
+}
+
+.tool-io-export::before {
+    content: "";
+    position: absolute;
+    left: -0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: color-mix(in srgb, var(--tm-border) 88%, transparent);
+    pointer-events: none;
+}
+
+.tool-io-inputs .tool-panel + .tool-panel {
+    margin-top: 0;
+}
+
+.tool-io-inputs > * {
+    height: 100%;
+}
+
+.tool-io-row .tool-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.tool-io-row .tool-panel-header {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.75rem;
+}
+
+.tool-panel-body {
+    padding: 0.9rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.tool-io-row .tool-panel-body {
+    padding: 0.45rem 0.75rem;
+}
+
+.tool-io-row .file-drop-area {
+    min-height: 0;
+    height: 100%;
+    padding: 0.4rem 0.7rem;
+}
+
+.tool-export-panel-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0.9rem;
+    /* override tool-panel-body's overflow:auto so content centering works */
+    /* and the panel doesn't grow beyond its allocated flex size */
+}
+
+
+
+.tool-io-row .tool-operation-history-list {
+    max-height: 80px;
+}
+
+.tool-operation-history-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tool-operation-id {
+    color: var(--tm-text-muted);
+    min-width: 1.2rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.tool-operation-key {
+    color: var(--tm-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tool-operation-empty {
+    color: var(--tm-text-muted);
+}
+
 /* ── Tool page two-column layout ────────────────────────────── */
 .tool-page-layout {
     display: flex;
@@ -401,19 +450,19 @@ code {
     align-items: flex-start;
 }
 
+.tool-page-sidebar,
+.tool-page-main,
+.tool-page-help {
+    min-width: 0;
+}
+
 .tool-page-sidebar {
     flex: 0 1 clamp(280px, 30vw, 360px);
     width: clamp(280px, 30vw, 360px);
-    min-width: 0;
 }
 
 .tool-page-main {
     flex: 1 1 0;
-    min-width: 0;
-}
-
-.tool-page-help {
-    min-width: 0;
 }
 
 .tool-page-layout-with-help {
@@ -510,6 +559,57 @@ code {
 }
 
 @media (max-width: 1180px) {
+    .tool-io-row {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr);
+        grid-template-areas:
+            "inputs history"
+            "export export";
+    }
+
+    .tool-io-row.tool-io-row--no-history {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
+        grid-template-areas:
+            "inputs export";
+    }
+
+    .tool-io-inputs {
+        grid-area: inputs;
+    }
+
+    .tool-io-history {
+        grid-area: history;
+    }
+
+    .tool-io-export {
+        grid-area: export;
+    }
+
+    .tool-io-row:not(.tool-io-row--no-history) .tool-io-export {
+        padding-left: 0;
+        padding-top: 0.6rem;
+    }
+
+    .tool-io-row:not(.tool-io-row--no-history) .tool-io-export::before {
+        left: 0;
+        right: 0;
+        top: -0.45rem;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+    }
+
+    .tool-io-row {
+        --tool-io-row-height: 135px;
+        height: auto;
+    }
+
+    .tool-io-inputs,
+    .tool-io-history,
+    .tool-io-export {
+        height: auto;
+        min-height: var(--tool-io-row-height);
+    }
+
     .tool-page-layout-with-help {
         grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
         grid-template-areas:
@@ -539,6 +639,44 @@ code {
 }
 
 @media (max-width: 760px) {
+    .tool-io-row {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "inputs"
+            "history"
+            "export";
+    }
+
+    .tool-io-row.tool-io-row--no-history {
+        grid-template-areas:
+            "inputs"
+            "export";
+    }
+
+    .tool-io-inputs {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .tool-export-panel-body {
+        justify-content: flex-start;
+    }
+
+    .tool-io-row {
+        --tool-io-row-height: auto;
+        height: auto;
+        min-height: 0;
+    }
+
+    .tool-page > .tool-io-row + .tool-page-body {
+        margin-top: 1rem;
+    }
+
+    .tool-io-history,
+    .tool-io-export {
+        min-height: 0;
+    }
+
     .tool-page-header {
         flex-direction: column;
         align-items: stretch;
