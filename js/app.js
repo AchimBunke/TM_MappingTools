@@ -109,7 +109,7 @@ window.applyTheme = (theme) => {
 };
 
 window.toggleTheme = () => {
-    var current = localStorage.getItem('tm-theme') || 'light';
+    var current = localStorage.getItem('tm-theme') || 'dark';
     var next = current === 'dark' ? 'light' : 'dark';
     window.applyTheme(next);
     return next;
