@@ -41,7 +41,7 @@
     min-width: 14px;
 }
 
-.tool-operation-empty {
+.tool-operation-empty-row {
     color: var(--tm-text-muted);
 }
 
