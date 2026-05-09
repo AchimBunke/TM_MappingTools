@@ -11,38 +11,28 @@
 
 <PageTitle>Moving Item Creator</PageTitle>
 
-<ToolPageLayout IconClass="bi-box-arrow-in-right"
-                Title="Moving Item Creator"
-                Description="Create moving items."
+<ToolPageLayout IconClass="bi-box-arrow-in-right" Title="Moving Item Creator" Description="Create moving items."
                 HelpDescription="What this tool changes and how to tune it safely.">
     <IORow>
         <ToolIORow>
             <InputContent>
                 <ToolCard Title="Animation Template (Optional)"
                           Description="Load one .Item.Gbx to copy moving animation data and placement from.">
-                    <FileLoader FileService="TemplateItemFileService"
-                                NoFileMessage="No template item loaded."
-                                DropHintMessage="Drop a .Item.Gbx template item in this area"
-                                Accept=".Item.Gbx"
+                    <FileLoader FileService="TemplateItemFileService" NoFileMessage="No template item loaded."
+                                DropHintMessage="Drop a .Item.Gbx template item in this area" Accept=".Item.Gbx"
                                 MessageSource="Moving Item Creator" />
                 </ToolCard>
                 <ToolCard Title="Items To Convert"
                           Description="Load all .Item.Gbx files that should become moving items.">
-                    <FileLoader FileService="ItemModelsFileService"
-                                NoFileMessage="No files loaded."
-                                DropHintMessage="Drop all items you want to convert to moving here"
-                                Accept=".Item.Gbx"
-                                AllowMultiple="true"
-                                MessageSource="Moving Item Creator" />
+                    <FileLoader FileService="ItemModelsFileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop all items you want to convert to moving here" Accept=".Item.Gbx"
+                                AllowMultiple="true" MessageSource="Moving Item Creator" />
                 </ToolCard>
             </InputContent>
             <ExportContent>
-                <ToolCard Title="Export" Class="tool-export-panel"
-                          BodyClass="tool-export-panel-body">
-                     <ExportPanel 
-                             EmptyMessage="Run Execute to generate export content."
-                             DownloadAllFileName="MovingItems.zip"
-                             Items="_exportItems" />
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body">
+                    <ExportPanel EmptyMessage="Run Execute to generate export content."
+                                 DownloadAllFileName="MovingItems.zip" Items="_exportItems" />
                 </ToolCard>
             </ExportContent>
         </ToolIORow>
@@ -55,9 +45,9 @@
     </Sidebar>
     <Main>
         <ToolCard Title="Actions">
-            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false"
-                           MessageSource="Moving Item Creator" ExecutionTargetOverwrite="Generate Moving Items"
-                           Tooltip="Execute the tool with the loaded items." CanExecute="CanExecuteTool" />
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Moving Item Creator"
+                           ExecutionTargetOverwrite="Generate Moving Items" Tooltip="Execute the tool with the loaded items."
+                           CanExecute="CanExecuteTool" />
         </ToolCard>
         <ToolCard Title="Parameters">
             <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
@@ -65,33 +55,45 @@
         </ToolCard>
     </Main>
     <HelpContent>
-                    <h3>What happens when you click Execute</h3>
-                    <p>The MovingItemCreator will generate moving items based on the loaded source items and the specified
-                        parameters. At the end a zip file containing all the generated moving items is downloaded.</p>
-                        <p>The generated moving item animations are based on the <strong>source item loaded at the top</strong>
-                            if it exists, otherwise they will contain a default rotating animation.</p>
-                            <p>The generater will try to create the same properties as the source item (like mesh, materials, etc.)
-                                but some differences might occur. Some materials might not be visible in moving items. Some moving
-                                items might contain more vertices and triangles as the source item depending which mesh encoding was
-                                used.</p>
-                                <p>This is a list of the compatibility of many default materials: <a
-                                    href="https://github.com/AchimBunke/TM_MovingTrackGenerator/wiki">TM_MovingTrackGenerator
-                                    Github</a>.</p>
-                                    <h3>Author Name</h3>
-                                    <p>The author name encoded in the moving item.</p>
-                                    <h3>Item Name Postfix</h3>
-                                    <p>The postfix appended to the name of the source item for the generated moving item. This is useful to
-                                        easily distinguish the generated moving items from the source items.</p>
-                                        <h3>Practical workflow</h3>
-                                        <p>If you want to copy a specific animation to all moving items, load the item containing those at the
-                                            top.</p>
-                                            <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the
-                                                file loader to the left.</p>
-                                                <p>Insert your desired author name and item name postfix in the parameters section.</p>
-                                                <p>Wait until you downloaded a zip and extract those files into your Items folder.</p>
-                                                <p><strong>Note:</strong> If you create new items that didnt exist when you opened Trackmania, you might
-                                                    need to restart the game to see them. To avoid this, instead of creating new files, overwrite
-                                                    existing items. Then only the Editor needs to be reopened. (Sometimes this does not work)</p>
+        <h3>What happens when you click Execute</h3>
+        <p>The MovingItemCreator will generate moving items based on the loaded source items and the specified
+            parameters. At the end a zip file containing all the generated moving items is downloaded.
+        </p>
+
+        <p>The generated moving item animations are based on the <strong>Animation Template Item</strong>
+            if it exists, otherwise they will contain a default rotating animation.
+        </p>
+        <p>The generater will try to create the same properties as the source item (like mesh, materials, etc.)
+            but some differences might occur. Some materials might not be visible in moving items. Some moving
+            items might contain more vertices and triangles as the source item depending which mesh encoding was
+            used.
+        </p>
+        <p>This is a list of the compatibility of many default materials: <a
+            href="https://github.com/AchimBunke/TM_MovingTrackGenerator/wiki">TM_MovingTrackGenerator
+            Github</a>.
+        </p>
+        <h3>Author Name</h3>
+        <p>The author name encoded in the moving item.</p>
+        <h3>Item Name Postfix</h3>
+        <p>The postfix appended to the name of the source item for the generated moving item. This is useful to
+            easily distinguish the generated moving items from the source items.
+        </p>
+        <h3>Practical workflow</h3>
+        <p>If you want to copy a specific animation to all moving items, load the item containing those into the 'Animation Template' input.
+        </p>
+        <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the
+            'Items to Convert' section.
+        </p>
+        <p>Insert your desired author name and item name prefix and suffix in the parameters section.
+            
+        </p>
+        <p>Wait until you downloaded a zip and extract those files into your Items folder.
+
+        </p>
+        <p><strong>Note:</strong> If you create new items that didnt exist when you opened Trackmania, you might
+            need to restart the game to see them. To avoid this, instead of creating new files, overwrite
+            existing items. Then only the Editor needs to be reopened. (Sometimes this does not work)
+        </p>
     </HelpContent>
 </ToolPageLayout>
 
