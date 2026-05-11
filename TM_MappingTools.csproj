@@ -12,13 +12,19 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.5" PrivateAssets="all" />
-    <PackageReference Include="TM_CSharpMapping" Version="0.2.5" />
+    <PackageReference Include="TM_CSharpMapping" Version="0.2.6" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Assets\" />
     <Folder Include="Model\" />
     <Folder Include="Services\" />
     <Folder Include="Utils\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\TM_TriggerItemVariantCreator.exe" />
+    <EmbeddedResource Include="Assets\README.md" />
   </ItemGroup>
 
 
