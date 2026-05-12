@@ -1,0 +1,208 @@
+@using System.Globalization
+@using TM_MappingTools.Model
+
+<div class="param-dict-card">
+    <div class="parameter-input-header">
+        <span class="parameter-input-label" title="@Definition.Tooltip">@Definition.Label</span>
+        @if (Definition.IsOptional || !string.IsNullOrWhiteSpace(Definition.Tooltip))
+        {
+            <div class="parameter-input-header-actions">
+                @if (Definition.IsOptional)
+                {
+                    <input type="checkbox"
+                           class="parameter-optional-checkbox"
+                           checked="@IsEnabled"
+                           title="@(IsEnabled ? "Disable this parameter" : "Enable this parameter")"
+                           @onchange="OnOptionalToggled" />
+                }
+                @if (!string.IsNullOrWhiteSpace(Definition.Tooltip))
+                {
+                    <span class="parameter-input-help" title="@Definition.Tooltip" aria-label="@Definition.Tooltip">?</span>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="@(!IsEnabled ? "parameter-control-disabled" : null)">
+
+        <div class="param-dict-col-headers">
+            <span class="param-dict-col-label">@Definition.DictionaryKeyLabel</span>
+            <span class="param-dict-col-label">@Definition.DictionaryValueLabel</span>
+            <span></span>
+        </div>
+
+        @if (entries.Count == 0)
+        {
+            <div class="param-dict-empty">No entries</div>
+        }
+
+        @for (var i = 0; i < entries.Count; i++)
+        {
+            var rowIndex = i;
+            <div class="param-dict-row">
+                <div class="param-dict-cell">
+                    @if (Definition.DictionaryKeyKind == ToolParameterKind.Int || Definition.DictionaryKeyKind == ToolParameterKind.Float)
+                    {
+                        <input type="number"
+                               class="form-control param-dict-input"
+                               step="@(Definition.DictionaryKeyKind == ToolParameterKind.Float ? "any" : "1")"
+                               value="@entries[rowIndex].Key"
+                               @onchange="@(args => OnKeyChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty))" />
+                    }
+                    else if (Definition.DictionaryKeyKind == ToolParameterKind.Bool)
+                    {
+                        <input type="checkbox"
+                               class="param-dict-bool"
+                               checked="@(entries[rowIndex].Key == "true")"
+                               @onchange="@(args => OnKeyChanged(rowIndex, (args.Value is bool b && b) ? "true" : "false"))" />
+                    }
+                    else if (Definition.DictionaryKeyKind == ToolParameterKind.Enum)
+                    {
+                        <select class="form-select param-dict-input"
+                                @onchange="@(args => OnKeyChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty))">
+                            @foreach (var opt in Definition.DictionaryKeyOptions)
+                            {
+                                <option value="@opt.Value" selected="@(entries[rowIndex].Key == opt.Value)">@opt.Label</option>
+                            }
+                        </select>
+                    }
+                    else if (Definition.DictionaryKeyKind == ToolParameterKind.Color)
+                    {
+                        <input type="color"
+                               class="param-dict-color"
+                               value="@entries[rowIndex].Key"
+                               @oninput="@(args => OnKeyChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? "#000000"))" />
+                    }
+                    else
+                    {
+                        <input type="text"
+                               class="form-control param-dict-input"
+                               value="@entries[rowIndex].Key"
+                               @oninput="@(args => OnKeyChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty))" />
+                    }
+                </div>
+                <div class="param-dict-cell">
+                    @if (Definition.DictionaryValueKind == ToolParameterKind.Int || Definition.DictionaryValueKind == ToolParameterKind.Float)
+                    {
+                        <input type="number"
+                               class="form-control param-dict-input"
+                               step="@(Definition.DictionaryValueKind == ToolParameterKind.Float ? "any" : "1")"
+                               value="@entries[rowIndex].Value"
+                               @onchange="@(args => OnValueChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty))" />
+                    }
+                    else if (Definition.DictionaryValueKind == ToolParameterKind.Bool)
+                    {
+                        <input type="checkbox"
+                               class="param-dict-bool"
+                               checked="@(entries[rowIndex].Value == "true")"
+                               @onchange="@(args => OnValueChanged(rowIndex, (args.Value is bool b && b) ? "true" : "false"))" />
+                    }
+                    else if (Definition.DictionaryValueKind == ToolParameterKind.Enum)
+                    {
+                        <select class="form-select param-dict-input"
+                                @onchange="@(args => OnValueChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty))">
+                            @foreach (var opt in Definition.DictionaryValueOptions)
+                            {
+                                <option value="@opt.Value" selected="@(entries[rowIndex].Value == opt.Value)">@opt.Label</option>
+                            }
+                        </select>
+                    }
+                    else if (Definition.DictionaryValueKind == ToolParameterKind.Color)
+                    {
+                        <input type="color"
+                               class="param-dict-color"
+                               value="@entries[rowIndex].Value"
+                               @oninput="@(args => OnValueChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? "#000000"))" />
+                    }
+                    else
+                    {
+                        <input type="text"
+                               class="form-control param-dict-input"
+                               value="@entries[rowIndex].Value"
+                               @oninput="@(args => OnValueChanged(rowIndex, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty))" />
+                    }
+                </div>
+                <button type="button"
+                        class="btn btn-sm param-dict-delete"
+                        @onclick="@(() => RemoveRow(rowIndex))"
+                        title="Remove row"
+                        aria-label="Remove row">×</button>
+            </div>
+        }
+
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary param-dict-add"
+                @onclick="AddRow">+ Add entry</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ToolParameterDefinition Definition { get; set; } = null!;
+    [Parameter, EditorRequired] public ToolParameterValues Values { get; set; } = null!;
+    [Parameter] public EventCallback<ToolParameterValues> ValuesChanged { get; set; }
+
+    private List<DictionaryParameterEntry> entries = [];
+    private bool IsEnabled => !Definition.IsOptional || Values.IsParameterEnabled(Definition.Key);
+
+    protected override void OnParametersSet()
+    {
+        entries = Values.GetDictionaryEntries(Definition.Key);
+    }
+
+    private Task AddRow()
+    {
+        entries.Add(new DictionaryParameterEntry
+        {
+            Key = GetEntryDefault(Definition.DictionaryKeyKind, Definition.DictionaryKeyOptions),
+            Value = GetEntryDefault(Definition.DictionaryValueKind, Definition.DictionaryValueOptions),
+        });
+        return ValuesChanged.InvokeAsync(Values);
+    }
+
+    private Task RemoveRow(int index)
+    {
+        if (index >= 0 && index < entries.Count)
+        {
+            entries.RemoveAt(index);
+            return ValuesChanged.InvokeAsync(Values);
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task OnKeyChanged(int index, string value)
+    {
+        if (index < entries.Count)
+        {
+            entries[index].Key = value;
+            return ValuesChanged.InvokeAsync(Values);
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task OnValueChanged(int index, string value)
+    {
+        if (index < entries.Count)
+        {
+            entries[index].Value = value;
+            return ValuesChanged.InvokeAsync(Values);
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task OnOptionalToggled(ChangeEventArgs args)
+    {
+        Values.SetParameterEnabled(Definition.Key, args.Value is bool b && b);
+        return ValuesChanged.InvokeAsync(Values);
+    }
+
+    private static string GetEntryDefault(ToolParameterKind kind, IReadOnlyList<ToolParameterOption> options)
+        => kind switch
+        {
+            ToolParameterKind.Int => "0",
+            ToolParameterKind.Float => "0",
+            ToolParameterKind.Bool => "false",
+            ToolParameterKind.Enum => options.FirstOrDefault()?.Value ?? string.Empty,
+            ToolParameterKind.Color => "#000000",
+            _ => string.Empty,
+        };
+}

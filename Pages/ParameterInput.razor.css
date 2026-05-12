@@ -107,3 +107,16 @@
         grid-template-columns: 1fr !important;
     }
 }
+
+/* Dictionaries — below the main parameter grid */
+
+.parameter-dict-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+.parameter-dict-list > * {
+    flex: 1 1 260px;
+}

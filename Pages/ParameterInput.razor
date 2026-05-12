@@ -74,6 +74,18 @@
             }
         }
     </div>
+    @{
+        var dictDefs = GetDictionaryDefinitions();
+    }
+    @if (dictDefs.Count > 0)
+    {
+        <div class="parameter-dict-list">
+            @foreach (var dictDef in dictDefs)
+            {
+                <ParameterDictionaryControl Definition="dictDef" Values="Values" ValuesChanged="ValuesChanged" />
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -115,6 +127,9 @@
         return ValuesChanged.InvokeAsync(Values);
     }
 
+    private IReadOnlyList<ToolParameterDefinition> GetDictionaryDefinitions()
+        => Definitions.Where(d => d.Kind == ToolParameterKind.Dictionary).ToList();
+
     private IReadOnlyList<RenderGroup> GetRenderGroups()
     {
         var result = new List<RenderGroup>();
@@ -122,6 +137,7 @@
 
         foreach (var def in Definitions)
         {
+            if (def.Kind == ToolParameterKind.Dictionary) continue;
             if (!string.IsNullOrEmpty(def.GroupKey))
             {
                 if (!groupLookup.TryGetValue(def.GroupKey, out var group))

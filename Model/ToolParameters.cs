@@ -14,13 +14,20 @@ public enum ToolParameterKind
     Vector3,
     Vector4,
     Quaternion,
-    Color
+    Color,
+    Dictionary
 }
 
 public sealed class ToolParameterOption
 {
     public required string Value { get; init; }
     public required string Label { get; init; }
+}
+
+public sealed class DictionaryParameterEntry
+{
+    public string Key { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
 }
 
 public sealed class ToolParameterDefinition
@@ -38,6 +45,12 @@ public sealed class ToolParameterDefinition
     public bool IsOptional { get; init; }
     public string? GroupKey { get; init; }
     public string? GroupLabel { get; init; }
+    public ToolParameterKind DictionaryKeyKind { get; init; } = ToolParameterKind.Text;
+    public ToolParameterKind DictionaryValueKind { get; init; } = ToolParameterKind.Text;
+    public IReadOnlyList<ToolParameterOption> DictionaryKeyOptions { get; init; } = Array.Empty<ToolParameterOption>();
+    public IReadOnlyList<ToolParameterOption> DictionaryValueOptions { get; init; } = Array.Empty<ToolParameterOption>();
+    public string DictionaryKeyLabel { get; init; } = "Key";
+    public string DictionaryValueLabel { get; init; } = "Value";
 
     public object? GetDefaultValue()
     {
@@ -58,6 +71,7 @@ public sealed class ToolParameterDefinition
             ToolParameterKind.Vector4 => Vector4.Zero,
             ToolParameterKind.Quaternion => Quaternion.Identity,
             ToolParameterKind.Color => "#000000",
+            ToolParameterKind.Dictionary => new List<DictionaryParameterEntry>(),
             _ => null,
         };
     }
@@ -306,5 +320,14 @@ public sealed class ToolParameterValues
         }
 
         return result;
+    }
+
+    public List<DictionaryParameterEntry> GetDictionaryEntries(string key)
+    {
+        if (values.TryGetValue(key, out var val) && val is List<DictionaryParameterEntry> list)
+            return list;
+        var newList = new List<DictionaryParameterEntry>();
+        values[key] = newList;
+        return newList;
     }
 }
