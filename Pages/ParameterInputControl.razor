@@ -1,0 +1,458 @@
+@using System.Globalization
+@using System.Numerics
+@using TM_MappingTools.Model
+
+<div class="@(!Enabled ? "parameter-control-disabled" : null)">
+    @switch (Definition.Kind)
+    {
+        case ToolParameterKind.Bool:
+            <label class="parameter-input-checkbox" for="@GetInputId()">
+                <input id="@GetInputId()"
+                       type="checkbox"
+                       checked="@Values.GetBool(Definition.Key, GetDefaultBool())"
+                       disabled="@(!Enabled)"
+                       @onchange="@(args => OnBoolChanged(args))" />
+                <span>Enabled</span>
+            </label>
+            break;
+
+        case ToolParameterKind.Int:
+            <input id="@GetInputId()"
+                   class="form-control"
+                   type="number"
+                   min="@GetNumericAttribute(Definition.Min)"
+                   max="@GetNumericAttribute(Definition.Max)"
+                   step="@GetNumericAttribute(Definition.Step)"
+                   value="@Values.GetInt(Definition.Key, GetDefaultInt())"
+                   disabled="@(!Enabled)"
+                   @onchange="@(args => OnIntChanged(args))" />
+            break;
+
+        case ToolParameterKind.Float:
+            <input id="@GetInputId()"
+                   class="form-control"
+                   type="number"
+                   min="@GetNumericAttribute(Definition.Min)"
+                   max="@GetNumericAttribute(Definition.Max)"
+                   step="@(GetNumericAttribute(Definition.Step) ?? "0.01")"
+                   value="@FormatFloat(Values.GetDouble(Definition.Key, GetDefaultDouble()), Definition.Step)"
+                   disabled="@(!Enabled)"
+                   @onchange="@(args => OnFloatChanged(args))" />
+            break;
+
+        case ToolParameterKind.Enum:
+            <select id="@GetInputId()"
+                    class="form-select"
+                    value="@Values.GetString(Definition.Key, GetDefaultString())"
+                    disabled="@(!Enabled)"
+                    @onchange="@(args => OnTextChanged(args))">
+                @foreach (var option in Definition.Options)
+                {
+                    <option value="@option.Value">@option.Label</option>
+                }
+            </select>
+            break;
+
+        case ToolParameterKind.Text:
+            @if (Definition.LongValue)
+            {
+                <textarea id="@GetInputId()"
+                          class="form-control parameter-input-textarea"
+                          rows="4"
+                          disabled="@(!Enabled)"
+                          @oninput="@(args => OnTextChanged(args))">@Values.GetString(Definition.Key, GetDefaultString())</textarea>
+            }
+            else
+            {
+                <input id="@GetInputId()"
+                       class="form-control"
+                       type="text"
+                       value="@Values.GetString(Definition.Key, GetDefaultString())"
+                       disabled="@(!Enabled)"
+                       @oninput="@(args => OnTextChanged(args))" />
+            }
+            break;
+
+        case ToolParameterKind.Color:
+            <div class="parameter-color-wrapper">
+                <input id="@GetInputId()"
+                       type="color"
+                       class="parameter-color-swatch"
+                       value="@Values.GetString(Definition.Key, GetDefaultString())"
+                       disabled="@(!Enabled)"
+                       @oninput="@(args => OnColorSwatchChanged(args))" />
+                <input class="form-control parameter-color-hex"
+                       type="text"
+                       value="@Values.GetString(Definition.Key, GetDefaultString())"
+                       disabled="@(!Enabled)"
+                       maxlength="7"
+                       placeholder="#rrggbb"
+                       @onchange="@(args => OnColorHexChanged(args))" />
+            </div>
+            break;
+
+        case ToolParameterKind.Vector2:
+            <div class="parameter-vector-grid parameter-vector-grid-2">
+                @for (var i = 0; i < 2; i++)
+                {
+                    var componentIndex = i;
+                    <div class="parameter-vector-inline-item">
+                        <span class="parameter-vector-label">@(componentIndex == 0 ? "X" : "Y")</span>
+                        <input id="@GetComponentInputId(componentIndex)"
+                               class="form-control"
+                               type="number"
+                               min="@GetNumericAttribute(Definition.Min)"
+                               max="@GetNumericAttribute(Definition.Max)"
+                               step="@(GetNumericAttribute(Definition.Step) ?? "0.01")"
+                               value="@FormatFloat(GetVectorComponent(componentIndex), Definition.Step)"
+                               aria-label="@(componentIndex == 0 ? "X" : "Y")"
+                               disabled="@(!Enabled)"
+                               @onchange="@(args => OnVectorComponentChanged(componentIndex, args))" />
+                    </div>
+                }
+            </div>
+            <input class="form-control parameter-vector-raw"
+                   type="text"
+                   value="@GetVectorText()"
+                   disabled="@(!Enabled)"
+                   @onchange="@(args => OnVectorTextChanged(args))"
+                   placeholder="e.g. 0, 1" />
+            break;
+
+        case ToolParameterKind.Vector3:
+            <div class="parameter-vector-grid parameter-vector-grid-3">
+                @for (var i = 0; i < 3; i++)
+                {
+                    var componentIndex = i;
+                    <div class="parameter-vector-inline-item">
+                        <span class="parameter-vector-label">@(componentIndex == 0 ? "X" : componentIndex == 1 ? "Y" : "Z")</span>
+                        <input id="@GetComponentInputId(componentIndex)"
+                               class="form-control"
+                               type="number"
+                               min="@GetNumericAttribute(Definition.Min)"
+                               max="@GetNumericAttribute(Definition.Max)"
+                               step="@(GetNumericAttribute(Definition.Step) ?? "0.01")"
+                               value="@FormatFloat(GetVectorComponent(componentIndex), Definition.Step)"
+                               aria-label="@(componentIndex == 0 ? "X" : componentIndex == 1 ? "Y" : "Z")"
+                               disabled="@(!Enabled)"
+                               @onchange="@(args => OnVectorComponentChanged(componentIndex, args))" />
+                    </div>
+                }
+            </div>
+            <input class="form-control parameter-vector-raw"
+                   type="text"
+                   value="@GetVectorText()"
+                   disabled="@(!Enabled)"
+                   @onchange="@(args => OnVectorTextChanged(args))"
+                   placeholder="e.g. 0, 1, 2" />
+            break;
+
+        case ToolParameterKind.Vector4:
+            <div class="parameter-vector-grid parameter-vector-grid-4">
+                @for (var i = 0; i < 4; i++)
+                {
+                    var componentIndex = i;
+                    <div class="parameter-vector-inline-item">
+                        <span class="parameter-vector-label">@(componentIndex switch { 0 => "X", 1 => "Y", 2 => "Z", _ => "W" })</span>
+                        <input id="@GetComponentInputId(componentIndex)"
+                               class="form-control"
+                               type="number"
+                               min="@GetNumericAttribute(Definition.Min)"
+                               max="@GetNumericAttribute(Definition.Max)"
+                               step="@(GetNumericAttribute(Definition.Step) ?? "0.01")"
+                               value="@FormatFloat(GetVectorComponent(componentIndex), Definition.Step)"
+                               aria-label="@(componentIndex switch { 0 => "X", 1 => "Y", 2 => "Z", _ => "W" })"
+                               disabled="@(!Enabled)"
+                               @onchange="@(args => OnVectorComponentChanged(componentIndex, args))" />
+                    </div>
+                }
+            </div>
+            <input class="form-control parameter-vector-raw"
+                   type="text"
+                   value="@GetVectorText()"
+                   disabled="@(!Enabled)"
+                   @onchange="@(args => OnVectorTextChanged(args))"
+                   placeholder="e.g. 0, 1, 2, 3" />
+            break;
+
+        case ToolParameterKind.Quaternion:
+            <div class="parameter-vector-grid parameter-vector-grid-3">
+                @for (var i = 0; i < 3; i++)
+                {
+                    var componentIndex = i;
+                    <div class="parameter-vector-inline-item">
+                        <span class="parameter-vector-label">@(componentIndex == 0 ? "X" : componentIndex == 1 ? "Y" : "Z")</span>
+                        <input id="@GetComponentInputId(componentIndex)"
+                               class="form-control"
+                               type="number"
+                               min="@GetNumericAttribute(Definition.Min)"
+                               max="@GetNumericAttribute(Definition.Max)"
+                               step="@(GetNumericAttribute(Definition.Step) ?? "0.1")"
+                               value="@FormatFloat(GetRotationEulerDegrees()[componentIndex], Definition.Step ?? 0.1d)"
+                               aria-label="@(componentIndex == 0 ? "X" : componentIndex == 1 ? "Y" : "Z")"
+                               disabled="@(!Enabled)"
+                               @onchange="@(args => OnQuaternionEulerComponentChanged(componentIndex, args))" />
+                    </div>
+                }
+            </div>
+            <input class="form-control parameter-vector-raw"
+                   type="text"
+                   value="@GetQuaternionEulerText()"
+                   disabled="@(!Enabled)"
+                   @onchange="@(args => OnQuaternionEulerTextChanged(args))"
+                   placeholder="e.g. 0, 90, 0" />
+            break;
+
+        default:
+            <input id="@GetInputId()"
+                   class="form-control"
+                   type="text"
+                   value="@Values.GetString(Definition.Key, GetDefaultString())"
+                   disabled="@(!Enabled)"
+                   @oninput="@(args => OnTextChanged(args))" />
+            break;
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ToolParameterDefinition Definition { get; set; } = null!;
+    [Parameter, EditorRequired] public ToolParameterValues Values { get; set; } = null!;
+    [Parameter] public EventCallback<ToolParameterValues> ValuesChanged { get; set; }
+    [Parameter] public bool Enabled { get; set; } = true;
+
+    private string GetInputId() => $"tool_parameter_{Definition.Key}";
+
+    private string GetComponentInputId(int index) => $"tool_parameter_{Definition.Key}_{index}";
+
+    private static string? GetNumericAttribute(double? value)
+        => value?.ToString(CultureInfo.InvariantCulture);
+
+    private static string FormatFloat(double value, double? step = null, int fallbackDecimals = 6)
+    {
+        var rounded = RoundToPrecision(value, step, fallbackDecimals);
+        return rounded.ToString("G15", CultureInfo.InvariantCulture);
+    }
+
+    private static double RoundToPrecision(double value, double? step = null, int fallbackDecimals = 6)
+    {
+        var decimals = GetDecimalPlaces(step, fallbackDecimals);
+        return Math.Round(value, decimals, MidpointRounding.AwayFromZero);
+    }
+
+    private static int GetDecimalPlaces(double? step, int fallbackDecimals)
+    {
+        if (!step.HasValue || step.Value <= 0d)
+            return fallbackDecimals;
+
+        var text = step.Value.ToString("0.################", CultureInfo.InvariantCulture);
+        var separatorIndex = text.IndexOf('.');
+        return separatorIndex < 0 ? 0 : text.Length - separatorIndex - 1;
+    }
+
+    private bool GetDefaultBool()
+        => Definition.GetDefaultValue() is bool b && b;
+
+    private int GetDefaultInt()
+        => Definition.GetDefaultValue() is int i ? i : 0;
+
+    private double GetDefaultDouble()
+        => Definition.GetDefaultValue() switch
+        {
+            double d => d,
+            float f => f,
+            int i => i,
+            _ => 0d,
+        };
+
+    private string GetDefaultString()
+        => Definition.GetDefaultValue()?.ToString() ?? string.Empty;
+
+    private int GetDimensions()
+        => Definition.Kind switch
+        {
+            ToolParameterKind.Vector2 => 2,
+            ToolParameterKind.Vector3 => 3,
+            ToolParameterKind.Vector4 => 4,
+            ToolParameterKind.Quaternion => 3,
+            _ => 0,
+        };
+
+    private double[] GetVectorDefaults()
+        => Definition.GetDefaultValue() switch
+        {
+            Vector2 v => [v.X, v.Y],
+            Vector3 v => [v.X, v.Y, v.Z],
+            Vector4 v => [v.X, v.Y, v.Z, v.W],
+            Quaternion q => QuaternionToEulerDegrees(q),
+            float[] f => f.Select(x => (double)x).ToArray(),
+            double[] d => d,
+            _ => new double[GetDimensions()],
+        };
+
+    private double GetVectorComponent(int index)
+        => Values.GetVectorComponent(Definition.Key, index, GetDimensions(), GetVectorDefaults());
+
+    private string GetVectorText()
+    {
+        var dims = GetDimensions();
+        return string.Join(", ", Enumerable.Range(0, dims).Select(i => FormatFloat(GetVectorComponent(i), Definition.Step)));
+    }
+
+    private double[] GetRotationEulerDegrees()
+    {
+        var fallback = GetVectorDefaults();
+        if (Values.GetRaw(Definition.Key) is Quaternion q)
+            return QuaternionToEulerDegrees(q);
+        return Enumerable.Range(0, 3)
+            .Select(i => Values.GetVectorComponent(Definition.Key, i, 3, fallback))
+            .ToArray();
+    }
+
+    private string GetQuaternionEulerText()
+        => string.Join(", ", GetRotationEulerDegrees().Select(v => FormatFloat(v, Definition.Step ?? 0.1d)));
+
+    private Task OnBoolChanged(ChangeEventArgs args)
+    {
+        var value = args.Value is bool b && b;
+        return SetValueAsync(Definition.Key, value);
+    }
+
+    private Task OnIntChanged(ChangeEventArgs args)
+    {
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v)
+            ? SetValueAsync(Definition.Key, v)
+            : Task.CompletedTask;
+    }
+
+    private Task OnFloatChanged(ChangeEventArgs args)
+    {
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var v))
+            return Task.CompletedTask;
+        return SetValueAsync(Definition.Key, RoundToPrecision(v, Definition.Step));
+    }
+
+    private Task OnTextChanged(ChangeEventArgs args)
+        => SetValueAsync(Definition.Key, Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty);
+
+    // --- Color helpers ---
+
+    private Task OnColorSwatchChanged(ChangeEventArgs args)
+    {
+        var rgb = (Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? "").Trim().ToLowerInvariant();
+        if (rgb.Length == 7 && rgb[0] == '#' && IsAllHex(rgb, 1))
+            return SetValueAsync(Definition.Key, rgb);
+        return Task.CompletedTask;
+    }
+
+    private Task OnColorHexChanged(ChangeEventArgs args)
+    {
+        var raw = (Convert.ToString(args.Value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+        if (raw.Length == 6 && raw[0] != '#') raw = "#" + raw;
+        if (raw.Length == 7 && raw[0] == '#' && IsAllHex(raw, 1))
+            return SetValueAsync(Definition.Key, raw.ToLowerInvariant());
+        return Task.CompletedTask;
+    }
+
+    private static bool IsAllHex(string s, int startIndex)
+    {
+        for (var i = startIndex; i < s.Length; i++)
+            if (!Uri.IsHexDigit(s[i])) return false;
+        return true;
+    }
+
+    private Task OnVectorComponentChanged(int index, ChangeEventArgs args)
+    {
+        var dims = GetDimensions();
+        var fallback = GetVectorDefaults();
+        var updated = Enumerable.Range(0, dims)
+            .Select(i => Values.GetVectorComponent(Definition.Key, i, dims, fallback))
+            .ToArray();
+
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
+            return Task.CompletedTask;
+
+        updated[index] = RoundToPrecision(parsed, Definition.Step);
+        return SaveVectorValueAsync(updated);
+    }
+
+    private Task OnVectorTextChanged(ChangeEventArgs args)
+    {
+        var dims = GetDimensions();
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!ToolParameterValues.TryParseVectorString(raw, dims, out var parsed))
+            return Task.CompletedTask;
+        return SaveVectorValueAsync(parsed);
+    }
+
+    private Task OnQuaternionEulerComponentChanged(int index, ChangeEventArgs args)
+    {
+        var euler = GetRotationEulerDegrees();
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
+            return Task.CompletedTask;
+        euler[index] = RoundToPrecision(parsed, Definition.Step ?? 0.1d);
+        return SaveQuaternionFromEulerAsync(euler);
+    }
+
+    private Task OnQuaternionEulerTextChanged(ChangeEventArgs args)
+    {
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!ToolParameterValues.TryParseVectorString(raw, 3, out var parsed))
+            return Task.CompletedTask;
+        return SaveQuaternionFromEulerAsync(parsed);
+    }
+
+    private Task SaveVectorValueAsync(double[] components)
+    {
+        object value = Definition.Kind switch
+        {
+            ToolParameterKind.Vector2 => new Vector2((float)components[0], (float)components[1]),
+            ToolParameterKind.Vector3 => new Vector3((float)components[0], (float)components[1], (float)components[2]),
+            ToolParameterKind.Vector4 => new Vector4((float)components[0], (float)components[1], (float)components[2], (float)components[3]),
+            _ => components,
+        };
+        return SetValueAsync(Definition.Key, value);
+    }
+
+    private Task SaveQuaternionFromEulerAsync(IReadOnlyList<double> eulerDegrees)
+    {
+        var q = EulerDegreesToQuaternion(eulerDegrees[0], eulerDegrees[1], eulerDegrees[2]);
+        return SetValueAsync(Definition.Key, q);
+    }
+
+    private static Quaternion EulerDegreesToQuaternion(double xDeg, double yDeg, double zDeg)
+    {
+        var xr = (float)(Math.PI / 180d * xDeg);
+        var yr = (float)(Math.PI / 180d * yDeg);
+        var zr = (float)(Math.PI / 180d * zDeg);
+        return Quaternion.CreateFromYawPitchRoll(yr, xr, zr);
+    }
+
+    private static double[] QuaternionToEulerDegrees(Quaternion q)
+    {
+        var n = Quaternion.Normalize(q);
+
+        var sinrCosp = 2d * (n.W * n.X + n.Y * n.Z);
+        var cosrCosp = 1d - 2d * (n.X * n.X + n.Y * n.Y);
+        var x = Math.Atan2(sinrCosp, cosrCosp);
+
+        var sinp = 2d * (n.W * n.Y - n.Z * n.X);
+        var y = Math.Abs(sinp) >= 1d ? Math.CopySign(Math.PI / 2d, sinp) : Math.Asin(sinp);
+
+        var sinyCosp = 2d * (n.W * n.Z + n.X * n.Y);
+        var cosyCosp = 1d - 2d * (n.Y * n.Y + n.Z * n.Z);
+        var z = Math.Atan2(sinyCosp, cosyCosp);
+
+        var toDeg = 180d / Math.PI;
+        return [x * toDeg, y * toDeg, z * toDeg];
+    }
+
+    private async Task SetValueAsync(string key, object? value)
+    {
+        Values.Set(key, value);
+        await ValuesChanged.InvokeAsync(Values);
+    }
+}

@@ -13,7 +13,8 @@ public enum ToolParameterKind
     Vector2,
     Vector3,
     Vector4,
-    Quaternion
+    Quaternion,
+    Color
 }
 
 public sealed class ToolParameterOption
@@ -34,6 +35,9 @@ public sealed class ToolParameterDefinition
     public double? Max { get; init; }
     public double? Step { get; init; }
     public IReadOnlyList<ToolParameterOption> Options { get; init; } = Array.Empty<ToolParameterOption>();
+    public bool IsOptional { get; init; }
+    public string? GroupKey { get; init; }
+    public string? GroupLabel { get; init; }
 
     public object? GetDefaultValue()
     {
@@ -53,6 +57,7 @@ public sealed class ToolParameterDefinition
             ToolParameterKind.Vector3 => Vector3.Zero,
             ToolParameterKind.Vector4 => Vector4.Zero,
             ToolParameterKind.Quaternion => Quaternion.Identity,
+            ToolParameterKind.Color => "#000000",
             _ => null,
         };
     }
@@ -62,8 +67,17 @@ public sealed class ToolParameterValues
 {
     private static readonly char[] VectorSplitChars = [',', ';', ' ', '\t', '\r', '\n', '(', ')', '[', ']', '{', '}'];
     private readonly Dictionary<string, object?> values = new(StringComparer.Ordinal);
+    private readonly HashSet<string> disabledOptionalKeys = new(StringComparer.Ordinal);
 
     public IReadOnlyDictionary<string, object?> Items => values;
+
+    public bool IsParameterEnabled(string key) => !disabledOptionalKeys.Contains(key);
+
+    public void SetParameterEnabled(string key, bool enabled)
+    {
+        if (enabled) disabledOptionalKeys.Remove(key);
+        else disabledOptionalKeys.Add(key);
+    }
 
     public bool Contains(string key)
     {

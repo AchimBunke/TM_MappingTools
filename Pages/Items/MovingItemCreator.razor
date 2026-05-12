@@ -117,6 +117,8 @@
         {
             Key = "namePrefix",
             Label = "Item Name Prefix",
+            GroupKey = "affixes",
+            GroupLabel = "Prefix / Suffix",
             Tooltip = "The prefix to prepend to the name of the source item.",
             Kind = ToolParameterKind.Text,
             DefaultValue = "",
@@ -125,11 +127,35 @@
         {
             Key = "nameSuffix",
             Label = "Item Name Suffix",
+            GroupKey = "affixes",
             Tooltip = "The suffix to append to the name of the source item.",
             Kind = ToolParameterKind.Text,
             DefaultValue = "",
+        },
+        new()
+        {
+            Key = "useTemplateAnimations",
+            Label = "Use Template Animations",
+            Tooltip = "Whether to use the template animations for the moving item if there is one.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "useTemplateIcon",
+            Label = "Use Template Icon",
+            Tooltip = "Whether to use the icon from the template item for the moving item if there is one. Else it uses the original mesh icon.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "useTemplatePlacement",
+            Label = "Use Template Placement",
+            Tooltip = "Whether to use the placement parameter from the template item for the moving item if there is one. Else it uses the original mesh placement.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
         }
-       
     };
 
     [SessionStored] private ToolParameterValues parameterValues = new();
@@ -173,9 +199,23 @@
         };
         var meshBuilder = new TM_GenericMapping.Items.MeshBuilder(meshBuilderSettings);
 
+        TM_GenericMapping.Items.MovingItemCreator.MergeOptions mergeOptions = TM_GenericMapping.Items.MovingItemCreator.MergeOptions.None;
+        if (parameterValues.GetBool("useTemplateAnimations", true))
+        {
+            mergeOptions |= TM_GenericMapping.Items.MovingItemCreator.MergeOptions.UseTemplateAnimations;
+        }
+        if (parameterValues.GetBool("useTemplateIcon", false))
+        {
+            mergeOptions |= TM_GenericMapping.Items.MovingItemCreator.MergeOptions.UseTemplateIcon;
+        }
+        if (parameterValues.GetBool("useTemplatePlacement", false))
+        {
+            mergeOptions |= TM_GenericMapping.Items.MovingItemCreator.MergeOptions.UseTemplatePlacement;
+        }
         var movingItemCreatorSettings = new TM_GenericMapping.Items.MovingItemCreator.MovingItemCreatorSettings
         {
             MovingItemAnimationTemplate = sourceAnimationItem,
+            MergeOptions = mergeOptions,
         };
         var movingItemCreator = new TM_GenericMapping.Items.MovingItemCreator(
             meshExtractor,

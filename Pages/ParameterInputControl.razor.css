@@ -1,0 +1,115 @@
+.parameter-control-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+}
+
+.parameter-input-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    color: var(--tm-text);
+    cursor: pointer;
+}
+
+.parameter-input-checkbox input {
+    margin: 0;
+}
+
+.parameter-input-textarea {
+    min-height: 5.5rem;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+.parameter-color-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.parameter-color-swatch {
+    width: 2.5rem;
+    height: calc(1.5em + 0.75rem + 2px); /* match form-control height */
+    padding: 0.1rem 0.15rem;
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-sm);
+    cursor: pointer;
+    background: none;
+    flex-shrink: 0;
+}
+
+.parameter-color-hex {
+    flex: 1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+}
+
+.form-control,
+.form-select {
+    font-size: 0.9rem;
+}
+
+.parameter-vector-grid {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.parameter-vector-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.parameter-vector-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.parameter-vector-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.parameter-vector-inline-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.parameter-vector-label {
+    font-size: 0.68rem;
+    line-height: 1;
+    color: var(--tm-text-soft);
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+.parameter-vector-inline-item .form-control {
+    height: 1.85rem;
+    min-height: 1.85rem;
+    padding: 0.12rem 0.4rem;
+    font-size: 0.84rem;
+    line-height: 1.1;
+}
+
+.parameter-vector-raw {
+    margin-top: 0.3rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.parameter-vector-hint {
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--tm-text-soft);
+}
+
+@media (max-width: 640.98px) {
+    .parameter-vector-grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .parameter-vector-grid-2,
+    .parameter-vector-grid-3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
