@@ -420,29 +420,6 @@ code {
     max-height: 80px;
 }
 
-.tool-operation-history-list li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.tool-operation-id {
-    color: var(--tm-text-muted);
-    min-width: 1.2rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.tool-operation-key {
-    color: var(--tm-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.tool-operation-empty {
-    color: var(--tm-text-muted);
-}
-
 /* ── Tool page two-column layout ────────────────────────────── */
 .tool-page-layout {
     display: flex;
@@ -693,4 +670,70 @@ code {
             "main"
             "help";
     }
+}
+
+/* ── Shared parameter field styles ──────────────────────────── */
+/* Defined here once; used by ParameterInput and ParameterDictionaryControl */
+
+.parameter-input-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.parameter-input-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--tm-text);
+    margin: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.parameter-input-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.parameter-input-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: var(--tm-accent-soft);
+    color: var(--tm-accent-strong);
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: help;
+    flex-shrink: 0;
+}
+
+.parameter-optional-checkbox {
+    width: 0.9rem;
+    height: 0.9rem;
+    cursor: pointer;
+    margin: 0;
+    accent-color: var(--tm-accent, #3b82f6);
+    flex-shrink: 0;
+}
+
+/* ── Fill-centered panel shell ───────────────────────────────── */
+/* Identical pattern used in ExportPanel (.export-panel-content)
+   and ToolOperationHistory (.tool-operation-history-content)   */
+
+.export-panel-content,
+.tool-operation-history-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    min-height: 0;
 }
