@@ -1,13 +1,3 @@
-.export-panel-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-    min-height: 0;
-}
-
 .export-panel-multi {
     display: flex;
     flex-direction: column;

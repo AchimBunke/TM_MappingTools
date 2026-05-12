@@ -23,54 +23,6 @@
     grid-column: span 2;
 }
 
-.parameter-input-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.45rem;
-}
-
-.parameter-input-label {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--tm-text);
-    margin: 0;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-}
-
-.parameter-input-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    flex-shrink: 0;
-}
-
-.parameter-input-help {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 999px;
-    background: var(--tm-accent-soft);
-    color: var(--tm-accent-strong);
-    font-size: 0.72rem;
-    font-weight: 700;
-    cursor: help;
-    flex-shrink: 0;
-}
-
-.parameter-optional-checkbox {
-    width: 0.9rem;
-    height: 0.9rem;
-    cursor: pointer;
-    margin: 0;
-    accent-color: var(--tm-accent, #3b82f6);
-    flex-shrink: 0;
-}
-
 /* Groups */
 
 /* Groups — span is set inline based on item count */
