@@ -123,22 +123,6 @@ jobs:
     - name: Fix base href in prerendered HTML files
       run: |
         find Prerender/output/wwwroot -name "*.html" | while read htmlFile; do
-          sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' "$htmlFile"
-        done
-
-    - name: Copy index.html to 404.html
-      run: cp Prerender/output/wwwroot/index.html Prerender/output/wwwroot/404.html
-
-    - name: Add .nojekyll file
-      run: touch Prerender/output/wwwroot/.nojekyll
-
-    - name: Prerender Blazor client
-      working-directory: Prerender/output/wwwroot
-      run: node prerender.mjs
-
-    - name: Fix base href in prerendered HTML files
-      run: |
-        find Prerender/output/wwwroot -name "*.html" | while read htmlFile; do
           sed -i 's|<base href="/">|<base href="/TM_MappingTools/">|g' "$htmlFile"
           sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' "$htmlFile"
         done
@@ -149,12 +133,6 @@ jobs:
     - name: Add .nojekyll file
       run: touch Prerender/output/wwwroot/.nojekyll
 
-    - name: Commit wwwroot to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@v4.8.0
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: Prerender/output/wwwroot
     - name: Commit wwwroot to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4.8.0
       with:
