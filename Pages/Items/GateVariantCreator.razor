@@ -6,61 +6,89 @@
 
 <PageTitle>Gate Variant Creator</PageTitle>
 
-<ToolPageLayout IconClass="bi-lightning-charge-fill" Title="Gate Variant Creator" Description="Create variants of gate items for every effect."
+<ToolPageLayout IconClass="bi-lightning-charge-fill" Title="Gate Variant Creator"
+                Description="Create variants of gate items for every effect."
                 HelpDescription="What this tool changes and how to tune it safely.">
-       <IORow>
+    <IORow>
         <ToolIORow>
             <InputContent>
-              <ToolCard Title="Info" >
-                <h4>Trigger Item Variant Creator (Gate Variant Creator)</h4>
-                <p>Source Code: <a href="https://github.com/AchimBunke/TM_TriggerSurfaceMapping" target="_blank" rel="noopener noreferrer">Gate Variant Creator Github</a>
-                </p>
-                <p>
-                    This tool is a C# implementation of
-                    <a href="https://openplanet.dev/file/112" target="_blank" rel="noopener noreferrer">Custom Gates</a>
-                    (<a href="https://github.com/schadocalex/gbx-py/blob/a140ca0f51664fc2e935f40a74f859672ed99861/custom_gates.py" target="_blank" rel="noopener noreferrer">GitHub</a>) by <strong>schadocalex</strong>.
-                </p>
+                <ToolCard Title="Info">
+                    <h4>Trigger Item Variant Creator (Gate Variant Creator)</h4>
+                    <p>Source Code: <a href="https://github.com/AchimBunke/TM_TriggerSurfaceMapping" target="_blank"
+                                           rel="noopener noreferrer">Gate Variant Creator Github</a>
+                    </p>
+                    <p>
+                        This tool is a C# implementation of
+                        <a href="https://openplanet.dev/file/112" target="_blank" rel="noopener noreferrer">Custom
+                            Gates</a>
+                            (<a href="https://github.com/schadocalex/gbx-py/blob/a140ca0f51664fc2e935f40a74f859672ed99861/custom_gates.py"
+                                target="_blank" rel="noopener noreferrer">GitHub</a>) by <strong>schadocalex</strong>.
+                        </p>
 
-                <h5>Item Requirements for Blender</h5>
-                <ul>
-                    <li><code>_trigger_</code> objects define the zone where the gameplay takes effect.</li>
-                    <li>
-                        Materials are resolved via their Link, so use TriggerFX, SpecialFX, Sign, SignOff, or Decal links.
-                        The material name and the effect of the link (Turbo, Boost, etc.) do not matter.
-                    </li>
-                    <li>Export the item as usual.</li>
-                    <li>Drag and drop it onto the exe file to create all available effect variants as a zip file.</li>
-                </ul>
+                        <h5>Item Requirements for Blender</h5>
+                        <ul>
+                            <li><code>_trigger_</code> objects define the zone where the gameplay takes effect.</li>
+                            <li>
+                                Materials are resolved via their Link, so use TriggerFX, SpecialFX, Sign, SignOff, or Decal
+                                links.
+                                The material name and the effect of the link (Turbo, Boost, etc.) do not matter.
+                            </li>
+                            <li>Export the item as usual.</li>
+                            <li>Drag and drop it onto the exe file to create all available effect variants as a zip file.
+                            </li>
+                        </ul>
 
-                <h5>Notes</h5>
-                <ul>
-                    <li>No guarantee it will work with all items. There is currently a problem with parsing items with trigger effects in GBX.NET.</li>
-                    <li>Not all effects have icons, decals, signs, and TriggerFX. For those, either a default one or a texture from another effect is used.</li>
-                </ul>
-               
-              </ToolCard>
-            </InputContent>
-            <ExportContent>
-                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body">
+                        <h5>Notes</h5>
+                        <ul>
+                            <li>No guarantee it will work with all items. There is currently a problem with parsing items
+                                with trigger effects in GBX.NET.</li>
+                                <li>Not all effects have icons, decals, signs, and TriggerFX. For those, either a default one or
+                                    a texture from another effect is used.</li>
+                                </ul>
+
+                            </ToolCard>
+                        </InputContent>
+                        <ExportContent>
+                            @* <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body">
                     <ExportPanel EmptyMessage="Run Execute to generate export content."
                                  DownloadAllFileName="GateVariantCreator.zip" Items="_exportItems" />
-                </ToolCard>
-            </ExportContent>
-        </ToolIORow>
-    </IORow>
-    <Sidebar>
-    </Sidebar>
-    <Main>
-    </Main>
-    <HelpContent>
-        <h3>What happens when you click Execute</h3>
-        <p>Nothing.. use the tool </p>
-    </HelpContent>
-</ToolPageLayout>
+                </ToolCard> *@
+                            <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body">
+                                <div>
+                                    <ul>
+                                        <li class="d-flex align-items-center gap-2 mb-1 export-panel-row">
+                                            <span class="text-truncate small flex-grow-1"
+                                                  title="TM_TriggerItemVariantCreator.exe">TM_TriggerItemVariantCreator.exe</span>
+                                            <a href="Assets/TM_TriggerItemVariantCreator.exe" download
+                                               class="btn btn-sm btn-outline-primary flex-shrink-0"
+                                               title="Download TM_TriggerItemVariantCreator.exe">
+                                                <span class="bi bi-download" aria-hidden="true"></span></a>
+                                            </li>
+                                            <li class="d-flex align-items-center gap-2 mb-1 export-panel-row">
+                                                <span class="text-truncate small flex-grow-1" title="README.md">README.md</span>
+                                                <a href="Assets/README.md" download class="btn btn-sm btn-outline-primary flex-shrink-0"
+                                                   title="Download README.md">
+                                                    <span class="bi bi-download" aria-hidden="true"></span></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </ToolCard>
+                                </ExportContent>
+                            </ToolIORow>
+                        </IORow>
+                        <Sidebar>
+                        </Sidebar>
+                        <Main>
+                        </Main>
+                        <HelpContent>
+                            <h3>What happens when you click Execute</h3>
+                            <p>Nothing.. use the tool </p>
+                        </HelpContent>
+                    </ToolPageLayout>
 
 @code {
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
-    
+
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
     };
@@ -72,8 +100,8 @@
         base.OnInitialized();
 
         List<ExportableItem> exportItems = new();
-        AddBundledToolFile(exportItems, "TM_TriggerItemVariantCreator.exe", "Assets.TM_TriggerItemVariantCreator.exe");
-        AddBundledToolFile(exportItems, "README.md", "Assets.README.md");
+        //AddBundledToolFile(exportItems, "TM_TriggerItemVariantCreator.exe", "Assets.TM_TriggerItemVariantCreator.exe");
+        //AddBundledToolFile(exportItems, "README.md", "Assets.README.md");
 
         _exportItems = exportItems.Count > 0 ? exportItems : null;
         StateHasChanged();
@@ -87,7 +115,8 @@
         var bytes = TryReadEmbeddedBytes(embeddedSuffix);
         if (bytes == null)
         {
-            ToolMessageService.AddWarning($"Bundled file '{fileName}' could not be loaded and was not added to export.", nameof(GateVariantCreator));
+            ToolMessageService.AddWarning($"Bundled file '{fileName}' could not be loaded and was not added to export.",
+nameof(GateVariantCreator));
             return;
         }
 
