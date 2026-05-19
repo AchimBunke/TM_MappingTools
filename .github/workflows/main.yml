@@ -139,3 +139,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: gh-pages
         FOLDER: Prerender/output/wwwroot
+        clean: true  #
