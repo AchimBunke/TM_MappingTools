@@ -27,5 +27,4 @@
     <EmbeddedResource Include="Assets\README.md" />
   </ItemGroup>
 
-
 </Project>
