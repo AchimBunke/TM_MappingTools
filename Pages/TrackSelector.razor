@@ -96,13 +96,26 @@ else
             return;
         }
 
-        if (!ReferenceEquals(previousClip, Clip))
+        bool clipReferenceChanged = !ReferenceEquals(previousClip, Clip);
+        bool trackCountChanged = Clip.MediaClip.Tracks.Count != tracks.Count;
+
+        if (!clipReferenceChanged && !trackCountChanged) return;
+
+        previousClip = Clip;
+        var prevSelectedIndices = selectedTracksLocal.Select(t => t.TrackIndex).ToHashSet();
+        tracks = LoadTracks(Clip).ToList();
+
+        if (clipReferenceChanged)
         {
-            previousClip = Clip;
-            tracks = LoadTracks(Clip).ToList();
             selectedTracksLocal.Clear();
-            PushSelectionToParent();
         }
+        else
+        {
+            // Clip was modified in-place — re-map selections by track index
+            selectedTracksLocal = tracks.Where(t => prevSelectedIndices.Contains(t.TrackIndex)).ToHashSet();
+        }
+
+        PushSelectionToParent();
     }
 
     private IEnumerable<TrackData> LoadTracks(Clip clip)

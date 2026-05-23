@@ -1,0 +1,194 @@
+﻿@page "/project-3D-triangles"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using TM_GenericMapping.MediaTracker.Tools
+@using TM_MappingTools.Services
+@using TM_GenericMapping.Messaging;
+@inject TM_MappingTools.Services.GlobalClipHistoryService OperationHistoryService
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+@inject ClipFileService SharedClipFileService
+
+
+
+<PageTitle>Project 3D Triangles</PageTitle>
+
+<ToolPageLayout IconClass="bi-back" Title="Project 3D Triangles" Description="Project 3D Triangles to 2D Triangles. 16/9 aspect ration only!"
+                HelpDescription="How to use the tool and what the parameters do.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Clip" Description="Load the clip that receives the generated track.">
+                    <FileLoader FileService="SharedClipFileService" NoFileMessage="No clip loaded."
+                                DropHintMessage="Drop a .Clip.Gbx file in this area" Accept=".Clip.Gbx"
+                                MessageSource="Project 3D Triangles" />
+                </ToolCard>
+            </InputContent>
+            <HistoryContent>
+                <ToolCard Title="Operation History" Description="Recent clip operations in this session."
+                          Class="tool-operation-history-panel">
+                    <ToolOperationHistory EmptyMessage="(nothing yet)"
+                                          OperationHistoryService="OperationHistoryService" />
+                </ToolCard>
+            </HistoryContent>
+            <ExportContent>
+                <ToolCard Title="Export" Description="Export the updated clip." Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                    <ExportPanel FileService="SharedClipFileService" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Track Selection">
+            <TrackSelector Clip="SharedClipFileService.Clip" @bind-SelectedTracks="selectedTracks" />
+        </ToolCard>
+        <ToolCard Title="Camera Key Selection">
+            @if(FirstSelectedCameraTrack.MediaTrack != null)
+            {
+                <div class="small text-muted mb-2">
+                    <span class="fw-semibold" style="color: var(--tm-text)">@FirstSelectedCameraTrack.TrackName</span>
+                    <span> (@FirstSelectedCameraTrack.MediaTrack.TrackType)</span>
+                </div>
+                <label class="form-label small text-muted mb-1" for="camera-key-idx">Camera Keyframe</label>
+                <div class="input-group input-group-sm">
+                    <input id="camera-key-idx" type="number" class="form-control"
+                           min="0" max="@(CameraKeyframeCount - 1)"
+                           disabled="@(CameraKeyframeCount == 0)"
+                           @bind="selectedCameraKeyIdx" />
+                    <span class="input-group-text small text-muted">@(CameraKeyframeTime?.ToString("0.000") ?? "—")s</span>
+                </div>
+                <div class="form-text">@CameraKeyframeCount keyframe(s) available</div>
+            }
+            else
+            {
+                <div class="small text-muted">No camera track selected.</div>
+            }
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Project 3D Triangles"
+                           ExecutionTargetOverwrite="Project 3D Triangles" Tooltip="Execute the tool with the loaded clip."
+                           CanExecute="CanExecuteTool" />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The tool uses the selected camera and projects the selected 3D triangles onto the screen producing 2D triangles which look the exact same from the given perspective.</p>
+        <p><strong>Note:</strong> The tool currently supports only 16:9 aspect ratio.</p>
+        
+        <h3>Camera Key Selection</h3>
+        <p>The camera key selection allows you to choose which camera keyframe to use for the projection. The selected camera keyframe determines the perspective from which the 3D triangles are projected. The first valid selected camera track will be used from the track selection.</p>
+        <h3>Key Time As Start Time</h3>
+        <p>If enabled, the generated 2D triangle block will be created at the time of the selected camera keyframe time. Otherwise at time = 0.</p>
+        <h3>Key Time Interpolation</h3>
+        <p>If enabled, the triangle vertices will be interpolated if the camera key is between two triangle keys. <strong>Note: Currently always enabled!</strong></p>
+        <h3>Practical Workflow</h3>
+        <p>You'll need a clip with 3DTriangles tracks and a valid camera track (CustomCamera, PathCamera, or OrbitalCamera).</p>
+        <p>Within the Trackmania editor position your camera to your desired projection viewpoint, export the clip and import it into the tool.</p>
+        <p>Select the camera you want to use for the projection, select the 3D triangle tracks you want to project and select the correct keyframe for the camera track.</p>
+        <p>If you want your new 2D triangles to appear exactly at the time of the camera keyframe enable the "Key Time as Start Time" option.</p>
+        <p>Click Execute and the new projected triangle tracks will be added to the clip. If you export and open the clip in the editor, you'll see that the 2D triangles are in the exact same position as the original 3D triangles when viewing from the perspective of the selected camera key.</p>
+        <p><strong>Keep in mind:</strong> The editor preview looks different then the actual fullscreen clip. The triangles will align correctly only in fullscreen mode.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    [SessionStored] private List<TrackData> selectedTracks = new();
+    [SessionStored] private int selectedCameraKeyIdx = 0;
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "keyTimeAsStartTime",
+            Label = "Key Time as Start Time",
+            Tooltip = "The time of the camera key is the start time of the generated projected triangles. If disabled, the projected triangle block starts at 0.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "keyTimeInterpolation",
+            Label = "Key Time Interpolation",
+            Tooltip = "The triangle vertices will be interpolated if camera key is between 2 triangle keys.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+    };
+
+    [SessionStored] private ToolParameterValues parameterValues = new();
+
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        SharedClipFileService.FileChanged += OnClipFileChanged;
+    }
+
+    public void Dispose() => SharedClipFileService.FileChanged -= OnClipFileChanged;
+    private async void OnClipFileChanged() => await InvokeAsync(StateHasChanged);
+    private bool CanExecuteTool()
+    {
+        return SharedClipFileService.Clip != null && FirstSelectedCameraTrack.MediaTrack != null;
+    }
+
+    TrackData FirstSelectedCameraTrack
+        => selectedTracks.FirstOrDefault(t =>
+                t.MediaTrack.TrackType == TM_GenericMapping.Abstractions.MediaTrackType.CustomCamera ||
+                t.MediaTrack.TrackType == TM_GenericMapping.Abstractions.MediaTrackType.PathCamera || 
+                t.MediaTrack.TrackType == TM_GenericMapping.Abstractions.MediaTrackType.OrbitalCamera);
+    IEnumerable<TrackData> SelectedTriangleTracks
+        => selectedTracks.Where(t => t.MediaTrack.TrackType == TM_GenericMapping.Abstractions.MediaTrackType.Triangles3D);
+
+    int CameraKeyframeCount
+        => (FirstSelectedCameraTrack.MediaTrack?.Track.Blocks.FirstOrDefault() as GBX.NET.Engines.Game.CGameCtnMediaBlock.IHasKeys)?.Keys.Count() ?? 0;
+    float? CameraKeyframeTime
+        => (FirstSelectedCameraTrack.MediaTrack?.Track.Blocks.FirstOrDefault() as GBX.NET.Engines.Game.CGameCtnMediaBlock.IHasKeys)
+            ?.Keys.ElementAtOrDefault(selectedCameraKeyIdx)?.Time.TotalSeconds;
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
+    {
+        var clip = SharedClipFileService.Clip;
+        if (clip == null)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No clip loaded.");
+
+        var projector = new TriangleProjector();
+        var cameraTrack = FirstSelectedCameraTrack;
+        var triangleTracks = SelectedTriangleTracks.ToArray();
+
+        var settings = new TriangleProjector.ProjectionSettings()
+        {
+            CameraKeyIdx = selectedCameraKeyIdx,
+            KeyTimeAsStartTime = parameterValues.GetBool("keyTimeAsStartTime"),
+            KeyTimeInterpolation = parameterValues.GetBool("keyTimeInterpolation"),
+        };
+        int numFails = 0;
+        int numSuccess = 0;
+        foreach (var triangleTrack in triangleTracks)
+        {
+            var clipResult = projector.Project2D(clip.MediaClip, triangleTrack.MediaTrack.Track, cameraTrack.MediaTrack.Track, settings);
+            if (clipResult.IsFailure)
+            {
+                ToolMessageService.AddError($"Failed to project triangles for track: {triangleTrack.TrackName}", clipResult, "Project 3D Triangles");
+                numFails++;
+                continue;
+            }
+            numSuccess++;
+        }
+
+        OperationHistoryService.AddOperation("Project 3D Triangles");
+        await InvokeAsync(StateHasChanged);
+        if (numFails > 0 && numSuccess > 0)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Warning, $"{numSuccess} tracks projected successfully, but {numFails} failed. Check output for details.");
+        else if (numFails > 0)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to project triangles for all selected tracks. Check output for details.");
+        else
+            return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Successfully projected triangles for all selected tracks.");
+    }
+}

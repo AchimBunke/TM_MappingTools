@@ -62,13 +62,20 @@ public class ToolRegistryService
             Description: "Extract embedded items and blocks from a map.",
             SourceAliases: new[] { "embedded item", "item extractor" }),
 
-            new(
+        new(
             Category: "Item",
             Href: "gate-variant-creator",
             IconClass: "bi-lightning-charge-fill",
             Title: "Gate Variant Creator",
             Description: "Create variants of gate items for every effect.",
             SourceAliases: new[] { "gate variant", "variant creator" }),
+        new(
+            Category: "Clip",
+            Href: "project-3D-triangles",
+            IconClass: "bi-back",
+            Title: "Project 3D Triangles",
+            Description: "Project 3D triangles to 2D triangles.",
+            SourceAliases: new[] { "project 3D triangles", "3D triangles" }),
     };
 
     public string GetIconForSource(string? source)
