@@ -9,23 +9,23 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-ConfigureServices(builder.Services, builder.HostEnvironment.BaseAddress);
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+builder.Services.AddScoped<SessionStorage>();
+
+
+
+// global instances of file services for shared access across tools
+builder.Services.AddSingleton<ClipFileService>();
+builder.Services.AddSingleton<MapFileService>();
+builder.Services.AddSingleton<ItemFileService>();
+
+builder.Services.AddSingleton<ToolMessageService>();
+builder.Services.AddSingleton<ToolRegistryService>();
+builder.Services.AddSingleton<GlobalClipHistoryService>();
+
+
 
 GbxExtensions.Setup();
 
 await builder.Build().RunAsync();
-
-static void ConfigureServices(IServiceCollection services, string baseAddress)
-{
-    services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
-    services.AddScoped<SessionStorage>();
-
-    // global instances of file services for shared access across tools
-    services.AddSingleton<ClipFileService>();
-    services.AddSingleton<MapFileService>();
-    services.AddSingleton<ItemFileService>();
-
-    services.AddSingleton<ToolMessageService>();
-    services.AddSingleton<ToolRegistryService>();
-    services.AddSingleton<GlobalClipHistoryService>();
-}
