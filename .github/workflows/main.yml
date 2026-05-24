@@ -22,15 +22,11 @@ jobs:
     - name: Install WASM workload
       run: dotnet workload install wasm-tools
       
-    - name: Publish .NET Core Project
-      run: dotnet publish TM_MappingTools.csproj -c Release -o release -p:BlazorWasmPrerenderingPathBase=/TM_MappingTools/ --nologo
+    - name: Set base href for GitHub Pages
+      run: sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' TM_MappingTools/wwwroot/index.html
 
-    - name: Fix base href in prerendered HTML files
-      run: |
-        find release/wwwroot -name "*.html" | while read f; do
-          sed -i 's|<base href="/">|<base href="/TM_MappingTools/">|g' "$f"
-          sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' "$f"
-        done
+    - name: Publish .NET Core Project
+      run: dotnet publish TM_MappingTools.csproj -c Release -o release --nologo
 
     - name: Copy index.html to 404.html
       run: cp release/wwwroot/index.html release/wwwroot/404.html
