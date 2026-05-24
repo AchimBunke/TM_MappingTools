@@ -1,34 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TM_MappingTools</title>
-    <base href="/TM_MappingTools/" />
+<!DOCTYPE html><html lang="en" data-theme="dark" style="--blazor-load-percentage: 100%; --blazor-load-percentage-text: &quot;100%&quot;;"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <base href="/TM_MappingTools/">
     <!-- Open Graph / Discord preview -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Home | TM Mapping Tools" />
-    <meta name="twitter:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips." />
-    <meta name="twitter:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Home | TM Mapping Tools" />
-    <meta property="og:site_name" content="Trackmania Mapping Tools" />
-    <meta property="og:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips." />
-    <meta property="og:url" content="https://achimbunke.github.io/TM_MappingTools/" />
-    <meta property="og:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <link href="_framework/dotnet.mawa59p8ml.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-/jpcAOzwpFtyUZR8gmBHeJoP6gVnIm59RJwYeAI/17A=" />
-    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Home | TM Mapping Tools">
+    <meta name="twitter:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips.">
+    <meta name="twitter:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Home | TM Mapping Tools">
+    <meta property="og:site_name" content="Trackmania Mapping Tools">
+    <meta property="og:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips.">
+    <meta property="og:url" content="https://achimbunke.github.io/TM_MappingTools/">
+    <meta property="og:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <link href="_framework/dotnet.if843s1pch.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-UtnCp5NIYKu4Y9hyN9479LzJRlqJQa1ooa0JsMe1Hqc=">
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="icon-32.png" />
-    <link href="TM_MappingTools.styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="icon" type="image/png" href="icon-32.png">
+    <link href="TM_MappingTools.styles.css" rel="stylesheet">
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.mawa59p8ml.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.if843s1pch.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.1z2y5cmqb4.js",
     "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.r2kbxkuujc.js"
   },
@@ -36,24 +33,71 @@
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-/jpcAOzwpFtyUZR8gmBHeJoP6gVnIm59RJwYeAI/17A=",
-    "./_framework/dotnet.mawa59p8ml.js": "sha256-/jpcAOzwpFtyUZR8gmBHeJoP6gVnIm59RJwYeAI/17A=",
+    "./_framework/dotnet.if843s1pch.js": "sha256-UtnCp5NIYKu4Y9hyN9479LzJRlqJQa1ooa0JsMe1Hqc=",
+    "./_framework/dotnet.js": "sha256-UtnCp5NIYKu4Y9hyN9479LzJRlqJQa1ooa0JsMe1Hqc=",
     "./_framework/dotnet.native.1z2y5cmqb4.js": "sha256-cwePJmQiC+fL6w5/TdeJo4wJFsUcuZl8vhc0qIypjCo=",
     "./_framework/dotnet.native.js": "sha256-cwePJmQiC+fL6w5/TdeJo4wJFsUcuZl8vhc0qIypjCo=",
     "./_framework/dotnet.runtime.js": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
     "./_framework/dotnet.runtime.r2kbxkuujc.js": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU="
   }
 }</script>
-</head>
+<!--!--><!--!--><!--!--><title>Home</title><!--!--><!--!--><!--!--></head>
 
 <body>
-    <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
-    </div>
+    <div id="app"><!--!--><!--!--><!--!--><!--!--><div class="page" b-yrpmrvqeod=""><div class="sidebar" b-yrpmrvqeod=""><!--!--><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5=""><div class="container-fluid" b-k974kyz3h5=""><!--!--><a class="navbar-brand" href="" b-k974kyz3h5="">TM Mapping Tools</a>
+        <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5=""><!--!--><span class="navbar-toggler-icon" b-k974kyz3h5=""></span></button></div></div><!--!-->
+
+<div class="collapse nav-scrollable" b-k974kyz3h5=""><nav class="nav flex-column" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="" class="nav-link active" aria-current="page"><!--!--><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5=""></i> Home
+            </a></div><!--!-->
+
+        <hr class="nav-separator" b-k974kyz3h5=""><div class="nav-tools-section" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5=""></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5=""></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5=""></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5=""></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5=""></i> Project 3D Triangles</a></div><!--!--><hr class="nav-separator" b-k974kyz3h5=""></div><div class="nav-tools-section" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5=""></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5=""></i> Embedded Item Extractor</a></div><!--!--><hr class="nav-separator" b-k974kyz3h5=""></div><div class="nav-tools-section" b-k974kyz3h5=""><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5=""></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5=""></i> Gate Variant Creator</a></div><!--!--><hr class="nav-separator" b-k974kyz3h5=""></div><div class="nav-item px-3" b-k974kyz3h5=""><!--!--><a href="about" class="nav-link"><!--!--><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5=""></i> About
+            </a></div><!--!-->
+
+        <hr class="nav-separator" b-k974kyz3h5="">
+
+        <div class="nav-item px-3 nav-item-theme-toggle" b-k974kyz3h5=""><button class="nav-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5=""><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5=""></i><!--!-->
+                Light Mode</button></div></nav></div></div><!--!-->
+
+    <main b-yrpmrvqeod=""><!--!--><div class="top-row px-4" b-yrpmrvqeod=""><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod="">Mapping Tools GitHub</a>
+            <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod="">CSharp Mapping GitHub</a>
+            <a href="https://trackmania.exchange/usershow/131189" target="_blank" b-yrpmrvqeod="">TMX</a></div>
+
+        <article class="content px-4" b-yrpmrvqeod="" style="padding-bottom: 31px;"><!--!--><!--!--><!--!--><!--!-->
+
+<!--!--><div class="home-hero" b-qi6sb0u7p7=""><div class="home-hero-icon" b-qi6sb0u7p7=""><span class="bi-house-door-fill" aria-hidden="true" b-qi6sb0u7p7=""></span></div>
+    <h1 class="home-hero-title" b-qi6sb0u7p7="" tabindex="-1">TM Mapping Tools</h1>
+    <p class="home-hero-subtitle" b-qi6sb0u7p7="">A collection of tools for TrackMania mappers to edit and optimize Maps.</p>
+    <p class="home-hero-hint" b-qi6sb0u7p7="">
+        Select a tool and get started. Each tool has a help section with more information about its features and usage.
+    </p></div>
+
+<div class="home-tools-section" b-qi6sb0u7p7=""><h2 class="home-section-title" b-qi6sb0u7p7="">Available Tools (9)</h2><!--!-->
+    <div class="home-tool-groups" b-qi6sb0u7p7=""><section class="home-tool-group" b-qi6sb0u7p7=""><h3 class="home-group-title" b-qi6sb0u7p7="">Clip</h3><!--!-->
+                <div class="home-tool-grid" b-qi6sb0u7p7=""><a href="player-attached-triangles" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-paperclip home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Player-Attached 3D Triangles</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Attach 3D triangles to the player.</span></a><a href="optimize-keyframe-animations" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-bezier home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Optimize Keyframe Animations</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Reduce redundant animation keyframes to shrink filesize.</span></a><a href="optimize-triangle-compression" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-grid-3x3 home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Optimize Triangle Compression</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Improve MediaTracker triangle compression.</span></a><a href="import-triangle-animation" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-collection-play home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Import Triangle Animation</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Import .obj animation from Blender and create triangle animations.</span></a><a href="project-3D-triangles" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-back home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Project 3D Triangles</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Project 3D triangles to 2D triangles.</span></a></div></section><section class="home-tool-group" b-qi6sb0u7p7=""><h3 class="home-group-title" b-qi6sb0u7p7="">Map</h3><!--!-->
+                <div class="home-tool-grid" b-qi6sb0u7p7=""><a href="map-item-replacer" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-shuffle home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Map Item Replacer</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Coming Soon...</span></a><a href="embedded-item-extractor" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-box-arrow-up home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Embedded Item Extractor</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Extract embedded items and blocks from a map.</span></a></div></section><section class="home-tool-group" b-qi6sb0u7p7=""><h3 class="home-group-title" b-qi6sb0u7p7="">Item</h3><!--!-->
+                <div class="home-tool-grid" b-qi6sb0u7p7=""><a href="moving-item-creator" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-box-arrow-in-right home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Moving Item Creator</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Create moving items from source items.</span></a><a href="gate-variant-creator" class="home-tool-card" b-qi6sb0u7p7=""><span class="home-tool-card-top" b-qi6sb0u7p7=""><i class="bi bi-lightning-charge-fill home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7=""></i><!--!-->
+                                <span class="home-tool-card-title" b-qi6sb0u7p7="">Gate Variant Creator</span></span><!--!-->
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7="">Create variants of gate items for every effect.</span></a></div></section></div></div></article><!--!-->
+
+        <!--!--><div class="message-log-row message-log-collapsed " b-poo0z6q6cd="" _bl_2=""><div class="message-log-body" b-poo0z6q6cd=""><div class="message-log-header" b-poo0z6q6cd=""><div class="message-log-header-left" b-poo0z6q6cd=""><button class="btn btn-link btn-sm message-log-toggle" title="Show output" b-poo0z6q6cd=""><span class="bi bi-chevron-up" aria-hidden="true" b-poo0z6q6cd=""></span><!--!-->
+                    <!--!--><span class="message-log-title" b-poo0z6q6cd="">Output</span></button></div></div></div></div></main></div><!--!-->
+        <!--!--></div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -63,6 +107,7 @@
     <script src="_framework/blazor.webassembly.66stpp682q.js"></script>
     <script src="js/app.js"></script>
     <script>(function(){var t=localStorage.getItem('tm-theme')||'dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');})()</script>
-</body>
 
-</html>
+
+
+</body></html>
