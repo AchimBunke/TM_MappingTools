@@ -38,4 +38,3 @@ jobs:
         BRANCH: gh-pages
         FOLDER: release/wwwroot
         clean: true
-
