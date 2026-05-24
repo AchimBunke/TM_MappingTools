@@ -21,9 +21,6 @@ jobs:
 
     - name: Install WASM workload
       run: dotnet workload install wasm-tools
-      
-    - name: Set base href for GitHub Pages
-      run: sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' wwwroot/index.html
 
     - name: Publish .NET Core Project
       run: dotnet publish TM_MappingTools.csproj -c Release -o release --nologo
