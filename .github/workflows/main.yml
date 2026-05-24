@@ -22,23 +22,121 @@ jobs:
     - name: Install WASM workload
       run: dotnet workload install wasm-tools
       
-    - name: Set base href for GitHub Pages
-      run: sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' TM_MappingTools/wwwroot/index.html
-
     - name: Publish .NET Core Project
-      run: dotnet publish TM_MappingTools.csproj -c Release -o release --nologo
+      run: dotnet publish TM_MappingTools.csproj -c Release -o Prerender/output --nologo
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install prerender dependencies
+      working-directory: Prerender/output/wwwroot
+      run: |
+        cat > package.json << 'EOF'
+        {
+          "name": "prerender",
+          "version": "1.0.0",
+          "dependencies": {
+            "puppeteer": "^24.0.0",
+            "serve": "^14.0.0"
+          }
+        }
+        EOF
+        npm install
+
+    - name: Create prerender script
+      working-directory: Prerender/output/wwwroot
+      run: |
+        cat > prerender.mjs << 'EOF'
+        import puppeteer from 'puppeteer';
+        import { spawn } from 'child_process';
+        import { writeFileSync, mkdirSync } from 'fs';
+        import { join } from 'path';
+
+        // Serve with a base path so <base href="/TM_MappingTools/"> resolves correctly
+        const server = spawn('npx', ['serve', '.', '-p', '5500', '--no-clipboard'], {
+          stdio: 'ignore',
+          detached: true
+        });
+
+        await new Promise(r => setTimeout(r, 3000));
+
+        const browser = await puppeteer.launch({
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: true
+        });
+
+        const routes = ['/'];
+
+        for (const route of routes) {
+          console.log(`Prerendering ${route}...`);
+          const page = await browser.newPage();
+
+          page.on('console', msg => console.log('  [browser]', msg.text()));
+          page.on('pageerror', err => console.log('  [page error]', err.message));
+
+          // Intercept requests and rewrite /TM_MappingTools/* -> /*
+          await page.setRequestInterception(true);
+          page.on('request', req => {
+            const url = req.url().replace('http://localhost:5500/TM_MappingTools', 'http://localhost:5500');
+            req.continue({ url });
+          });
+
+          await page.goto(`http://localhost:5500/`, {
+            waitUntil: 'networkidle0',
+            timeout: 60000
+          });
+
+          try {
+            await page.waitForFunction(
+              () => {
+                const app = document.getElementById('app');
+                return app && !app.querySelector('svg.loading-progress');
+              },
+              { timeout: 30000 }
+            );
+            console.log('  ✅ Blazor finished rendering');
+          } catch (e) {
+            console.log('  ⚠️ Timed out waiting for Blazor - saving whatever is rendered');
+          }
+
+          const html = await page.content();
+          await page.close();
+
+          const outDir = join('.', route === '/' ? '' : route);
+          mkdirSync(outDir, { recursive: true });
+          writeFileSync(join(outDir, 'index.html'), html);
+          console.log(`  ✅ Done: ${route}`);
+        }
+
+        await browser.close();
+        server.kill();
+        console.log('Prerendering complete.');
+        EOF
+
+    - name: Prerender Blazor client
+      working-directory: Prerender/output/wwwroot
+      run: node prerender.mjs
+
+    # Fix base href AFTER prerendering
+    - name: Fix base href in prerendered HTML files
+      run: |
+        find Prerender/output/wwwroot -name "*.html" | while read htmlFile; do
+          sed -i 's|<base href="/">|<base href="/TM_MappingTools/">|g' "$htmlFile"
+          sed -i 's|<base href="/" />|<base href="/TM_MappingTools/" />|g' "$htmlFile"
+        done
 
     - name: Copy index.html to 404.html
-      run: cp release/wwwroot/index.html release/wwwroot/404.html
+      run: cp Prerender/output/wwwroot/index.html Prerender/output/wwwroot/404.html
 
     - name: Add .nojekyll file
-      run: touch release/wwwroot/.nojekyll
+      run: touch Prerender/output/wwwroot/.nojekyll
 
     - name: Commit wwwroot to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4.8.0
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: gh-pages
-        FOLDER: release/wwwroot
-        clean: true
-
+        FOLDER: Prerender/output/wwwroot
+        clean: true  #
