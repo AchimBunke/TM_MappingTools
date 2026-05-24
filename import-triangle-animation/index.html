@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TM_MappingTools</title>
+    <base href="/TM_MappingTools/"/>
+    <!-- Open Graph / Discord preview -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Home | TM Mapping Tools"/>
+    <meta name="twitter:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips."/>
+    <meta name="twitter:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Home | TM Mapping Tools"/>
+    <meta property="og:site_name" content="Trackmania Mapping Tools"/>
+    <meta property="og:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips."/>
+    <meta property="og:url" content="https://achimbunke.github.io/TM_MappingTools/"/>
+    <meta property="og:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <link href="_framework/dotnet.4liuw0wldk.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-aOaLfpfmUaH76FbwM4OhLBhQoJYyWSnLDCLG2QTs2oM="/>
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <link rel="icon" type="image/png" href="icon-32.png"/>
+    <link href="TM_MappingTools.styles.css" rel="stylesheet"/>
+    <script type="importmap">{
+  "imports": {
+    "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.4liuw0wldk.js",
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.1z2y5cmqb4.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.r2kbxkuujc.js"
+  },
+  "scopes": {},
+  "integrity": {
+    "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
+    "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
+    "./_framework/dotnet.4liuw0wldk.js": "sha256-aOaLfpfmUaH76FbwM4OhLBhQoJYyWSnLDCLG2QTs2oM=",
+    "./_framework/dotnet.js": "sha256-aOaLfpfmUaH76FbwM4OhLBhQoJYyWSnLDCLG2QTs2oM=",
+    "./_framework/dotnet.native.1z2y5cmqb4.js": "sha256-cwePJmQiC+fL6w5/TdeJo4wJFsUcuZl8vhc0qIypjCo=",
+    "./_framework/dotnet.native.js": "sha256-cwePJmQiC+fL6w5/TdeJo4wJFsUcuZl8vhc0qIypjCo=",
+    "./_framework/dotnet.runtime.js": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
+    "./_framework/dotnet.runtime.r2kbxkuujc.js": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU="
+  }
+}</script>
+
+<!-- %%-PRERENDERING-HEADOUTLET-BEGIN-%% -->
+<title>Import Triangle Animation</title>
+<!-- %%-PRERENDERING-HEADOUTLET-END-%% -->
+</head>
+
+<body>
+    <div id="app">
+<!-- %%-PRERENDERING-BEGIN-%% -->
+<div class="page" b-yrpmrvqeod><div class="sidebar" b-yrpmrvqeod><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5><div class="container-fluid" b-k974kyz3h5><a class="navbar-brand" href b-k974kyz3h5>TM Mapping Tools</a>
+        <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5><span class="navbar-toggler-icon" b-k974kyz3h5></span></button></div></div>
+
+<div class="collapse nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+            </a></div>
+
+        <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
+            </a></div>
+
+        <hr class="nav-separator" b-k974kyz3h5>
+
+        <div class="nav-item px-3 nav-item-theme-toggle" b-k974kyz3h5><button class="nav-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
+                Light Mode</button></div></nav></div></div>
+
+    <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
+            <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod>CSharp Mapping GitHub</a>
+            <a href="https://trackmania.exchange/usershow/131189" target="_blank" b-yrpmrvqeod>TMX</a></div>
+
+        <article class="content px-4" b-yrpmrvqeod>
+
+<div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-collection-play tool-page-header-icon" aria-hidden="true"></span>
+        <div class="tool-page-header-text"><h1 class="tool-page-title">Import Triangle Animation</h1><p class="tool-page-desc">Import .obj animation from Blender and create triangle animations. Operations with lots of vertices may take a while to execute.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" aria-controls="import-triangle-animation-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
+                    Show Help</button></div></div><div class="tool-io-row "><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Input Clip</h2><p class="tool-panel-desc">Load the clip that receives the generated track.</p></div>
+    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-14e9d1fd5ee14481b94466c23c0a2dc9" class="visually-hidden" accept=".Clip.Gbx" type="file" />
+
+    <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No clip loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop a .Clip.Gbx file in this area or
+                <label for="filePicker-14e9d1fd5ee14481b94466c23c0a2dc9" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+            </div></div></div></div></div>
+                <div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Animation Source Files</h2><p class="tool-panel-desc">Load all .obj and .mtl files for the animation sequence.</p></div>
+    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-295196a971ff4f3d9d75d436de245d8d" class="visually-hidden" accept=".obj,.mtl" multiple type="file" />
+
+    <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No files loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop all files related to the animation (including .obj and .mtl files) anywhere in this area or
+                <label for="filePicker-295196a971ff4f3d9d75d436de245d8d" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
+            </div></div></div></div></div></div><div class="tool-io-history"><div class="tool-panel tool-operation-history-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Operation History</h2><p class="tool-panel-desc">Recent clip operations in this session.</p></div>
+    <div class="tool-panel-body "><div class="tool-operation-history-content" b-bh3ft5vkq7><ul class="tool-operation-history-list list-unstyled mb-0" b-bh3ft5vkq7><li class="tool-operation-empty-row" b-bh3ft5vkq7>(nothing yet)</li></ul></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the updated clip.</p></div>
+    <div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>No export available.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Input Selection</h2></div>
+    <div class="tool-panel-body small text-muted"><div>Clip loaded: No</div>
+            <div>Animation files loaded: 0</div></div></div></div>
+            <div class="tool-page-main"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Actions</h2></div>
+    <div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Generate Triangle Animation</strong></span></span>
+    <button type="button" class="btn btn-primary " disabled title="Execute the tool with the loaded .obj animation." b-0uij2y1ggg><span b-0uij2y1ggg>Execute</span></button></div></div></div>
+        <div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Parameters</h2></div>
+    <div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_animationLength" title="Specifies the length of the animation in seconds." b-8y05qc4gvo>Animation Length</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Specifies the length of the animation in seconds." aria-label="Specifies the length of the animation in seconds." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><input id="tool_parameter_animationLength" class="form-control" type="number" min="0" step="1" value="5" b-naxks4w9st /></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_useMaterialColors" title="If enabled, the tool will use extract material colors from .mtl files in the same directory as the animation." b-8y05qc4gvo>Use Material Colors</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="If enabled, the tool will use extract material colors from .mtl files in the same directory as the animation." aria-label="If enabled, the tool will use extract material colors from .mtl files in the same directory as the animation." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_useMaterialColors" b-naxks4w9st><input id="tool_parameter_useMaterialColors" type="checkbox" checked b-naxks4w9st />
+                <span b-naxks4w9st>Enabled</span></label></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_materialExtractionMode" title="Defines how material colors are extracted from .mtl files. Per Vertex Color uses the first seen color for a specific vertex. Per Vertex Color (Interpolated) interpolates all colors from all faces that use the same vertex. Per Face Color creates additional vertices for each face so that colors can be assigned to individually faces." b-8y05qc4gvo>Material Extraction Mode</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Defines how material colors are extracted from .mtl files. Per Vertex Color uses the first seen color for a specific vertex. Per Vertex Color (Interpolated) interpolates all colors from all faces that use the same vertex. Per Face Color creates additional vertices for each face so that colors can be assigned to individually faces." aria-label="Defines how material colors are extracted from .mtl files. Per Vertex Color uses the first seen color for a specific vertex. Per Vertex Color (Interpolated) interpolates all colors from all faces that use the same vertex. Per Face Color creates additional vertices for each face so that colors can be assigned to individually faces." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><select id="tool_parameter_materialExtractionMode" class="form-select" value="PerVertexColor" b-naxks4w9st><option value="PerVertexColor" b-naxks4w9st selected>Per Vertex Color</option><option value="PerVertexColor_Interpolated" b-naxks4w9st>Per Vertex Color (Interpolated)</option><option value="PerFaceColor" b-naxks4w9st>Per Face Color</option></select></div></div><div class="parameter-input-field parameter-input-field-wide" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_transformPosition" title="Translation offset applied to the imported animation." b-8y05qc4gvo>Position Offset</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Translation offset applied to the imported animation." aria-label="Translation offset applied to the imported animation." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><div class="parameter-vector-grid parameter-vector-grid-3" b-naxks4w9st><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>X</span>
+                        <input id="tool_parameter_transformPosition_0" class="form-control" type="number" step="1" value="0" aria-label="X" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Y</span>
+                        <input id="tool_parameter_transformPosition_1" class="form-control" type="number" step="1" value="0" aria-label="Y" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Z</span>
+                        <input id="tool_parameter_transformPosition_2" class="form-control" type="number" step="1" value="0" aria-label="Z" b-naxks4w9st /></div></div>
+            <input class="form-control parameter-vector-raw" type="text" value="0, 0, 0" placeholder="e.g. 0, 1, 2" b-naxks4w9st /></div></div><div class="parameter-input-field parameter-input-field-wide" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_transformScale" title="Per-axis scale for the imported animation." b-8y05qc4gvo>Scale</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Per-axis scale for the imported animation." aria-label="Per-axis scale for the imported animation." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><div class="parameter-vector-grid parameter-vector-grid-3" b-naxks4w9st><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>X</span>
+                        <input id="tool_parameter_transformScale_0" class="form-control" type="number" step="0.1" value="1" aria-label="X" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Y</span>
+                        <input id="tool_parameter_transformScale_1" class="form-control" type="number" step="0.1" value="1" aria-label="Y" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Z</span>
+                        <input id="tool_parameter_transformScale_2" class="form-control" type="number" step="0.1" value="1" aria-label="Z" b-naxks4w9st /></div></div>
+            <input class="form-control parameter-vector-raw" type="text" value="1, 1, 1" placeholder="e.g. 0, 1, 2" b-naxks4w9st /></div></div><div class="parameter-input-field parameter-input-field-wide" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_transformRotation" title="Euler rotation in degrees (X, Y, Z)." b-8y05qc4gvo>Rotation</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Euler rotation in degrees (X, Y, Z)." aria-label="Euler rotation in degrees (X, Y, Z)." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><div class="parameter-vector-grid parameter-vector-grid-3" b-naxks4w9st><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>X</span>
+                        <input id="tool_parameter_transformRotation_0" class="form-control" type="number" step="1" value="0" aria-label="X" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Y</span>
+                        <input id="tool_parameter_transformRotation_1" class="form-control" type="number" step="1" value="0" aria-label="Y" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Z</span>
+                        <input id="tool_parameter_transformRotation_2" class="form-control" type="number" step="1" value="0" aria-label="Z" b-naxks4w9st /></div></div>
+            <input class="form-control parameter-vector-raw" type="text" value="0, 0, 0" placeholder="e.g. 0, 90, 0" b-naxks4w9st /></div></div></div></div></div></div></div></div></div></div></article>
+
+        <div class="message-log-row message-log-collapsed " b-poo0z6q6cd><div class="message-log-body" b-poo0z6q6cd><div class="message-log-header" b-poo0z6q6cd><div class="message-log-header-left" b-poo0z6q6cd><button class="btn btn-link btn-sm message-log-toggle" title="Show output" b-poo0z6q6cd><span class="bi bi-chevron-up" aria-hidden="true" b-poo0z6q6cd></span>
+                    <span class="message-log-title" b-poo0z6q6cd>Output</span></button></div></div></div></div></main></div>
+        <blazor-focus-on-navigate selector="h1"></blazor-focus-on-navigate>
+<!-- %%-PRERENDERING-END-%% -->
+</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_framework/blazor.webassembly.66stpp682q.js"></script>
+    <script src="js/app.js"></script>
+    <script>(function(){var t=localStorage.getItem('tm-theme')||'dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');})()</script>
+
+
+
+</body></html>
