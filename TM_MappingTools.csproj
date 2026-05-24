@@ -25,4 +25,11 @@
     <Folder Include="Utils\" />
   </ItemGroup>
 
+<ItemGroup>
+  <Content Update="wwwroot\Assets\TM_TriggerItemVariantCreator.exe">
+    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    <BlazorWebAssemblyIntegrityCheck>false</BlazorWebAssemblyIntegrityCheck>
+  </Content>
+</ItemGroup>
+
 </Project>
