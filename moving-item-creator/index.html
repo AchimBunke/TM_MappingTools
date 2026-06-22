@@ -16,31 +16,44 @@
     <meta property="og:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
-    <link href="_framework/dotnet.67tgfl8g7g.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-LqUAM6sxna3mC3gN/oTkfJpdjAbeJ0ixR959WMpRSqc="/>
-    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
-    <link rel="stylesheet" href="css/app.css"/>
-    <link rel="icon" type="image/png" href="icon-32.png"/>
-    <link href="TM_MappingTools.styles.css" rel="stylesheet"/>
+
+
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.67tgfl8g7g.js",
-    "./_framework/dotnet.native.js": "./_framework/dotnet.native.1z2y5cmqb4.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.r2kbxkuujc.js"
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.oye69he4wy.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.a6jcqbs390.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.vbynoikswe.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.67tgfl8g7g.js": "sha256-LqUAM6sxna3mC3gN/oTkfJpdjAbeJ0ixR959WMpRSqc=",
-    "./_framework/dotnet.js": "sha256-LqUAM6sxna3mC3gN/oTkfJpdjAbeJ0ixR959WMpRSqc=",
-    "./_framework/dotnet.native.1z2y5cmqb4.js": "sha256-cwePJmQiC+fL6w5/TdeJo4wJFsUcuZl8vhc0qIypjCo=",
-    "./_framework/dotnet.native.js": "sha256-cwePJmQiC+fL6w5/TdeJo4wJFsUcuZl8vhc0qIypjCo=",
-    "./_framework/dotnet.runtime.js": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
-    "./_framework/dotnet.runtime.r2kbxkuujc.js": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU="
+    "./_framework/dotnet.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU=",
+    "./_framework/dotnet.native.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
+    "./_framework/dotnet.native.oye69he4wy.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
+    "./_framework/dotnet.runtime.a6jcqbs390.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
+    "./_framework/dotnet.runtime.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
+    "./_framework/dotnet.vbynoikswe.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="
   }
 }</script>
+        <script>
+        (function()
+        {
+            var t=localStorage.getItem('tm-theme')||'dark';
+            if(t==='dark')
+                document.documentElement.setAttribute('data-theme','dark');
+            else 
+            document.documentElement.removeAttribute('data-theme');
+        })()
+    </script>
+    
+    <link href="_framework/dotnet.vbynoikswe.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="/>
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <link rel="icon" type="image/png" href="icon-32.png"/>
+    <link href="TM_MappingTools.styles.css" rel="stylesheet"/>
 
 <!-- %%-PRERENDERING-HEADOUTLET-BEGIN-%% -->
 <title>Moving Item Creator</title>
@@ -73,16 +86,16 @@
 <div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-box-arrow-in-right tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text"><h1 class="tool-page-title">Moving Item Creator</h1><p class="tool-page-desc">Create moving items.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" aria-controls="moving-item-creator-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
                     Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Animation Template (Optional)</h2><p class="tool-panel-desc">Load one .Item.Gbx to copy moving animation data and placement from.</p></div>
-    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-e10b6f569fa540c6889883c4ac879dad" class="visually-hidden" accept=".Item.Gbx" type="file" />
+    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-9c0601f8c9e04f3186e9c56c14fd7f1b" class="visually-hidden" accept=".Item.Gbx" type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No template item loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop a .Item.Gbx template item in this area or
-                <label for="filePicker-e10b6f569fa540c6889883c4ac879dad" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+                <label for="filePicker-9c0601f8c9e04f3186e9c56c14fd7f1b" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
             </div></div></div></div></div>
                 <div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Items To Convert</h2><p class="tool-panel-desc">Load all .Item.Gbx files that should become moving items.</p></div>
-    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-8bb3781b06e8418d81d858b5a90a18b8" class="visually-hidden" accept=".Item.Gbx" multiple type="file" />
+    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-140a19c64e0647afa7dc899a8c7ff927" class="visually-hidden" accept=".Item.Gbx" multiple type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No files loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop all items you want to convert to moving here or
-                <label for="filePicker-8bb3781b06e8418d81d858b5a90a18b8" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
+                <label for="filePicker-140a19c64e0647afa7dc899a8c7ff927" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
             </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Export</h2></div>
     <div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Input Selection</h2></div>
     <div class="tool-panel-body small text-muted"><div>Template item loaded: No</div>
@@ -115,7 +128,6 @@
     </div>
     <script src="_framework/blazor.webassembly.66stpp682q.js"></script>
     <script src="js/app.js"></script>
-    <script>(function(){var t=localStorage.getItem('tm-theme')||'dark';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');})()</script>
 
 
 
