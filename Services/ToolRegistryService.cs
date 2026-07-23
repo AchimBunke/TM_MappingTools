@@ -76,6 +76,13 @@ public class ToolRegistryService
             Title: "Project 3D Triangles",
             Description: "Project 3D triangles to 2D triangles.",
             SourceAliases: new[] { "project 3D triangles", "3D triangles" }),
+        new(
+            Category: "Map",
+            Href: "mediatracker-deduplication",
+            IconClass: "bi-intersect",
+            Title: "MediaTracker Deduplicator",
+            Description: "Deduplicate MediaTracker tracks and blocks in a map.",
+            SourceAliases: new[] { "mediatracker deduplicator", "deduplicate mediatracker" }),
     };
 
     public string GetIconForSource(string? source)
