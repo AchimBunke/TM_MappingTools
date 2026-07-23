@@ -34,8 +34,11 @@ public class ToolMessageService
     public void Add(ToolMessageLevel level, string text, string? source = null,
         IReadOnlyList<ToolMessage>? innerMessages = null,
         string? technicalDetails = null)
+        => Add(GetMessage(level, text, source, innerMessages, technicalDetails));
+    
+    public void Add(ToolMessage message)
     {
-        _messages.Add(new ToolMessage(level, text, source, DateTimeOffset.Now, innerMessages, technicalDetails));
+        _messages.Add(message);
         MessagesChanged?.Invoke();
     }
 
@@ -57,18 +60,25 @@ public class ToolMessageService
         var innerMessages = AccumulateInnerMessages(errorResult);
         AddError(text, source, innerMessages);
     }
+
+    public ToolMessage GetMessage(ToolMessageLevel level, string text, string? source = null, IReadOnlyList<ToolMessage>? innerMessages = null, string? technicalDetails = null)
+        => new ToolMessage(level, text, source, DateTimeOffset.Now, innerMessages, technicalDetails);
+    public ToolMessage GetInfo(string text, string? source = null, IReadOnlyList<ToolMessage>? innerMessages = null, string? technicalDetails = null)    => GetMessage(ToolMessageLevel.Info,    text, source, innerMessages, technicalDetails);
+    public ToolMessage GetSuccess(string text, string? source = null, IReadOnlyList<ToolMessage>? innerMessages = null, string? technicalDetails = null) => GetMessage(ToolMessageLevel.Success, text, source, innerMessages, technicalDetails);
+    public ToolMessage GetWarning(string text, string? source = null, IReadOnlyList<ToolMessage>? innerMessages = null, string? technicalDetails = null) => GetMessage(ToolMessageLevel.Warning, text, source, innerMessages, technicalDetails);
+    public ToolMessage GetError(string text, string? source = null, IReadOnlyList<ToolMessage>? innerMessages = null, string? technicalDetails = null)   => GetMessage(ToolMessageLevel.Error,   text, source, innerMessages, technicalDetails);
+        
     List<ToolMessage> AccumulateInnerMessages(IToolResult errorResult)
     {
         List<ToolMessage> messages = new();
         object? currentData = errorResult;
         while(currentData != null && currentData is IToolResult toolResult && toolResult.IsFailure)
         {
-            messages.Add(new ToolMessage(
+            messages.Add(GetMessage(
                 ToolMessageLevel.Error, 
                 ErrorCodeToMessage.GetMessage(toolResult.ErrorCode!),
                 toolResult.ToolId,
-                DateTimeOffset.Now,
-                TechnicalDetails: toolResult.ToString()));
+                technicalDetails: toolResult.ToString()));
             currentData = toolResult.Data;
         }
         return messages;

@@ -101,7 +101,7 @@
                         result = result with { Message = "Action finished successfully." };
                     }
                 }
-                ToolMessageService.AddSuccess(result.Message, ResolvedMessageSource);
+                ToolMessageService.AddSuccess(result.Message, ResolvedMessageSource, technicalDetails: result.TechnicalDetails);
                 lastRunState = ExecuteRunState.Success;
                 lastRunSummary = result.Message;
             }
@@ -118,7 +118,7 @@
                         result = result with { Message = "Action completed with warnings." };
                     }
                 }
-                ToolMessageService.AddWarning(result.Message, ResolvedMessageSource);
+                ToolMessageService.AddWarning(result.Message, ResolvedMessageSource, technicalDetails: result.TechnicalDetails);
                 lastRunState = ExecuteRunState.Warning;
                 lastRunSummary = result.Message;
             }
@@ -135,7 +135,7 @@
                         result = result with { Message = "Action failed." };
                     }
                 }
-                ToolMessageService.AddError(result.Message, ResolvedMessageSource);
+                ToolMessageService.AddError(result.Message, ResolvedMessageSource, technicalDetails: result.TechnicalDetails);
                 lastRunState = ExecuteRunState.Error;
                 lastRunSummary = result.Message;
             }

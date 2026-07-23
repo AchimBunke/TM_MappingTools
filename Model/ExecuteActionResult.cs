@@ -8,4 +8,4 @@ public enum ExecuteActionResultStatus
     Warning,
     Failure
 }
-public record struct ExecuteActionResult(ExecuteActionResultStatus Status, string? Message = null);
+public record struct ExecuteActionResult(ExecuteActionResultStatus Status, string? Message = null, string? TechnicalDetails = null);
