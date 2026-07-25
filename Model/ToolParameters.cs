@@ -51,6 +51,25 @@ public sealed class ToolParameterDefinition
     public IReadOnlyList<ToolParameterOption> DictionaryValueOptions { get; init; } = Array.Empty<ToolParameterOption>();
     public string DictionaryKeyLabel { get; init; } = "Key";
     public string DictionaryValueLabel { get; init; } = "Value";
+    /// <summary>Hide this parameter when the predicate returns false.</summary>
+    public Func<ToolParameterValues, bool>? VisibleWhen { get; init; }
+    /// <summary>Shorthand: hide this parameter when the named bool parameter is false.</summary>
+    public string? VisibleWhenKey { get; init; }
+    /// <summary>Disable this parameter when the predicate returns false.</summary>
+    public Func<ToolParameterValues, bool>? EnabledWhen { get; init; }
+    /// <summary>Shorthand: disable this parameter when the named bool parameter is false.</summary>
+    public string? EnabledWhenKey { get; init; }
+
+    /// <summary>Returns false if this parameter is hidden or disabled based on current values.</summary>
+    public bool IsEffectivelyEnabled(ToolParameterValues values)
+    {
+        if (VisibleWhen != null && !VisibleWhen(values)) return false;
+        if (VisibleWhenKey != null && !values.GetBool(VisibleWhenKey)) return false;
+        if (EnabledWhen != null && !EnabledWhen(values)) return false;
+        if (EnabledWhenKey != null && !values.GetBool(EnabledWhenKey)) return false;
+        if (IsOptional && !values.IsParameterEnabled(Key)) return false;
+        return true;
+    }
 
     public object? GetDefaultValue()
     {

@@ -119,7 +119,18 @@
     }
 
     private bool IsEnabled(ToolParameterDefinition definition)
-        => !definition.IsOptional || Values.IsParameterEnabled(definition.Key);
+    {
+        if (definition.EnabledWhen != null && !definition.EnabledWhen(Values)) return false;
+        if (definition.EnabledWhenKey != null && !Values.GetBool(definition.EnabledWhenKey)) return false;
+        return !definition.IsOptional || Values.IsParameterEnabled(definition.Key);
+    }
+
+    private bool IsVisible(ToolParameterDefinition definition)
+    {
+        if (definition.VisibleWhen != null && !definition.VisibleWhen(Values)) return false;
+        if (definition.VisibleWhenKey != null && !Values.GetBool(definition.VisibleWhenKey)) return false;
+        return true;
+    }
 
     private Task OnOptionalToggled(ToolParameterDefinition definition, ChangeEventArgs args)
     {
@@ -128,7 +139,7 @@
     }
 
     private IReadOnlyList<ToolParameterDefinition> GetDictionaryDefinitions()
-        => Definitions.Where(d => d.Kind == ToolParameterKind.Dictionary).ToList();
+        => Definitions.Where(d => d.Kind == ToolParameterKind.Dictionary && IsVisible(d)).ToList();
 
     private IReadOnlyList<RenderGroup> GetRenderGroups()
     {
@@ -138,6 +149,7 @@
         foreach (var def in Definitions)
         {
             if (def.Kind == ToolParameterKind.Dictionary) continue;
+            if (!IsVisible(def)) continue;
             if (!string.IsNullOrEmpty(def.GroupKey))
             {
                 if (!groupLookup.TryGetValue(def.GroupKey, out var group))
