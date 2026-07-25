@@ -76,6 +76,13 @@ public class ToolRegistryService
             Title: "Project 3D Triangles",
             Description: "Project 3D triangles to 2D triangles.",
             SourceAliases: new[] { "project 3D triangles", "3D triangles" }),
+        new(
+            Category: "Item",
+            Href: "item-model-converter",
+            IconClass: "bi-shuffle",
+            Title: "Item Model Converter",
+            Description: "Convert item models between different types.",
+            SourceAliases: new[] { "item model converter", "convert item model" }),
     };
 
     public string GetIconForSource(string? source)

@@ -18,9 +18,12 @@
                     {
                         var captured = item;
                         <li class="d-flex align-items-center gap-2 mb-1 export-panel-row">
-                            <span class="text-truncate small flex-grow-1" title="@captured.FileName">@captured.FileName</span>
+                            <input class="form-control form-control-sm flex-grow-1"
+                                   value="@GetOutputName(captured)"
+                                   @onchange="e => SetOutputName(captured, e.Value?.ToString() ?? captured.FileName)"
+                                   title="Output filename" />
                             <button class="btn btn-sm btn-outline-primary flex-shrink-0" @onclick="() => DownloadItemAsync(captured)"
-                                    title="Download @captured.FileName">
+                                    title="Download @GetOutputName(captured)">
                                 <span class="bi bi-download" aria-hidden="true"></span>
                             </button>
                         </li>
@@ -30,9 +33,15 @@
         }
         else
         {
-            <button class="btn btn-primary" @onclick="() => DownloadItemAsync(Items![0])">
-                <span class="bi bi-download me-1" aria-hidden="true"></span>@Items![0].FileName
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                <input class="form-control form-control-sm flex-grow-1"
+                       value="@GetOutputName(Items![0])"
+                       @onchange="e => SetOutputName(Items![0], e.Value?.ToString() ?? Items![0].FileName)"
+                       title="Output filename" />
+                <button class="btn btn-primary flex-shrink-0" @onclick="() => DownloadItemAsync(Items![0])">
+                    <span class="bi bi-download" aria-hidden="true"></span>
+                </button>
+            </div>
         }
     }
     else
@@ -51,6 +60,14 @@
     private bool HasItems => Items is { Count: > 0 };
     private bool HasMultiple => Items is { Count: > 1 };
 
+    private readonly Dictionary<ExportableItem, string> _outputNames = new();
+
+    private string GetOutputName(ExportableItem item) =>
+        _outputNames.TryGetValue(item, out var name) ? name : item.FileName;
+
+    private void SetOutputName(ExportableItem item, string name) =>
+        _outputNames[item] = name;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -67,6 +84,7 @@
     }
     private void OnFileChanged()
     {
+        _outputNames.Clear();
         if (FileService?.HasFile == true)
         {
             Items = new[]
@@ -96,7 +114,7 @@
         var bytes = item.GetBytes();
         using var stream = new MemoryStream(bytes, writable: false);
         var streamRef = new DotNetStreamReference(stream);
-        await JS.InvokeVoidAsync("downloadFileFromStream", item.FileName, streamRef);
+        await JS.InvokeVoidAsync("downloadFileFromStream", GetOutputName(item), streamRef);
     }
 
     private async Task DownloadAllAsync()
@@ -114,7 +132,7 @@
         {
             foreach (var item in Items)
             {
-                var entry = archive.CreateEntry(item.FileName, CompressionLevel.Optimal);
+                var entry = archive.CreateEntry(GetOutputName(item), CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
                 var bytes = item.GetBytes();
                 await entryStream.WriteAsync(bytes);
