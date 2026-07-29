@@ -2,7 +2,7 @@
 @inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using TM_MappingTools.Services;
 @using TM_GenericMapping.Items;
-
+@using TM_GenericMapping.Messaging;
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 
 
@@ -34,23 +34,41 @@
             @if (isMeshLoaded)
             {
                 <ul style="list-style:none; margin:0; padding:0; overflow-y:auto; max-height:400px;">
+                    <li class="d-flex align-items-center gap-2 py-1" style="font-size:0.72em; color:var(--tm-text-muted); font-weight:600; border-bottom:2px solid var(--tm-border); flex-shrink:0;">
+                        <span style="flex:1 1 0; min-width:0;">Name</span>
+                        <span style="flex:1 1 0; min-width:0;">Type</span>
+                        <span style="width:2.5rem; text-align:right; flex-shrink:0;">Verts</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Enabled">En</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Visible">Vis</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Collidable">Col</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Trigger">Tri</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Movable">Mov</span>
+                    </li>
                     @foreach (var group in GroupedSubMeshes)
                     {
                         <li style="font-weight:600; font-size:0.8em; text-transform:uppercase; letter-spacing:0.04em; color:var(--tm-text-muted); border-bottom:1px solid var(--tm-border); padding-bottom:0.2rem; margin-top:0.6rem; margin-bottom:0.25rem;">@group.Key</li>
                         @foreach (var (index, subMesh) in group)
                         {
-                            <li class="d-flex align-items-center gap-2 py-1">
-                                <span class="flex-grow-1 text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
-                                <span class="flex-grow-1 text-truncate small" title="@SubmeshTypeToString(subMesh.Mesh.Type)">@SubmeshTypeToString(subMesh.Mesh.Type)</span>
-                                <span style="color:var(--tm-text-muted); font-size:0.78em; flex-shrink:0;">@subMesh.Positions.Length</span>
-                                <select class="form-select form-select-sm w-auto"
-                                        value="@submeshRoleAssignments.GetValueOrDefault(index)"
-                                        @onchange="e => OnSubMeshRoleChanged(index, e.Value!.ToString()!)">
-                                    @foreach (var role in Enum.GetValues<SubMeshRole>())
-                                    {
-                                        <option value="@role">@role</option>
-                                    }
-                                </select>
+                            var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
+                            <li class="d-flex align-items-center gap-2 py-1" style="@SubmeshRowStyle(cfg.Enabled)">
+                                <span style="flex:1 1 0; min-width:0;" class="text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
+                                <span style="flex:1 1 0; min-width:0;" class="text-truncate small" title="@SubmeshTypeToString(subMesh.Mesh.Type)">@SubmeshTypeToString(subMesh.Mesh.Type)</span>
+                                <span style="width:2.5rem; text-align:right; color:var(--tm-text-muted); font-size:0.78em; flex-shrink:0;">@subMesh.Positions.Length</span>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Enabled" @onchange="e => cfg.Enabled = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Visible = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Collidable = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Trigger" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Trigger = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Movable = (bool)e.Value!" />
+                                </div>
                             </li>
                         }
                     }
@@ -86,9 +104,16 @@
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
     [SessionStored] private NormalizedMesh loadedMesh = new();
     [SessionStored] private bool isMeshLoaded = false;
-    [SessionStored] private Dictionary<int, SubMeshRole> submeshRoleAssignments = new();
+    [SessionStored] private Dictionary<int, SubMeshConfig> submeshConfigs = new();
 
-    private enum SubMeshRole { Geometry, Trigger, DynaShape, StaticShape }
+    private class SubMeshConfig
+    {
+        public bool Enabled { get; set; } = true;
+        public bool Visible { get; set; } = true;
+        public bool Collidable { get; set; } = true;
+        public bool Trigger { get; set; } = false;
+        public bool Movable { get; set; } = false;
+    }
     private enum TargetMeshType { Crystal, Solid2Model, Moving, CustomGate }
     private IEnumerable<IGrouping<object, (int Index, NormalizedSubmesh Mesh)>> GroupedSubMeshes =>
         loadedMesh.Submeshes
@@ -152,24 +177,18 @@
             isMeshLoaded = TryLoadMeshFromItem(out loadedMesh);
             if (isMeshLoaded)
             {
-                submeshRoleAssignments = loadedMesh.Submeshes
-                    .Select((_, i) => i)
-                    .ToDictionary(i => i, _ => SubMeshRole.Geometry);
+                LoadDefaultConfigurationFromMesh();
             }
         }
         else
         {
             isMeshLoaded = false;
-            submeshRoleAssignments = new();
+            submeshConfigs = new();
         }
         await InvokeAsync(StateHasChanged);
     }
 
-    private void OnSubMeshRoleChanged(int index, string value)
-    {
-        if (Enum.TryParse<SubMeshRole>(value, out var role))
-            submeshRoleAssignments[index] = role;
-    }
+    private static string SubmeshRowStyle(bool enabled) => enabled ? string.Empty : "opacity:0.45";
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
@@ -178,8 +197,56 @@
 
     private bool TryLoadMeshFromItem(out NormalizedMesh mesh)
     {
-        mesh = new ();
-        return false;
+        var extractor = new MeshExtractor();
+        var result = extractor.ExtractMesh(ItemFileService.Item!);
+        
+        if(result.IsFailure)
+        {
+            mesh = default(NormalizedMesh);
+            return false;
+        }
+        mesh = result.Value;
+        return true;
+    }
+    private void LoadDefaultConfigurationFromMesh()
+    {
+        if (!isMeshLoaded) return;
+        submeshConfigs = new Dictionary<int, SubMeshConfig>();
+        for (int i = 0; i < loadedMesh.Submeshes.Length; i++)
+        {
+            SubMeshConfig cfg = new SubMeshConfig();
+            cfg.Enabled = true;
+            var submesh = loadedMesh.Submeshes[i];
+            switch(submesh.Type)
+            {
+                case SubmeshType.Mesh:
+                    cfg.Visible = true;
+                    break;
+                case SubmeshType.Dyna_Shape:
+                    cfg.Movable = true;
+                    cfg.Collidable = true;
+                    break;
+                case SubmeshType.Static_Shape:
+                    cfg.Collidable = true;
+                    break;
+                case SubmeshType.Trigger_Special:
+                    cfg.Trigger = true;
+                    break;
+                case SubmeshType.Trigger_Waypoint:
+                    cfg.Trigger = true;
+                    break;
+                default:
+                    cfg.Enabled = false;
+                    break;
+            }
+            if(submesh.Properties.HasFlag(SubmeshProperties.Disabled))
+                cfg.Enabled = false;
+            if(submesh.Properties.HasFlag(SubmeshProperties.Invisible))
+                cfg.Visible = false;
+            if(submesh.Properties.HasFlag(SubmeshProperties.NonCollidable))
+                cfg.Collidable = false;
+            submeshConfigs[i] = cfg;
+        }
     }
 
     private bool CanExecuteTool()
@@ -196,57 +263,63 @@
 
         List<int> geometries = [];
         List<int> triggers = [];
-        int DynaShape = -1;
-        int StaticShape = -1;
-        foreach (var (index, role) in submeshRoleAssignments)
+        List<int> dynaShapes = [];
+        List<int> staticShapes = [];
+        List<int> invisibles = [];
+        List<int> nonCollidables = [];
+        foreach (var (index, cfg) in submeshConfigs)
         {
-            switch (role)
-            {
-                case SubMeshRole.Geometry:
-                    geometries.Add(index);
-                    break;
-                case SubMeshRole.Trigger:
-                    triggers.Add(index);
-                    break;
-                case SubMeshRole.DynaShape:
-                    DynaShape = index;
-                    break;
-                case SubMeshRole.StaticShape:
-                    StaticShape = index;
-                    break;
-            }
+            if (!cfg.Enabled) continue;
+            geometries.Add(index);
+            if (!cfg.Visible)   invisibles.Add(index);
+            if (cfg.Trigger)    triggers.Add(index);
+            if (cfg.Movable && cfg.Collidable) dynaShapes.Add(index);
+            if (cfg.Collidable) staticShapes.Add(index);
+            if (!cfg.Collidable) nonCollidables.Add(index);
         }
         string targetTypeString = parameterValues.GetString("targetType");
-        var buildOptions = new MeshBuilder.MeshBuildOptions()
+        MeshBuilder.MeshBuildOptions buildOptions;
+        if(parameterValues.GetBool("useConfiguration"))
         {
-            ConfiguredBuild = parameterValues.GetBool("useConfiguration"),
-            Geometries = geometries.ToArray(),
-            Triggers = triggers.ToArray(),
-            DynaShape = DynaShape,
-            StaticShape = StaticShape,
-        };
-        GBX.NET.Engines.GameData.CGameItemModel builtItem = null!;
+            buildOptions = MeshBuilder.MeshBuildOptions.DefaultFromMesh(loadedMesh);
+        }
+        else
+        {
+            buildOptions = new MeshBuilder.MeshBuildOptions()
+            {
+                Geometries = geometries.ToArray(),
+                Triggers = triggers.ToArray(),
+                DynaShapes = dynaShapes.ToArray(),
+                StaticShapes = staticShapes.ToArray(),
+                Invisibles = invisibles.ToArray(),
+                NonCollidables = nonCollidables.ToArray(),
+            };
+        }
+        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = null!;
         switch (Enum.Parse<TargetMeshType>(targetTypeString))
         {
             case TargetMeshType.Crystal:
-                builtItem = meshBuilder.BuildCrystalItem(loadedMesh, buildOptions);
+                builtItemResult = meshBuilder.BuildCrystalItem(loadedMesh, buildOptions);
                 break;
             case TargetMeshType.Solid2Model:
-                builtItem = meshBuilder.BuildSolid2ModelItem(loadedMesh, buildOptions);
+                builtItemResult = meshBuilder.BuildSolid2ModelItem(loadedMesh, buildOptions);
                 break;
             case TargetMeshType.Moving:
-                builtItem = meshBuilder.BuildMovingItem(loadedMesh, buildOptions);
+                builtItemResult = meshBuilder.BuildMovingItem(loadedMesh, buildOptions);
                 break;
             case TargetMeshType.CustomGate:
                 var effect = Enum.Parse<LegacyGameplayId>(parameterValues.GetString("gateGameplayEffect"));
-                builtItem = meshBuilder.BuildTriggerSpecialItem(loadedMesh, effect, buildOptions);
+                builtItemResult = meshBuilder.BuildTriggerSpecialItem(loadedMesh, effect, buildOptions);
                 break;
             default:
                 return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Unknown target type: {targetTypeString}");
         }
+        if(builtItemResult.IsFailure)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to build item model: {targetTypeString}");
+        
 
         using var s = new MemoryStream();
-        builtItem.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
+        builtItemResult.Value.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
         var bytes = s.ToArray();
         _exportItems = new[] { new ExportableItem { FileName = ItemFileService.FileName, GetBytes = () => bytes } };
 
