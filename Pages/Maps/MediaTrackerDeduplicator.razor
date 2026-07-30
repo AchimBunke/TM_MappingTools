@@ -2,6 +2,7 @@
 @inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using TM_GenericMapping.Messaging
 @using TM_MappingTools.Services
+@using TM_GenericMapping.MediaTracker.Tools
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 @inject TM_MappingTools.Services.MapFileService SharedMapFileService
 
@@ -157,46 +158,36 @@
         if (challenge is null)
             return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No map loaded.");
 
-#if false
-    var settings = new MediaTrackerDeduplicator.DeduplicationSettings.Default with
-    {
-        InGame = parameterValues.GetBool("inGame"),
-        Intro = parameterValues.GetBool("intro"),
-        EndRace = parameterValues.GetBool("endRace"),
-    Podium = parameterValues.GetBool("podium"),
-    Ambience = parameterValues.GetBool("ambience"),
 
-    DeduplicateTracks = parameterValues.GetBool("deduplicateTracks"),
-    DeduplicateBlocks = parameterValues.GetBool("deduplicateBlocks"),
-    IgnoreTrackNames = parameterValues.GetBool("ignoreTrackNames"),
-    };
-    var deduplicator = new MediaTrackerDeduplicator();
-    deduplicator.Settings = settings;
-    var result = deduplicator.Deduplicate(challenge);
-    if(result.IsFailure)
-    return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Could not deduplicate MediaTracker tracks and blocks:
-" + result.ErrorCode);
-    var info = result.Value;
+        var settings =  TM_GenericMapping.MediaTracker.Tools.MediaTrackerDeduplicator.DeduplicationSettings.Default with
+        {
+            InGame = parameterValues.GetBool("inGame"),
+            Intro = parameterValues.GetBool("intro"),
+            EndRace = parameterValues.GetBool("endRace"),
+            Podium = parameterValues.GetBool("podium"),
+            Ambience = parameterValues.GetBool("ambience"),
 
-    System.Text.StringBuilder sb = new System.Text.StringBuilder();
-    foreach (var infoMessage in info.TrackDeduplicationDetails.Concat(info.BlockDeduplicationDetails))
-    {
-        sb.AppendLine(infoMessage);
-    }
-    var infoMessage = ToolMessageService.GetInfo("Deduplication Infos:", "MediaTracker Deduplicator", technicalDetails:
-sb.ToString());
+            DeduplicateTracks = parameterValues.GetBool("deduplicateTracks"),
+            DeduplicateBlocks = parameterValues.GetBool("deduplicateBlocks"),
+            IgnoreTrackName = parameterValues.GetBool("ignoreTrackNames"),
+        };
+        var deduplicator = new TM_GenericMapping.MediaTracker.Tools.MediaTrackerDeduplicator();
+        deduplicator.Settings = settings;
+        var result = deduplicator.Deduplicate(challenge);
+        if(result.IsFailure)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Could not deduplicate MediaTracker tracks and blocks: " +
+                result.ErrorCode);
+        var info = result.Value;
 
-    return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Deduplicated {info.TracksDeduplicated} tracks,
-{info.BlocksDeduplicated} blocks and {info.BlocksRemovedViaTrackDeduplication} inside deduplicated tracks.");
-#else
         System.Text.StringBuilder sb = new System.Text.StringBuilder();
-        foreach (var msg in new string[] { "test", "test2", "test3" })
+        foreach (var msg in info.TrackDeduplicationDetails.Concat(info.BlockDeduplicationDetails))
         {
             sb.AppendLine(msg);
         }
-        return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Not implemented yet.", sb.ToString());
-#endif
 
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, 
+            Message: $"Deduplicated {info.TracksDeduplicated} tracks, {info.BlocksDeduplicated} blocks and {info.BlocksRemovedViaTrackDeduplication} blocks inside deduplicated tracks.",
+            TechnicalDetails: sb.ToString());
     }
 
 }
