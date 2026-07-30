@@ -1,6 +1,8 @@
 ﻿@page "/gate-variant-creator"
 @inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using TM_MappingTools.Services;
+@using TM_GenericMapping.Messaging
+@using TM_GenericMapping.Items;
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 
 
@@ -12,8 +14,7 @@
     <IORow>
         <ToolIORow>
             <InputContent>
-                <ToolCard Title="Source Item"
-                          Description="Load a .Item.Gbx files that should become moving items.">
+                <ToolCard Title="Source Item" Description="Load a .Item.Gbx files that should become moving items.">
                     <FileLoader FileService="ItemFileService" NoFileMessage="No files loaded."
                                 DropHintMessage="Drop the item here you want to create effect variants from" Accept=".Item.Gbx"
                                 AllowMultiple="false" MessageSource="Gate Variant Creator" />
@@ -45,9 +46,25 @@
     </Main>
     <HelpContent>
         <h3>What happens when you click Execute</h3>
-       
-    </HelpContent>
-</ToolPageLayout>
+        <p>This tool will create variants of the loaded gate item for every effect.</p>
+        <p>It updates the gameplay effect, associated effect textures such as Signs, SignOff, SpecialFX, Decal and
+            TriggerFX, icon and name.</p>
+            <h3>Item Requirements for Blender</h3>
+            <ul>
+                <li><p><code>_trigger_</code> objects define the zone where the gameplay takes effect.</p></li>
+                <li><p>
+                    Materials are resolved via their Link, so use TriggerFX, SpecialFX, Sign, SignOff, or Decal
+                    links.
+                    The material name and the effect of the link (Turbo, Boost, etc.) do not matter.
+                </p></li>
+            </ul>
+            <p>The input <strong>must</strong> be a valid gate item of any effect. Use the ItemTypeConverter if it isn't one
+                yet.</p>
+                <h3>Practical Workflow</h3>
+                <p>Create a gate item first, you can use this tool's ItemTypeConverter to convert most items to gate items (Not only blender but also items created ingame).</p>
+                <p>Then load the gate item into this tool and click Execute. The tool will create variants for every effect.</p>
+            </HelpContent>
+        </ToolPageLayout>
 
     
 @code {
@@ -90,33 +107,30 @@
         var sourceItem = ItemFileService.Item;
         using var itemStream = ItemFileService.GetDownloadStream();
 
-#if false
         var effectVariantCreator = new ItemEffectVariantCreator();
-
         var result = effectVariantCreator.CreateAllGameplayVariants(itemStream);
-        if(result.IsFailure)
+        if (result.IsFailure)
         {
             ToolMessageService.AddError("Failed to create effect variants", result, "Gate Variant Creator");
             return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"An error occurred during optimization.");
         }
 
-        _exportItems = result.Value.Select((v)=>
+        _exportItems = result.Value.Select((v) =>
         {
-            var bytes = v.itemStream.ToArray();
+            using var memoryStream = new MemoryStream();
+            v.itemStream.CopyTo(memoryStream);
+            var bytes = memoryStream.ToArray();
             v.itemStream.Dispose();
-            if(!effectVariantCreator.TryReplaceEffectInName(ItemFileService.FileName, v.gameplayId, out var exportName))
+            if (!effectVariantCreator.TryReplaceEffectInName(ItemFileService.FileName, v.gameplayId, out var exportName))
                 exportName = FixFileName(ItemFileService.FileName, v.gameplayId.ToString());
             return new ExportableItem { FileName = exportName, GetBytes = () => bytes };
         }).ToArray();
         StateHasChanged();
-       
-        if (result.Value.Length == 0 )
+
+        if (result.Value.Length == 0)
             return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"No variants were created.");
         else
             return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Successfully created variants.");
-#else
-        return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"No variants were created.");
-#endif
 
     }
 

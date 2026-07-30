@@ -11,7 +11,7 @@ public static class ErrorCodeToMessage
         [ErrorCodes.MeshExtractor.UnsupportedMesh] = "Mesh to be extracted is not supported. Confirm that mesh is either: CPlugCrystal, CPlug2Solid, MovingItem.",
         [ErrorCodes.MovingItemCreator.MeshExtractionFailed] = "Failed to extract mesh from item.",
         [ErrorCodes.EmbeddedItemExtractor.MissingEmbeddedData] = "No embedded item data to extract.",
-        //[ErrorCodes.ItemEffectVariantCreator.MissingTriggerSpecial] = "Item doesn't have a valid trigger shape.",
+        [ErrorCodes.ItemEffectVariantCreator.MissingTriggerSpecial] = "Item doesn't have a valid trigger shape.",
     };
     public static string GetMessage(string errorCode)
     {
