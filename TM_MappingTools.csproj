@@ -15,8 +15,9 @@
     <PackageReference Include="BlazorWasmPreRendering.Build" Version="8.1.0-preview.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.5" PrivateAssets="all" />
-    <PackageReference Include="TM_CSharpMapping" Version="0.2.9" />
+
   </ItemGroup>
+
 
   <ItemGroup>
     <Folder Include="Assets\" />
@@ -30,6 +31,10 @@
     <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     <BlazorWebAssemblyIntegrityCheck>false</BlazorWebAssemblyIntegrityCheck>
   </Content>
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="..\..\..\TM_Projects\TM_GenericMapping\TM_GenericMapping.csproj" />
 </ItemGroup>
 
 </Project>
