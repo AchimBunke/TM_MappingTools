@@ -1,0 +1,202 @@
+﻿@page "/mediatracker-deduplication"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using TM_GenericMapping.Messaging
+@using TM_MappingTools.Services
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+@inject TM_MappingTools.Services.MapFileService SharedMapFileService
+
+
+<PageTitle>Media Tracker Deduplicator</PageTitle>
+
+<ToolPageLayout IconClass="bi-intersect" Title="Media Tracker Deduplicator"
+                Description="Deduplicate copied MediaTracker Tracks and Blocks to reduce file size."
+                HelpDescription="What this tool changes and how to tune it safely.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Map" Description="Load the map with the MediaTracker.">
+                    <FileLoader FileService="SharedMapFileService" NoFileMessage="No map loaded."
+                                DropHintMessage="Drop a .Map.Gbx file in this area" Accept=".Map.Gbx"
+                                MessageSource="MediaTracker Deduplicator" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Description="Export the updated map." Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                    <ExportPanel FileService="@SharedMapFileService" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection">
+            <div class="small text-muted">
+                <div>Map loaded: @(SharedMapFileService.Challenge != null ? "Yes" : "No")</div>
+            </div>
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" CanExecute="CanExecuteTool"
+                           ExecutionTargetOverwrite="Deduplicate MediaTracker Tracks and Blocks"
+                           MessageSource="Media Tracker Deduplicator"
+                           Tooltip="Deduplicates copies of MediaTracker Tracks and Blocks in a map to reduce its file size." />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The tool will extract embedded items and blocks from the selected map and save them in a zip file.</p>
+        <p>The extracted zip contains a folder structure according to the embedded items and blocks hierarchy.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "deduplicateTracks",
+            Label = "Deduplicate Tracks",
+            Tooltip = "Whether to deduplicate full MediaTracker Tracks.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "deduplicateBlocks",
+            Label = "Deduplicate Blocks",
+            Tooltip = "Whether to deduplicate MediaTracker Blocks.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "ignoreTrackNames",
+            Label = "Ignore Track Names",
+            Tooltip = "Ignoring track names allows deduplication of tracks with different names but identical content. The first occurrence of a track will decide on the name.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "intro",
+            Label = "Intro",
+            Tooltip = "Deduplicate Intro clip.",
+            DefaultValue = true,
+            Kind = ToolParameterKind.Bool,
+            GroupKey = "Targets",
+            GroupLabel = "Deduplication Targets",
+        },
+        new()
+        {
+            Key = "inGame",
+            Label = "In-Game",
+            Tooltip = "Deduplicate In-Game clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+        new()
+        {
+            Key = "endRace",
+            Label = "End-Race",
+            Tooltip = "Deduplicate End-Race clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+        new()
+        {
+            Key = "podium",
+            Label = "Podium",
+            Tooltip = "Deduplicate Podium clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+        new()
+        {
+            Key = "ambience",
+            Label = "Ambience",
+            Tooltip = "Deduplicate Ambience clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+    };
+
+    [SessionStored] private ToolParameterValues parameterValues = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        SharedMapFileService.FileChanged += OnMapFileChanged;
+    }
+
+    public void Dispose() => SharedMapFileService.FileChanged -= OnMapFileChanged;
+
+    private async void OnMapFileChanged() => await InvokeAsync(StateHasChanged);
+
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private bool CanExecuteTool()
+    {
+        return SharedMapFileService.Challenge != null;
+    }
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
+    {
+        var challenge = SharedMapFileService.Challenge;
+        if (challenge is null)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No map loaded.");
+
+#if false
+    var settings = new MediaTrackerDeduplicator.DeduplicationSettings.Default with
+    {
+        InGame = parameterValues.GetBool("inGame"),
+        Intro = parameterValues.GetBool("intro"),
+        EndRace = parameterValues.GetBool("endRace"),
+    Podium = parameterValues.GetBool("podium"),
+    Ambience = parameterValues.GetBool("ambience"),
+
+    DeduplicateTracks = parameterValues.GetBool("deduplicateTracks"),
+    DeduplicateBlocks = parameterValues.GetBool("deduplicateBlocks"),
+    IgnoreTrackNames = parameterValues.GetBool("ignoreTrackNames"),
+    };
+    var deduplicator = new MediaTrackerDeduplicator();
+    deduplicator.Settings = settings;
+    var result = deduplicator.Deduplicate(challenge);
+    if(result.IsFailure)
+    return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Could not deduplicate MediaTracker tracks and blocks:
+" + result.ErrorCode);
+    var info = result.Value;
+
+    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+    foreach (var infoMessage in info.TrackDeduplicationDetails.Concat(info.BlockDeduplicationDetails))
+    {
+        sb.AppendLine(infoMessage);
+    }
+    var infoMessage = ToolMessageService.GetInfo("Deduplication Infos:", "MediaTracker Deduplicator", technicalDetails:
+sb.ToString());
+
+    return new ExecuteActionResult(ExecuteActionResultStatus.Success, $"Deduplicated {info.TracksDeduplicated} tracks,
+{info.BlocksDeduplicated} blocks and {info.BlocksRemovedViaTrackDeduplication} inside deduplicated tracks.");
+#else
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        foreach (var msg in new string[] { "test", "test2", "test3" })
+        {
+            sb.AppendLine(msg);
+        }
+        return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Not implemented yet.", sb.ToString());
+#endif
+
+    }
+
+}
