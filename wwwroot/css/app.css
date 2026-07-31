@@ -452,7 +452,7 @@ code {
 .tool-page-layout-with-help .tool-page-sidebar,
 .tool-page-layout-with-help .tool-page-main,
 .tool-page-layout-with-help .tool-page-help {
-    width: auto;
+    width: auto !important;
 }
 
 .tool-panel {

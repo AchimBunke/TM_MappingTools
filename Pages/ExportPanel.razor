@@ -33,7 +33,7 @@
         }
         else
         {
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 w-100">
                 <input class="form-control form-control-sm flex-grow-1"
                        value="@GetOutputName(Items![0])"
                        @onchange="e => SetOutputName(Items![0], e.Value?.ToString() ?? Items![0].FileName)"

@@ -8,14 +8,14 @@
 
 <PageTitle>Item Model Converter</PageTitle>
 
-<ToolPageLayout IconClass="bi-shuffle" Title="Item Model Converter"
-                Description="Convert item models for different formats. Create InGame editable, moving, custom gate and other types of items from any input item."
-                HelpDescription="What this tool changes and how to tune it safely.">
-     <IORow>
+<ToolPageLayout IconClass="bi-arrow-left-right" Title="Item Model Converter"
+                Description="Convert item models for different formats. Create in-game editable, moving, custom gate and other types of items from any input item."
+                HelpDescription="What this tool changes and how to tune it safely."
+                SidebarStyle="flex: 0 1 clamp(480px, 50vw, 750px); width: clamp(480px, 50vw, 750px);">
+    <IORow>
         <ToolIORow>
             <InputContent>
-                <ToolCard Title="Item To Convert"
-                          Description="Load the item you want to convert.">
+                <ToolCard Title="Item To Convert" Description="Load the item you want to convert.">
                     <FileLoader FileService="ItemFileService" NoFileMessage="No file loaded."
                                 DropHintMessage="Drop the item you want to convert here" Accept=".Item.Gbx"
                                 AllowMultiple="false" MessageSource="Item Model Converter" />
@@ -33,69 +33,115 @@
         <ToolCard Title="Input Selection" BodyClass="small">
             @if (isMeshLoaded)
             {
-                <ul style="list-style:none; margin:0; padding:0; overflow-y:auto; max-height:400px;">
-                    <li class="d-flex align-items-center gap-2 py-1" style="font-size:0.72em; color:var(--tm-text-muted); font-weight:600; border-bottom:2px solid var(--tm-border); flex-shrink:0;">
-                        <span style="flex:1 1 0; min-width:0;">Name</span>
-                        <span style="flex:1 1 0; min-width:0;">Type</span>
-                        <span style="width:2.5rem; text-align:right; flex-shrink:0;">Verts</span>
-                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Enabled">En</span>
-                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Visible">Vis</span>
-                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Collidable">Col</span>
-                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Trigger">Tri</span>
-                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Movable">Mov</span>
-                    </li>
-                    @foreach (var group in GroupedSubMeshes)
-                    {
-                        <li style="font-weight:600; font-size:0.8em; text-transform:uppercase; letter-spacing:0.04em; color:var(--tm-text-muted); border-bottom:1px solid var(--tm-border); padding-bottom:0.2rem; margin-top:0.6rem; margin-bottom:0.25rem;">@group.Key</li>
-                        @foreach (var (index, subMesh) in group)
+                <div style="overflow-x:auto; overflow-y:auto; max-height:400px;">
+                    <ul style="list-style:none; margin:0; padding:0; min-width:450px;">
+                        <li class="d-flex align-items-center gap-2 py-1"
+                            style="font-size:0.72em; color:var(--tm-text-muted); font-weight:600; border-bottom:2px solid var(--tm-border); flex-shrink:0; position:sticky; top:0; background:var(--tm-surface); z-index:1;">
+                            <span style="flex:1 1 0; min-width:0;">Name</span>
+                            <span style="width:2.5rem; text-align:right; flex-shrink:0;">Verts</span>
+                            <span style="width:2rem; text-align:center; flex-shrink:0;" title="Enabled">En</span>
+                            <span style="width:2rem; text-align:center; flex-shrink:0;" title="Visible">Vis</span>
+                            <span style="width:2rem; text-align:center; flex-shrink:0;" title="Collidable">Col</span>
+                            <span style="width:2rem; text-align:center; flex-shrink:0;" title="Trigger">Tri</span>
+                            <span style="width:2rem; text-align:center; flex-shrink:0;" title="Movable">Mov</span>
+                        </li>
+                        @foreach (var group in GroupedSubMeshes)
                         {
-                            var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
-                            <li class="d-flex align-items-center gap-2 py-1" style="@SubmeshRowStyle(cfg.Enabled)">
-                                <span style="flex:1 1 0; min-width:0;" class="text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
-                                <span style="flex:1 1 0; min-width:0;" class="text-truncate small" title="@SubmeshTypeToString(subMesh.Mesh.Type)">@SubmeshTypeToString(subMesh.Mesh.Type)</span>
-                                <span style="width:2.5rem; text-align:right; color:var(--tm-text-muted); font-size:0.78em; flex-shrink:0;">@subMesh.Positions.Length</span>
-                                <div style="width:2rem; text-align:center; flex-shrink:0;">
-                                    <input type="checkbox" checked="@cfg.Enabled" @onchange="e => cfg.Enabled = (bool)e.Value!" />
-                                </div>
-                                <div style="width:2rem; text-align:center; flex-shrink:0;">
-                                    <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Visible = (bool)e.Value!" />
-                                </div>
-                                <div style="width:2rem; text-align:center; flex-shrink:0;">
-                                    <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Collidable = (bool)e.Value!" />
-                                </div>
-                                <div style="width:2rem; text-align:center; flex-shrink:0;">
-                                    <input type="checkbox" checked="@cfg.Trigger" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Trigger = (bool)e.Value!" />
-                                </div>
-                                <div style="width:2rem; text-align:center; flex-shrink:0;">
-                                    <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Movable = (bool)e.Value!" />
-                                </div>
-                            </li>
-                        }
-                    }
-                </ul>
-            }
+                            <li
+                                style="font-weight:600; font-size:0.8em; text-transform:uppercase; letter-spacing:0.04em; color:var(--tm-text-muted); border-bottom:1px solid var(--tm-border); padding-bottom:0.2rem; margin-top:0.6rem; margin-bottom:0.25rem;">
+                                @group.Key</li>
+                                @foreach (var (index, subMesh) in group)
+                                {
+                                    var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
+                                    <li class="d-flex align-items-center gap-2 py-1" style="@SubmeshRowStyle(cfg.Enabled)">
+                                        <span style="flex:1 1 0; min-width:0;" class="text-truncate small"
+                                              title="@subMesh.Name">@subMesh.Name</span>
+                                        @* <span style="flex:0 0 7rem; min-width:0;" class="text-truncate small"
+                        title="@SubmeshTypeToString(subMesh.Type)">@SubmeshTypeToString(subMesh.Type)</span> *@
+                                        <span
+                                        style="width:2.5rem; text-align:right; color:var(--tm-text-muted); font-size:0.78em; flex-shrink:0;">@subMesh.Positions.Length</span>
+                                        <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                            <input type="checkbox" checked="@cfg.Enabled"
+                                                   @onchange="e => { cfg.Enabled = (bool)e.Value!; ValidateConfiguration(); }" />
+                                        </div>
+                                        <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                            <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)"
+                                                   @onchange="e => { cfg.Visible = (bool)e.Value!; ValidateConfiguration(); }" />
+                                        </div>
+                                        <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                            <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)"
+                                                   @onchange="e => { cfg.Collidable = (bool)e.Value!; ValidateConfiguration(); }" />
+                                        </div>
+                                        <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                            <input type="checkbox" checked="@cfg.Trigger" disabled="@(!cfg.Enabled)"
+                                                   @onchange="e => { cfg.Trigger = (bool)e.Value!; ValidateConfiguration(); }" />
+                                        </div>
+                                        <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                            <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)"
+                                                   @onchange="e => { cfg.Movable = (bool)e.Value!; ValidateConfiguration(); }" />
+                                        </div>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
             else if (ItemFileService.Item != null)
-            {
-                <div class="text-danger small">Failed to load mesh from item. See output for more details.</div>
-            }
-        </ToolCard>
-    </Sidebar>
-    <Main>
-        <ToolCard Title="Actions">
-            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Model Converter"
-                           ExecutionTargetOverwrite="Generate Converted Items" Tooltip="Execute the tool with the loaded items."
-                           CanExecute="CanExecuteTool" />
-        </ToolCard>
-        <ToolCard Title="Parameters">
-            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
-                            ValuesChanged="OnParameterValuesChanged" />
-        </ToolCard>
-    </Main>
-    <HelpContent>
-        <h3>What happens when you click Execute</h3>
-        
-    </HelpContent>
-</ToolPageLayout>
+                {
+                    <div class="text-danger small">Failed to load mesh from item. See output for more details.</div>
+                }
+            </ToolCard>
+        </Sidebar>
+        <Main>
+            <ToolCard Title="Actions">
+                <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Model Converter"
+                               ExecutionTargetOverwrite="Generate Converted Items" Tooltip="Execute the tool with the loaded items."
+                               CanExecute="CanExecuteTool" ValidationIssues="_validationIssues" />
+            </ToolCard>
+            <ToolCard Title="Parameters">
+                <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                                ValuesChanged="OnParameterValuesChanged" />
+            </ToolCard>
+        </Main>
+        <HelpContent>
+            <h3>What happens when you click Execute</h3>
+            <p>The tool will convert any item into an item with the specified target type.</p>
+            <p>Item != Item in Trackmania, there are differences in how they are structured which matters on the effect it has in-game. There are items that are editable in the editor MeshModeler, moving item, checkpoints, effect gates, blender exported items, etc. each encodes their respective geometry, collisions and effects slightly different.</p>
+            <p>This tool allows you to select item geometry, collision shapes, and effects and decide to what output type they are converted to. This way you can e.g. convert blender exports to MeshModeler editable items, use solid geometry as effect triggers to create custom gates without blender and more.</p>
+            <h3>Use Configuration</h3>
+            <p>When enabled, the tool will use the configuration you set in the input selection to determine which parts are enabled, visible, collidable, trigger and movable. When disabled, the tool will try to figure out a useful default configuration for the selected target type.</p>
+            <h3>Target Type</h3>
+            <p>The target type determines the item type to convert to. It decides what the item can do in-game. Crystal items are editable in MeshModeler, Crystal Waypoints are in-game editable checkpoints, Solid2Model items are static and have no moving parts, Moving items have dynamic collision shapes and can move, and Custom Gates are items that have effect triggers.</p>
+            <h3>Gate Gameplay Effect</h3>
+            <p>When the target type is set to Custom Gate, you can select the gameplay effect of the gate.</p>
+            <h3>Waypoint Type</h3>
+            <p>When the target type is set to Crystal Waypoint, you can select the type of waypoint for the crystal item.</p>
+            <h3>Input Selection</h3>
+            <p>An item is deconstructed into its constituent parts, which are separated by material, layers, visual, collision shapes, and triggers.</p>
+            <p>Configure for each part their role in the converted item. Each part can be converted into multiple different output categories, while some categories will be ignored depending on the selected target type.</p>
+            <ul>
+                <li><p><strong>Name</strong>: The material name.</p></li>
+                <li><p><strong>Verts</strong>: The number of vertices.</p></li>
+                <li><p><strong>Enabled</strong>: Is it converted or ignored entirely.</p></li>
+                <li><p><strong>Visible</strong>: Is it part of the visible geometry.</p></li>
+                <li><p><strong>Collidable</strong>: Is it part of the collision shape.</p></li>
+                <li><p><strong>Trigger</strong>: Is it part of the trigger shape.</p></li>
+                <li><p><strong>Movable</strong>: Is it part of the movable collision shape.</p></li>
+            </ul>
+            <h3>Practical workflows</h3>
+            <h7>Example 1: Convert a Blender export static item to an in-game editable item</h7>
+            <p>A static item exported from Blender has no moving parts and no trigger and is usually a Solid2Model which can not be edited in the in-game MeshModeler.</p>
+            <p> To convert them to an in-game editable item, load the item, select the target type <strong>Crystal</strong> (or <strong>Crystal Waypoint</strong> for waypoints) and enable <strong>Use Configuration</strong>. Select all meshes which should be converted into geometry layers. If the item contains collision shapes which are not matched by mesh parts (e.g. invisible collision shapes or boxes around an item for simple collisions) also enable the static shape part, otherwise disable it as it is just redundant data because it could encode the same geometry as the mesh.</p>
+            <h7>Example 2: Convert a MeshModeler item into a Custom Gate</h7>
+            <p>The MeshModeler allows for the creation of custom gate items so you can create a template item and convert it to a Gate here.</p>
+            <p>Create a new item in the in-game editor and construct a layer which represents your trigger shape (it doesn't matter if it's a trigger layer or not). Load the created item and select <strong>Trigger</strong> for the part you want to be recognized as the trigger shape. Disable <strong>Collidable</strong>. If it should contain a visible, non-collidable material keep <strong>Visible</strong> enabled. Select <strong>CustomGate</strong> as the target type and select your desired <strong>Gate Gameplay Effect</strong>.</p>
+            <p>Execute and test your created gate item. If you want different effects you can use the <strong>Gate Variant Creator</strong> to create all gameplay variants.</p>
+
+            <h3>Note</h3>
+            <p>It is possible to create configurations that will create invalid items which will crash the editor when placed.</p>
+            <p><strong>If you encounter such issues and you are sure it should work please reach out to me.</strong></p>
+        </HelpContent>
+    </ToolPageLayout>
 
 
 @code {
@@ -106,15 +152,17 @@
     [SessionStored] private bool isMeshLoaded = false;
     [SessionStored] private Dictionary<int, SubMeshConfig> submeshConfigs = new();
 
+    private IReadOnlyList<ValidationIssue> _validationIssues = Array.Empty<ValidationIssue>();
+
     private class SubMeshConfig
     {
-        public bool Enabled { get; set; } = true;
-        public bool Visible { get; set; } = true;
-        public bool Collidable { get; set; } = true;
+        public bool Enabled { get; set; } = false;
+        public bool Visible { get; set; } = false;
+        public bool Collidable { get; set; } = false;
         public bool Trigger { get; set; } = false;
         public bool Movable { get; set; } = false;
     }
-    private enum TargetMeshType { Crystal, Solid2Model, Moving, CustomGate }
+    private enum TargetMeshType { Crystal, CrystalWaypoint, Solid2Model, Moving, CustomGate }
     private IEnumerable<IGrouping<object, (int Index, NormalizedSubmesh Mesh)>> GroupedSubMeshes =>
         loadedMesh.Submeshes
             .Select((m, i) => (Index: i, Mesh: m))
@@ -134,16 +182,17 @@
         {
             Key = "targetType",
             Label = "Target Type",
-            Tooltip = "The target type of the item. Crystal: InGame editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger.",
+            Tooltip = "The target type of the item. Crystal: In-game editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger.",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "Solid2Model",
             Options = new[]
-        {
+    {
                 new ToolParameterOption { Value = "Crystal", Label = "Crystal" },
+                new ToolParameterOption { Value = "CrystalWaypoint", Label = "Crystal Waypoint" },
                 new ToolParameterOption { Value = "Solid2Model", Label = "Solid2Model" },
                 new ToolParameterOption { Value = "Moving", Label = "Moving" },
                 new ToolParameterOption { Value = "CustomGate", Label = "CustomGate" },
-        },
+    },
         },
         new()
         {
@@ -152,8 +201,20 @@
             Tooltip = "The gameplay effect of the custom gate.",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "Turbo",
-            Options = Enum.GetValues<LegacyGameplayId>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
+            Options = Enum.GetValues<LegacyGameplayId>().Select(v => new ToolParameterOption { Value = v.ToString(), Label =
+v.ToString() }).ToArray(),
             EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.CustomGate
+        },
+        new()
+        {
+            Key = "waypointType",
+            Label = "Waypoint Type",
+            Tooltip = "The type of waypoint for the crystal item.",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = "None",
+            Options = Enum.GetValues<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>().Select(v => new ToolParameterOption {
+Value = v.ToString(), Label = v.ToString() }).ToArray(),
+            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.CrystalWaypoint
         },
     };
 
@@ -192,6 +253,7 @@
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
+        ValidateConfiguration();
         return Task.CompletedTask;
     }
 
@@ -199,10 +261,10 @@
     {
         var extractor = new MeshExtractor();
         var result = extractor.ExtractMesh(ItemFileService.Item!);
-        
-        if(result.IsFailure)
+
+        if (result.IsFailure)
         {
-            mesh = default(NormalizedMesh);
+            mesh = default(NormalizedMesh)!;
             return false;
         }
         mesh = result.Value;
@@ -212,12 +274,13 @@
     {
         if (!isMeshLoaded) return;
         submeshConfigs = new Dictionary<int, SubMeshConfig>();
+
         for (int i = 0; i < loadedMesh.Submeshes.Length; i++)
         {
             SubMeshConfig cfg = new SubMeshConfig();
             cfg.Enabled = true;
             var submesh = loadedMesh.Submeshes[i];
-            switch(submesh.Type)
+            switch (submesh.Type)
             {
                 case SubmeshType.Mesh:
                     cfg.Visible = true;
@@ -239,14 +302,92 @@
                     cfg.Enabled = false;
                     break;
             }
-            if(submesh.Properties.HasFlag(SubmeshProperties.Disabled))
-                cfg.Enabled = false;
-            if(submesh.Properties.HasFlag(SubmeshProperties.Invisible))
-                cfg.Visible = false;
-            if(submesh.Properties.HasFlag(SubmeshProperties.NonCollidable))
-                cfg.Collidable = false;
+            if (submesh.Properties.HasFlag(SubmeshProperties.Enabled))
+                cfg.Enabled = true;
+            if (submesh.Properties.HasFlag(SubmeshProperties.Visible))
+                cfg.Visible = true;
+            if (submesh.Properties.HasFlag(SubmeshProperties.Collidable))
+                cfg.Collidable = true;
             submeshConfigs[i] = cfg;
         }
+        ValidateConfiguration();
+    }
+
+    private void ValidateConfiguration()
+    {
+        var issues = new List<ValidationIssue>();
+        TargetMeshType targetType = Enum.Parse<TargetMeshType>(parameterValues.GetString("targetType"));
+        if(!isMeshLoaded)
+        {
+            _validationIssues = issues;
+            return;
+        }
+        if (!parameterValues.GetBool("useConfiguration"))
+        {
+            switch (targetType)
+            {
+                case TargetMeshType.CrystalWaypoint:
+                    if (!loadedMesh.Submeshes.Any(s => s.Type == SubmeshType.Trigger_Waypoint || s.Type == SubmeshType.Trigger_Special))
+                        issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the item will not function as a waypoint."));
+                    break;
+                case TargetMeshType.Crystal:
+                    break;
+                case TargetMeshType.Solid2Model:
+                    break;
+                case TargetMeshType.Moving:
+                    if (!loadedMesh.Submeshes.Any(s => s.Type == SubmeshType.Dyna_Shape))
+                        issues.Add(new ValidationIssue(ValidationSeverity.Error, "Items contains no dynamic collision shapes - visible geometry will be used to generate collision shape"));
+                    break;
+                case TargetMeshType.CustomGate:
+                    if (!loadedMesh.Submeshes.Any(s => s.Type == SubmeshType.Trigger_Special || s.Type == SubmeshType.Trigger_Waypoint))
+                        issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the gate will have no gameplay effect."));
+                    break;
+            }
+            _validationIssues = issues;
+            return;
+        }
+
+
+        var enabledConfigs = submeshConfigs.Where(kv => kv.Value.Enabled).ToList();
+
+        if (enabledConfigs.Count == 0)
+        {
+            issues.Add(new ValidationIssue(ValidationSeverity.Error, "No submeshes are enabled — the output item will be empty."));
+            _validationIssues = issues;
+            return;
+        }
+
+
+        bool hasVisible = enabledConfigs.Any(kv => kv.Value.Visible);
+        bool hasMovable = enabledConfigs.Any(kv => kv.Value.Movable && kv.Value.Collidable);
+        bool hasTrigger = enabledConfigs.Any(kv => kv.Value.Trigger);
+        bool hasCollidable = enabledConfigs.Any(kv => kv.Value.Collidable);
+
+        if (!hasVisible)
+            issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No visible meshes selected — the item will be invisible in-game."));
+        switch (targetType)
+        {
+            case TargetMeshType.CrystalWaypoint:
+                if (!hasTrigger)
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No trigger selected — the item will not function as a waypoint."));
+                break;
+            case TargetMeshType.Crystal:
+                break;
+            case TargetMeshType.Solid2Model:
+                if (!hasCollidable)
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No collidables selected — the item will have no collidable geometry."));
+                break;
+            case TargetMeshType.Moving:
+                if (!hasMovable)
+                    issues.Add(new ValidationIssue(ValidationSeverity.Error, "No movables selected — the item will not have any dynamic collision shapes."));
+                break;
+            case TargetMeshType.CustomGate:
+                if (!hasTrigger)
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No trigger selected — the gate will have no gameplay effect."));
+                break;
+        }
+
+        _validationIssues = issues;
     }
 
     private bool CanExecuteTool()
@@ -257,52 +398,35 @@
     {
         var settings = new MeshBuilder.MeshBuilderSettings()
         {
-            Author = ItemFileService.Item.Ident.Author,
+            Author = ItemFileService.Item!.Ident.Author,
         };
         var meshBuilder = new MeshBuilder(settings);
 
-        List<int> geometries = [];
-        List<int> triggers = [];
-        List<int> dynaShapes = [];
-        List<int> staticShapes = [];
-        List<int> invisibles = [];
-        List<int> nonCollidables = [];
-        foreach (var (index, cfg) in submeshConfigs)
-        {
-            if (!cfg.Enabled) continue;
-            geometries.Add(index);
-            if (!cfg.Visible)   invisibles.Add(index);
-            if (cfg.Trigger)    triggers.Add(index);
-            if (cfg.Movable && cfg.Collidable) dynaShapes.Add(index);
-            if (cfg.Collidable) staticShapes.Add(index);
-            if (!cfg.Collidable) nonCollidables.Add(index);
-        }
+      
         string targetTypeString = parameterValues.GetString("targetType");
-        MeshBuilder.MeshBuildOptions buildOptions;
-        if(parameterValues.GetBool("useConfiguration"))
+        MeshBuilder.BuildOptions buildOptions;
+        TargetMeshType targetType = Enum.Parse<TargetMeshType>(targetTypeString);
+        if (!parameterValues.GetBool("useConfiguration"))
         {
-            buildOptions = MeshBuilder.MeshBuildOptions.DefaultFromMesh(loadedMesh);
+            buildOptions = MeshBuilder.BuildOptions.DefaultFromMesh(loadedMesh);
         }
         else
         {
-            buildOptions = new MeshBuilder.MeshBuildOptions()
-            {
-                Geometries = geometries.ToArray(),
-                Triggers = triggers.ToArray(),
-                DynaShapes = dynaShapes.ToArray(),
-                StaticShapes = staticShapes.ToArray(),
-                Invisibles = invisibles.ToArray(),
-                NonCollidables = nonCollidables.ToArray(),
-            };
+            buildOptions = CreateBuildOptionsFromConfiguration(targetType);
         }
-        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = null!;
-        switch (Enum.Parse<TargetMeshType>(targetTypeString))
+        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = default;
+        switch (targetType)
         {
             case TargetMeshType.Crystal:
                 builtItemResult = meshBuilder.BuildCrystalItem(loadedMesh, buildOptions);
                 break;
+            case TargetMeshType.CrystalWaypoint:
+                var waypointType =
+                Enum.Parse<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>(parameterValues.GetString("waypointType"));
+                builtItemResult = meshBuilder.BuildCrystalWaypointItem(loadedMesh, waypointType, buildOptions);
+                break;
             case TargetMeshType.Solid2Model:
-                builtItemResult = meshBuilder.BuildSolid2ModelItem(loadedMesh, buildOptions);
+                builtItemResult = meshBuilder.BuildStaticObjectModelItem(loadedMesh, buildOptions);
                 break;
             case TargetMeshType.Moving:
                 builtItemResult = meshBuilder.BuildMovingItem(loadedMesh, buildOptions);
@@ -314,18 +438,83 @@
             default:
                 return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Unknown target type: {targetTypeString}");
         }
-        if(builtItemResult.IsFailure)
-            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to build item model: {targetTypeString}");
-        
+        if (builtItemResult.IsFailure)
+        {
+            ToolMessageService.AddError($"Failed to build item model: {targetTypeString}", builtItemResult, "Item Model Converter");
 
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to build item model: {targetTypeString}");
+        }
+
+        
         using var s = new MemoryStream();
         builtItemResult.Value.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
         var bytes = s.ToArray();
         _exportItems = new[] { new ExportableItem { FileName = ItemFileService.FileName, GetBytes = () => bytes } };
-
+        StateHasChanged();
         return new ExecuteActionResult(ExecuteActionResultStatus.Success, Message: $"Item model converted to {targetTypeString}.");
     }
 
+    MeshBuilder.BuildOptions CreateBuildOptionsFromConfiguration(TargetMeshType targetType)
+    {
+        HashSet<int> geometries = new();
+        HashSet<int> triggers = new();
+        HashSet<int> dynaShapes = new();
+        HashSet<int> staticShapes = new();
+        HashSet<int> invisibles = new();
+        HashSet<int> nonCollidables = new();
+        bool isMeshCollidable = false;
+        foreach (var (index, cfg) in submeshConfigs)
+        {
+            if (!cfg.Enabled) continue;
+            if (cfg.Visible) geometries.Add(index);
+            if (!cfg.Visible) invisibles.Add(index);
+            if (cfg.Trigger) triggers.Add(index);
+            if (cfg.Movable && cfg.Collidable) dynaShapes.Add(index);
+            if (cfg.Collidable) staticShapes.Add(index);
+            if (!cfg.Collidable) nonCollidables.Add(index);
+        }
+        switch (targetType)
+        {
+            case TargetMeshType.Crystal:
+                // Crystal items don't have any special requirements for submeshes.
+                break;
+            case TargetMeshType.Solid2Model:
+                // Solid2Model items should not have any triggers or dyna shapes.
+                triggers.Clear();
+                dynaShapes.Clear();
+                if (staticShapes.All(s => loadedMesh.Submeshes[s].Type == SubmeshType.Mesh))
+                {
+                    // all static meshes come from collidable meshes => IsMeshCollidabel can be used
+                    staticShapes.Clear();
+                    isMeshCollidable = true;
+                }
+                break;
+            case TargetMeshType.Moving:
+                // Moving items should not have any triggers.
+                triggers.Clear();
+                break;
+            case TargetMeshType.CustomGate:
+                // CustomGate items should not have any dyna shapes.
+                dynaShapes.Clear();
+                if (staticShapes.All(s => loadedMesh.Submeshes[s].Type == SubmeshType.Mesh))
+                {
+                    // all static meshes come from collidable meshes => IsMeshCollidabel can be used
+                    staticShapes.Clear();
+                    isMeshCollidable = true;
+                }
+                break;
+        }
+        return new MeshBuilder.BuildOptions()
+        {
+            Geometries = geometries,
+            Triggers = triggers,
+            DynaShapes = dynaShapes,
+            StaticShapes = staticShapes,
+            Invisibles = invisibles,
+            NonCollidables = nonCollidables,
+            IsMeshCollidable = isMeshCollidable
+        };
+    }
     private string SubmeshTypeToString(SubmeshType type)
     {
         return type.ToString();

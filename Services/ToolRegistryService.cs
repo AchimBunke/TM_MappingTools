@@ -93,7 +93,7 @@ public class ToolRegistryService
         new(
             Category: "Item",
             Href: "item-model-converter",
-            IconClass: "bi-shuffle",
+            IconClass: "bi-arrow-left-right",
             Title: "Item Model Converter",
             Description: "Convert item models between different types.",
             SourceAliases: new[] { "item model converter", "convert item model" }),
