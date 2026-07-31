@@ -1,0 +1,334 @@
+﻿@page "/item-model-converter"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using TM_MappingTools.Services;
+@using TM_GenericMapping.Items;
+@using TM_GenericMapping.Messaging;
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
+
+<PageTitle>Item Model Converter</PageTitle>
+
+<ToolPageLayout IconClass="bi-shuffle" Title="Item Model Converter"
+                Description="Convert item models for different formats. Create InGame editable, moving, custom gate and other types of items from any input item."
+                HelpDescription="What this tool changes and how to tune it safely.">
+     <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Item To Convert"
+                          Description="Load the item you want to convert.">
+                    <FileLoader FileService="ItemFileService" NoFileMessage="No file loaded."
+                                DropHintMessage="Drop the item you want to convert here" Accept=".Item.Gbx"
+                                AllowMultiple="false" MessageSource="Item Model Converter" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body">
+                    <ExportPanel EmptyMessage="Run Execute to generate export content."
+                                 DownloadAllFileName="ConvertedItems.zip" Items="_exportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection" BodyClass="small">
+            @if (isMeshLoaded)
+            {
+                <ul style="list-style:none; margin:0; padding:0; overflow-y:auto; max-height:400px;">
+                    <li class="d-flex align-items-center gap-2 py-1" style="font-size:0.72em; color:var(--tm-text-muted); font-weight:600; border-bottom:2px solid var(--tm-border); flex-shrink:0;">
+                        <span style="flex:1 1 0; min-width:0;">Name</span>
+                        <span style="flex:1 1 0; min-width:0;">Type</span>
+                        <span style="width:2.5rem; text-align:right; flex-shrink:0;">Verts</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Enabled">En</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Visible">Vis</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Collidable">Col</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Trigger">Tri</span>
+                        <span style="width:2rem; text-align:center; flex-shrink:0;" title="Movable">Mov</span>
+                    </li>
+                    @foreach (var group in GroupedSubMeshes)
+                    {
+                        <li style="font-weight:600; font-size:0.8em; text-transform:uppercase; letter-spacing:0.04em; color:var(--tm-text-muted); border-bottom:1px solid var(--tm-border); padding-bottom:0.2rem; margin-top:0.6rem; margin-bottom:0.25rem;">@group.Key</li>
+                        @foreach (var (index, subMesh) in group)
+                        {
+                            var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
+                            <li class="d-flex align-items-center gap-2 py-1" style="@SubmeshRowStyle(cfg.Enabled)">
+                                <span style="flex:1 1 0; min-width:0;" class="text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
+                                <span style="flex:1 1 0; min-width:0;" class="text-truncate small" title="@SubmeshTypeToString(subMesh.Mesh.Type)">@SubmeshTypeToString(subMesh.Mesh.Type)</span>
+                                <span style="width:2.5rem; text-align:right; color:var(--tm-text-muted); font-size:0.78em; flex-shrink:0;">@subMesh.Positions.Length</span>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Enabled" @onchange="e => cfg.Enabled = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Visible = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Collidable = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Trigger" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Trigger = (bool)e.Value!" />
+                                </div>
+                                <div style="width:2rem; text-align:center; flex-shrink:0;">
+                                    <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)" @onchange="e => cfg.Movable = (bool)e.Value!" />
+                                </div>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+            else if (ItemFileService.Item != null)
+            {
+                <div class="text-danger small">Failed to load mesh from item. See output for more details.</div>
+            }
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Model Converter"
+                           ExecutionTargetOverwrite="Generate Converted Items" Tooltip="Execute the tool with the loaded items."
+                           CanExecute="CanExecuteTool" />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        
+    </HelpContent>
+</ToolPageLayout>
+
+
+@code {
+    [SessionStored] private ItemFileService ItemFileService = default!;
+
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
+    [SessionStored] private NormalizedMesh loadedMesh = new();
+    [SessionStored] private bool isMeshLoaded = false;
+    [SessionStored] private Dictionary<int, SubMeshConfig> submeshConfigs = new();
+
+    private class SubMeshConfig
+    {
+        public bool Enabled { get; set; } = true;
+        public bool Visible { get; set; } = true;
+        public bool Collidable { get; set; } = true;
+        public bool Trigger { get; set; } = false;
+        public bool Movable { get; set; } = false;
+    }
+    private enum TargetMeshType { Crystal, Solid2Model, Moving, CustomGate }
+    private IEnumerable<IGrouping<object, (int Index, NormalizedSubmesh Mesh)>> GroupedSubMeshes =>
+        loadedMesh.Submeshes
+            .Select((m, i) => (Index: i, Mesh: m))
+            .GroupBy(x => (object)x.Mesh.Type);
+
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "useConfiguration",
+            Label = "Use Configuration",
+            Tooltip = "Whether to use the configuration from the input selection for the item.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "targetType",
+            Label = "Target Type",
+            Tooltip = "The target type of the item. Crystal: InGame editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger.",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = "Solid2Model",
+            Options = new[]
+        {
+                new ToolParameterOption { Value = "Crystal", Label = "Crystal" },
+                new ToolParameterOption { Value = "Solid2Model", Label = "Solid2Model" },
+                new ToolParameterOption { Value = "Moving", Label = "Moving" },
+                new ToolParameterOption { Value = "CustomGate", Label = "CustomGate" },
+        },
+        },
+        new()
+        {
+            Key = "gateGameplayEffect",
+            Label = "Gate Gameplay Effect",
+            Tooltip = "The gameplay effect of the custom gate.",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = "Turbo",
+            Options = Enum.GetValues<LegacyGameplayId>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
+            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.CustomGate
+        },
+    };
+
+    [SessionStored] private ToolParameterValues parameterValues = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ItemFileService.FileChanged += OnFileChanged;
+
+    }
+    public void Dispose()
+    {
+        ItemFileService.FileChanged -= OnFileChanged;
+    }
+    async void OnFileChanged()
+    {
+        if (ItemFileService.Item != null)
+        {
+            isMeshLoaded = TryLoadMeshFromItem(out loadedMesh);
+            if (isMeshLoaded)
+            {
+                LoadDefaultConfigurationFromMesh();
+            }
+        }
+        else
+        {
+            isMeshLoaded = false;
+            submeshConfigs = new();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static string SubmeshRowStyle(bool enabled) => enabled ? string.Empty : "opacity:0.45";
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private bool TryLoadMeshFromItem(out NormalizedMesh mesh)
+    {
+        var extractor = new MeshExtractor();
+        var result = extractor.ExtractMesh(ItemFileService.Item!);
+        
+        if(result.IsFailure)
+        {
+            mesh = default(NormalizedMesh);
+            return false;
+        }
+        mesh = result.Value;
+        return true;
+    }
+    private void LoadDefaultConfigurationFromMesh()
+    {
+        if (!isMeshLoaded) return;
+        submeshConfigs = new Dictionary<int, SubMeshConfig>();
+        for (int i = 0; i < loadedMesh.Submeshes.Length; i++)
+        {
+            SubMeshConfig cfg = new SubMeshConfig();
+            cfg.Enabled = true;
+            var submesh = loadedMesh.Submeshes[i];
+            switch(submesh.Type)
+            {
+                case SubmeshType.Mesh:
+                    cfg.Visible = true;
+                    break;
+                case SubmeshType.Dyna_Shape:
+                    cfg.Movable = true;
+                    cfg.Collidable = true;
+                    break;
+                case SubmeshType.Static_Shape:
+                    cfg.Collidable = true;
+                    break;
+                case SubmeshType.Trigger_Special:
+                    cfg.Trigger = true;
+                    break;
+                case SubmeshType.Trigger_Waypoint:
+                    cfg.Trigger = true;
+                    break;
+                default:
+                    cfg.Enabled = false;
+                    break;
+            }
+            if(submesh.Properties.HasFlag(SubmeshProperties.Disabled))
+                cfg.Enabled = false;
+            if(submesh.Properties.HasFlag(SubmeshProperties.Invisible))
+                cfg.Visible = false;
+            if(submesh.Properties.HasFlag(SubmeshProperties.NonCollidable))
+                cfg.Collidable = false;
+            submeshConfigs[i] = cfg;
+        }
+    }
+
+    private bool CanExecuteTool()
+    {
+        return isMeshLoaded;
+    }
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
+    {
+        var settings = new MeshBuilder.MeshBuilderSettings()
+        {
+            Author = ItemFileService.Item.Ident.Author,
+        };
+        var meshBuilder = new MeshBuilder(settings);
+
+        List<int> geometries = [];
+        List<int> triggers = [];
+        List<int> dynaShapes = [];
+        List<int> staticShapes = [];
+        List<int> invisibles = [];
+        List<int> nonCollidables = [];
+        foreach (var (index, cfg) in submeshConfigs)
+        {
+            if (!cfg.Enabled) continue;
+            geometries.Add(index);
+            if (!cfg.Visible)   invisibles.Add(index);
+            if (cfg.Trigger)    triggers.Add(index);
+            if (cfg.Movable && cfg.Collidable) dynaShapes.Add(index);
+            if (cfg.Collidable) staticShapes.Add(index);
+            if (!cfg.Collidable) nonCollidables.Add(index);
+        }
+        string targetTypeString = parameterValues.GetString("targetType");
+        MeshBuilder.MeshBuildOptions buildOptions;
+        if(parameterValues.GetBool("useConfiguration"))
+        {
+            buildOptions = MeshBuilder.MeshBuildOptions.DefaultFromMesh(loadedMesh);
+        }
+        else
+        {
+            buildOptions = new MeshBuilder.MeshBuildOptions()
+            {
+                Geometries = geometries.ToArray(),
+                Triggers = triggers.ToArray(),
+                DynaShapes = dynaShapes.ToArray(),
+                StaticShapes = staticShapes.ToArray(),
+                Invisibles = invisibles.ToArray(),
+                NonCollidables = nonCollidables.ToArray(),
+            };
+        }
+        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = null!;
+        switch (Enum.Parse<TargetMeshType>(targetTypeString))
+        {
+            case TargetMeshType.Crystal:
+                builtItemResult = meshBuilder.BuildCrystalItem(loadedMesh, buildOptions);
+                break;
+            case TargetMeshType.Solid2Model:
+                builtItemResult = meshBuilder.BuildSolid2ModelItem(loadedMesh, buildOptions);
+                break;
+            case TargetMeshType.Moving:
+                builtItemResult = meshBuilder.BuildMovingItem(loadedMesh, buildOptions);
+                break;
+            case TargetMeshType.CustomGate:
+                var effect = Enum.Parse<LegacyGameplayId>(parameterValues.GetString("gateGameplayEffect"));
+                builtItemResult = meshBuilder.BuildTriggerSpecialItem(loadedMesh, effect, buildOptions);
+                break;
+            default:
+                return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Unknown target type: {targetTypeString}");
+        }
+        if(builtItemResult.IsFailure)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to build item model: {targetTypeString}");
+        
+
+        using var s = new MemoryStream();
+        builtItemResult.Value.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
+        var bytes = s.ToArray();
+        _exportItems = new[] { new ExportableItem { FileName = ItemFileService.FileName, GetBytes = () => bytes } };
+
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, Message: $"Item model converted to {targetTypeString}.");
+    }
+
+    private string SubmeshTypeToString(SubmeshType type)
+    {
+        return type.ToString();
+    }
+
+}

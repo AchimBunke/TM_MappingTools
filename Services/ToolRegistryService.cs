@@ -90,6 +90,13 @@ public class ToolRegistryService
             Title: "MediaTracker Deduplicator",
             Description: "Deduplicate MediaTracker tracks and blocks in a map.",
             SourceAliases: new[] { "mediatracker deduplicator", "deduplicate mediatracker" }),
+        new(
+            Category: "Item",
+            Href: "item-model-converter",
+            IconClass: "bi-shuffle",
+            Title: "Item Model Converter",
+            Description: "Convert item models between different types.",
+            SourceAliases: new[] { "item model converter", "convert item model" }),
     };
 
     public string GetIconForSource(string? source)
