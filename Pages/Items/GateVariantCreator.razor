@@ -66,7 +66,9 @@
             </HelpContent>
         </ToolPageLayout>
 
+    
 @code {
+    [SessionStored] private ItemFileService ItemFileService = default!;
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
 
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
@@ -79,18 +81,24 @@
     {
         base.OnInitialized();
 
-        List<ExportableItem> exportItems = new();
-        //AddBundledToolFile(exportItems, "TM_TriggerItemVariantCreator.exe", "Assets.TM_TriggerItemVariantCreator.exe");
-        //AddBundledToolFile(exportItems, "README.md", "Assets.README.md");
+        ItemFileService.FileChanged += OnFileChanged;
 
-        _exportItems = exportItems.Count > 0 ? exportItems : null;
-        StateHasChanged();
     }
     public void Dispose()
     {
+        ItemFileService.FileChanged -= OnFileChanged;
+    }
+    async void OnFileChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
     }
 
-    private void AddBundledToolFile(List<ExportableItem> exportItems, string fileName, string embeddedSuffix)
+    private bool CanExecuteTool()
     {
         return ItemFileService.Item != null;
     }
@@ -103,9 +111,8 @@
         var result = effectVariantCreator.CreateAllGameplayVariants(itemStream);
         if (result.IsFailure)
         {
-            ToolMessageService.AddWarning($"Bundled file '{fileName}' could not be loaded and was not added to export.",
-nameof(GateVariantCreator));
-            return;
+            ToolMessageService.AddError("Failed to create effect variants", result, "Gate Variant Creator");
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"An error occurred during optimization.");
         }
 
         _exportItems = result.Value.Select((v) =>
@@ -127,21 +134,15 @@ nameof(GateVariantCreator));
 
     }
 
-    private static byte[]? TryReadEmbeddedBytes(string resourceSuffix)
+    string FixFileName(string originalName, string effectSuffix)
     {
-        var assembly = typeof(Program).Assembly;
-        var resourceName = assembly.GetManifestResourceNames()
-            .FirstOrDefault(name => name.EndsWith(resourceSuffix, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrEmpty(originalName))
+            return originalName;
 
-        if (resourceName == null)
-            return null;
+        const string itemsSuffix = ".Item.Gbx";
+        if (originalName.EndsWith(itemsSuffix, StringComparison.OrdinalIgnoreCase))
+            return originalName[..^itemsSuffix.Length] + "_" + effectSuffix + itemsSuffix;
 
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null)
-            return null;
-
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        return ms.ToArray();
+        return originalName;
     }
 }
