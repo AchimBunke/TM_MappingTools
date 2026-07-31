@@ -278,12 +278,10 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         for (int i = 0; i < loadedMesh.Submeshes.Length; i++)
         {
             SubMeshConfig cfg = new SubMeshConfig();
-            cfg.Enabled = true;
             var submesh = loadedMesh.Submeshes[i];
             switch (submesh.Type)
             {
                 case SubmeshType.Mesh:
-                    cfg.Visible = true;
                     break;
                 case SubmeshType.Dyna_Shape:
                     cfg.Movable = true;
