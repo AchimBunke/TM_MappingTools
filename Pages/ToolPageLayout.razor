@@ -20,7 +20,7 @@
     <div class="tool-page-body">
         <div
             class="tool-page-layout @((_showHelp && HelpContent is not null) ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar">
+            <div class="tool-page-sidebar" style="@SidebarStyle">
                 @Sidebar
             </div>
             <div class="tool-page-main">
@@ -73,6 +73,10 @@
     /// <summary>Optional sidebar column. Renders as an empty column when null to preserve grid layout.</summary>
     [Parameter]
     public RenderFragment? Sidebar { get; set; }
+
+    /// <summary>Optional inline style override for the sidebar column.</summary>
+    [Parameter]
+    public string? SidebarStyle { get; set; }
 
     [Parameter, EditorRequired]
     public RenderFragment? Main { get; set; }

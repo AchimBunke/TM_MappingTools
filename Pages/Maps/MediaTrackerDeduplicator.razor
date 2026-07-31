@@ -1,0 +1,206 @@
+﻿@page "/mediatracker-deduplication"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using TM_GenericMapping.Messaging
+@using TM_MappingTools.Services
+@using TM_GenericMapping.MediaTracker.Tools
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+@inject TM_MappingTools.Services.MapFileService SharedMapFileService
+
+
+<PageTitle>Media Tracker Deduplicator</PageTitle>
+
+<ToolPageLayout IconClass="bi-intersect" Title="Media Tracker Deduplicator"
+                Description="Deduplicate copied MediaTracker Tracks and Blocks to reduce file size. Might take some time for larger clips."
+                HelpDescription="What this tool changes and how to tune it safely.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Input Map" Description="Load the map with the MediaTracker.">
+                    <FileLoader FileService="SharedMapFileService" NoFileMessage="No map loaded."
+                                DropHintMessage="Drop a .Map.Gbx file in this area" Accept=".Map.Gbx"
+                                MessageSource="MediaTracker Deduplicator" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Description="Export the updated map." Class="tool-export-panel"
+                          BodyClass="tool-export-panel-body">
+                    <ExportPanel FileService="@SharedMapFileService" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection">
+            <div class="small text-muted">
+                <div>Map loaded: @(SharedMapFileService.Challenge != null ? "Yes" : "No")</div>
+            </div>
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" CanExecute="CanExecuteTool"
+                           ExecutionTargetOverwrite="Deduplicate MediaTracker Tracks and Blocks"
+                           MessageSource="Media Tracker Deduplicator"
+                           Tooltip="Deduplicates copies of MediaTracker Tracks and Blocks in a map to reduce its file size." />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The tool will find identical MediaTracker tracks and blocks like those you create with copy-paste in the game editor. It will then reuse the same track/block by exchanging the actual data with a reference to the first occurrence, effectively reducing the file size.</p>
+        <p>After deduplication, if you edit a keyframe in the in-game editor, it will automatically change all other copies of that keyframe as well, so if you don't want that, you must copy-paste the block to create a 'real' unique copy.</p>
+        <h3>Ignore Track Names</h3>
+        <p>If enabled, the tool will ignore track names when deduplicating tracks. This allows deduplication of tracks with different names but identical content. The first occurrence of a track will decide on the name given to all other deduplicated tracks.</p>
+        <h3>Deduplicate Tracks</h3>
+        <p>If enabled, the tool will deduplicate full MediaTracker tracks. This is the most effective way to reduce file size.</p>
+        <h3>Deduplicate Blocks</h3>
+        <p>If enabled, the tool will deduplicate MediaTracker blocks.</p>
+        <h3>Deduplication Targets</h3>
+        <p>These options allow you to select which types of MediaTracker clips to deduplicate. Deduplication will happen across all targets, so a track in EndRace can be exchanged for a copy of an InGame clip. If you only want to deduplicate certain types of clips, you can disable the others.</p>
+        <h3>Practical Workflow</h3>
+        <p>Effective if a map contains copies of tracks or blocks across different clips such as different trigger zones or in InGame and EndRace clips.</p>
+        <p>If you reuse expensive Triangle tracks, in the in-game editor, copying a track or block will not reuse the same data, but instead copy all triangle data, doubling the space needed. Deduplication will fix that.</p>
+        <p>If you ignore track names, the names of deduplicated tracks may have changed and make it harder to identify tracks, so keep this as one of the last steps. Also editing tracks after deduplication will edit all deduplicated tracks at the same time.</p>
+        <p>For information about which tracks changed, check the tool's output after execution.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "deduplicateTracks",
+            Label = "Deduplicate Tracks",
+            Tooltip = "Whether to deduplicate full MediaTracker Tracks.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "deduplicateBlocks",
+            Label = "Deduplicate Blocks",
+            Tooltip = "Whether to deduplicate MediaTracker Blocks.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "ignoreTrackNames",
+            Label = "Ignore Track Names",
+            Tooltip = "Ignoring track names allows deduplication of tracks with different names but identical content. The first occurrence of a track will decide on the name.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "intro",
+            Label = "Intro",
+            Tooltip = "Deduplicate Intro clip.",
+            DefaultValue = true,
+            Kind = ToolParameterKind.Bool,
+            GroupKey = "Targets",
+            GroupLabel = "Deduplication Targets",
+        },
+        new()
+        {
+            Key = "inGame",
+            Label = "In-Game",
+            Tooltip = "Deduplicate In-Game clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+        new()
+        {
+            Key = "endRace",
+            Label = "End-Race",
+            Tooltip = "Deduplicate End-Race clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+        new()
+        {
+            Key = "podium",
+            Label = "Podium",
+            Tooltip = "Deduplicate Podium clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+        new()
+        {
+            Key = "ambience",
+            Label = "Ambience",
+            Tooltip = "Deduplicate Ambience clip.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+            GroupKey = "Targets",
+        },
+    };
+
+    [SessionStored] private ToolParameterValues parameterValues = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        SharedMapFileService.FileChanged += OnMapFileChanged;
+    }
+
+    public void Dispose() => SharedMapFileService.FileChanged -= OnMapFileChanged;
+
+    private async void OnMapFileChanged() => await InvokeAsync(StateHasChanged);
+
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+
+    private bool CanExecuteTool()
+    {
+        return SharedMapFileService.Challenge != null;
+    }
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
+    {
+        var challenge = SharedMapFileService.Challenge;
+        if (challenge is null)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "No map loaded.");
+
+
+        var settings =  TM_GenericMapping.MediaTracker.Tools.MediaTrackerDeduplicator.DeduplicationSettings.Default with
+        {
+            InGame = parameterValues.GetBool("inGame"),
+            Intro = parameterValues.GetBool("intro"),
+            EndRace = parameterValues.GetBool("endRace"),
+            Podium = parameterValues.GetBool("podium"),
+            Ambience = parameterValues.GetBool("ambience"),
+
+            DeduplicateTracks = parameterValues.GetBool("deduplicateTracks"),
+            DeduplicateBlocks = parameterValues.GetBool("deduplicateBlocks"),
+            IgnoreTrackName = parameterValues.GetBool("ignoreTrackNames"),
+        };
+        var deduplicator = new TM_GenericMapping.MediaTracker.Tools.MediaTrackerDeduplicator();
+        deduplicator.Settings = settings;
+        var result = deduplicator.Deduplicate(challenge);
+        if(result.IsFailure)
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Could not deduplicate MediaTracker tracks and blocks: " +
+                result.ErrorCode);
+        var info = result.Value;
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        foreach (var msg in info.TrackDeduplicationDetails.Concat(info.BlockDeduplicationDetails))
+        {
+            sb.AppendLine(msg);
+        }
+
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, 
+            Message: $"Deduplicated {info.TracksDeduplicated} tracks, {info.BlocksDeduplicated} blocks and {info.BlocksRemovedViaTrackDeduplication} blocks inside deduplicated tracks.",
+            TechnicalDetails: sb.ToString());
+    }
+
+}

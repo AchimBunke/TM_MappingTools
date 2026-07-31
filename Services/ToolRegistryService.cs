@@ -70,12 +70,33 @@ public class ToolRegistryService
             Description: "Create variants of gate items for every effect.",
             SourceAliases: new[] { "gate variant", "variant creator" }),
         new(
+            Category: "Item",
+            Href: "gate-variant-creator-standalone",
+            IconClass: "bi-lightning-charge-fill",
+            Title: "Gate Variant Creator (Standalone)",
+            Description: "Create variants of gate items for every effect.",
+            SourceAliases: new[] { "gate variant standalone", "variant creator standalone" }),
+        new(
             Category: "Clip",
             Href: "project-3D-triangles",
             IconClass: "bi-back",
             Title: "Project 3D Triangles",
             Description: "Project 3D triangles to 2D triangles.",
             SourceAliases: new[] { "project 3D triangles", "3D triangles" }),
+        new(
+            Category: "Map",
+            Href: "mediatracker-deduplication",
+            IconClass: "bi-intersect",
+            Title: "MediaTracker Deduplicator",
+            Description: "Deduplicate MediaTracker tracks and blocks in a map.",
+            SourceAliases: new[] { "mediatracker deduplicator", "deduplicate mediatracker" }),
+        new(
+            Category: "Item",
+            Href: "item-model-converter",
+            IconClass: "bi-arrow-left-right",
+            Title: "Item Model Converter",
+            Description: "Convert item models between different types.",
+            SourceAliases: new[] { "item model converter", "convert item model" }),
     };
 
     public string GetIconForSource(string? source)

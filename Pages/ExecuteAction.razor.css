@@ -58,3 +58,41 @@
 .execute-status-link:hover {
     text-decoration: underline;
 }
+
+.execute-validation {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.execute-validation-issue {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--tm-radius-sm);
+    border: 1px solid transparent;
+}
+
+.execute-validation-error {
+    background: rgba(234, 134, 143, 0.14);
+    border-color: rgba(234, 134, 143, 0.55);
+    color: var(--tm-text);
+}
+
+.execute-validation-error .bi {
+    color: #ea868f;
+    flex-shrink: 0;
+}
+
+.execute-validation-warning {
+    background: rgba(255, 218, 106, 0.14);
+    border-color: rgba(255, 218, 106, 0.45);
+    color: var(--tm-text);
+}
+
+.execute-validation-warning .bi {
+    color: #ffda6a;
+    flex-shrink: 0;
+}
