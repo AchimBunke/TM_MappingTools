@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.native.js": "./_framework/dotnet.native.oye69he4wy.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.a6jcqbs390.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.vbynoikswe.js"
+    "./_framework/dotnet.js": "./_framework/dotnet.3p47arqq1l.js",
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.l7303kdkks.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU=",
-    "./_framework/dotnet.native.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
-    "./_framework/dotnet.native.oye69he4wy.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
-    "./_framework/dotnet.runtime.a6jcqbs390.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
-    "./_framework/dotnet.runtime.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
-    "./_framework/dotnet.vbynoikswe.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="
+    "./_framework/dotnet.3p47arqq1l.js": "sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY=",
+    "./_framework/dotnet.js": "sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY=",
+    "./_framework/dotnet.native.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
+    "./_framework/dotnet.native.l7303kdkks.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
+    "./_framework/dotnet.runtime.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
+    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU="
   }
 }</script>
         <script>
@@ -48,7 +48,7 @@
         })()
     </script>
     
-    <link href="_framework/dotnet.vbynoikswe.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="/>
+    <link href="_framework/dotnet.3p47arqq1l.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -66,16 +66,14 @@
 <div class="page" b-yrpmrvqeod><div class="sidebar" b-yrpmrvqeod><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5><div class="container-fluid" b-k974kyz3h5><a class="navbar-brand" href b-k974kyz3h5>TM Mapping Tools</a>
         <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5><span class="navbar-toggler-icon" b-k974kyz3h5></span></button></div></div>
 
-<div class="collapse nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+<div class="collapse nav-sidebar-body" b-k974kyz3h5><div class="nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+                </a></div>
+
+            <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="mediatracker-deduplication" class="nav-link"><i class="nav-menu-icon bi bi-intersect" aria-hidden="true" b-k974kyz3h5></i> MediaTracker Deduplicator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator-standalone" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator (Standalone)</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-model-converter" class="nav-link"><i class="nav-menu-icon bi bi-arrow-left-right" aria-hidden="true" b-k974kyz3h5></i> Item Model Converter</a></div><hr class="nav-separator" b-k974kyz3h5></div></nav></div>
+    <div class="nav-footer" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link nav-footer-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
             </a></div>
-
-        <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
-            </a></div>
-
-        <hr class="nav-separator" b-k974kyz3h5>
-
-        <div class="nav-item px-3 nav-item-theme-toggle" b-k974kyz3h5><button class="nav-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
-                Light Mode</button></div></nav></div></div>
+        <div class="nav-item px-3 nav-item-theme-toggle" style="margin-top: 0.3rem;" b-k974kyz3h5><button class="nav-link nav-footer-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
+                Light Mode</button></div></div></div></div>
 
     <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
             <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod>CSharp Mapping GitHub</a>
@@ -90,7 +88,7 @@
         Select a tool and get started. Each tool has a help section with more information about its features and usage.
     </p></div>
 
-<div class="home-tools-section" b-qi6sb0u7p7><h2 class="home-section-title" b-qi6sb0u7p7>Available Tools (9)</h2>
+<div class="home-tools-section" b-qi6sb0u7p7><h2 class="home-section-title" b-qi6sb0u7p7>Available Tools (12)</h2>
     <div class="home-tool-groups" b-qi6sb0u7p7><section class="home-tool-group" b-qi6sb0u7p7><h3 class="home-group-title" b-qi6sb0u7p7>Clip</h3>
                 <div class="home-tool-grid" b-qi6sb0u7p7><a href="player-attached-triangles" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-paperclip home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
                                 <span class="home-tool-card-title" b-qi6sb0u7p7>Player-Attached 3D Triangles</span></span>
@@ -107,12 +105,18 @@
                                 <span class="home-tool-card-title" b-qi6sb0u7p7>Map Item Replacer</span></span>
                             <span class="home-tool-card-desc" b-qi6sb0u7p7>Coming Soon...</span></a><a href="embedded-item-extractor" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-box-arrow-up home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
                                 <span class="home-tool-card-title" b-qi6sb0u7p7>Embedded Item Extractor</span></span>
-                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Extract embedded items and blocks from a map.</span></a></div></section><section class="home-tool-group" b-qi6sb0u7p7><h3 class="home-group-title" b-qi6sb0u7p7>Item</h3>
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Extract embedded items and blocks from a map.</span></a><a href="mediatracker-deduplication" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-intersect home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
+                                <span class="home-tool-card-title" b-qi6sb0u7p7>MediaTracker Deduplicator</span></span>
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Deduplicate MediaTracker tracks and blocks in a map.</span></a></div></section><section class="home-tool-group" b-qi6sb0u7p7><h3 class="home-group-title" b-qi6sb0u7p7>Item</h3>
                 <div class="home-tool-grid" b-qi6sb0u7p7><a href="moving-item-creator" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-box-arrow-in-right home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
                                 <span class="home-tool-card-title" b-qi6sb0u7p7>Moving Item Creator</span></span>
                             <span class="home-tool-card-desc" b-qi6sb0u7p7>Create moving items from source items.</span></a><a href="gate-variant-creator" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-lightning-charge-fill home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
                                 <span class="home-tool-card-title" b-qi6sb0u7p7>Gate Variant Creator</span></span>
-                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Create variants of gate items for every effect.</span></a></div></section></div></div></article>
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Create variants of gate items for every effect.</span></a><a href="gate-variant-creator-standalone" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-lightning-charge-fill home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
+                                <span class="home-tool-card-title" b-qi6sb0u7p7>Gate Variant Creator (Standalone)</span></span>
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Create variants of gate items for every effect.</span></a><a href="item-model-converter" class="home-tool-card" b-qi6sb0u7p7><span class="home-tool-card-top" b-qi6sb0u7p7><i class="bi bi-arrow-left-right home-tool-card-icon" aria-hidden="true" b-qi6sb0u7p7></i>
+                                <span class="home-tool-card-title" b-qi6sb0u7p7>Item Model Converter</span></span>
+                            <span class="home-tool-card-desc" b-qi6sb0u7p7>Convert item models between different types.</span></a></div></section></div></div></article>
 
         <div class="message-log-row message-log-collapsed " b-poo0z6q6cd><div class="message-log-body" b-poo0z6q6cd><div class="message-log-header" b-poo0z6q6cd><div class="message-log-header-left" b-poo0z6q6cd><button class="btn btn-link btn-sm message-log-toggle" title="Show output" b-poo0z6q6cd><span class="bi bi-chevron-up" aria-hidden="true" b-poo0z6q6cd></span>
                     <span class="message-log-title" b-poo0z6q6cd>Output</span></button></div></div></div></div></main></div>

@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.native.js": "./_framework/dotnet.native.oye69he4wy.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.a6jcqbs390.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.vbynoikswe.js"
+    "./_framework/dotnet.js": "./_framework/dotnet.3p47arqq1l.js",
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.l7303kdkks.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU=",
-    "./_framework/dotnet.native.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
-    "./_framework/dotnet.native.oye69he4wy.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
-    "./_framework/dotnet.runtime.a6jcqbs390.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
-    "./_framework/dotnet.runtime.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
-    "./_framework/dotnet.vbynoikswe.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="
+    "./_framework/dotnet.3p47arqq1l.js": "sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY=",
+    "./_framework/dotnet.js": "sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY=",
+    "./_framework/dotnet.native.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
+    "./_framework/dotnet.native.l7303kdkks.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
+    "./_framework/dotnet.runtime.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
+    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU="
   }
 }</script>
         <script>
@@ -48,7 +48,7 @@
         })()
     </script>
     
-    <link href="_framework/dotnet.vbynoikswe.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="/>
+    <link href="_framework/dotnet.3p47arqq1l.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -66,16 +66,14 @@
 <div class="page" b-yrpmrvqeod><div class="sidebar" b-yrpmrvqeod><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5><div class="container-fluid" b-k974kyz3h5><a class="navbar-brand" href b-k974kyz3h5>TM Mapping Tools</a>
         <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5><span class="navbar-toggler-icon" b-k974kyz3h5></span></button></div></div>
 
-<div class="collapse nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+<div class="collapse nav-sidebar-body" b-k974kyz3h5><div class="nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+                </a></div>
+
+            <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="mediatracker-deduplication" class="nav-link"><i class="nav-menu-icon bi bi-intersect" aria-hidden="true" b-k974kyz3h5></i> MediaTracker Deduplicator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator-standalone" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator (Standalone)</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-model-converter" class="nav-link"><i class="nav-menu-icon bi bi-arrow-left-right" aria-hidden="true" b-k974kyz3h5></i> Item Model Converter</a></div><hr class="nav-separator" b-k974kyz3h5></div></nav></div>
+    <div class="nav-footer" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link nav-footer-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
             </a></div>
-
-        <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
-            </a></div>
-
-        <hr class="nav-separator" b-k974kyz3h5>
-
-        <div class="nav-item px-3 nav-item-theme-toggle" b-k974kyz3h5><button class="nav-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
-                Light Mode</button></div></nav></div></div>
+        <div class="nav-item px-3 nav-item-theme-toggle" style="margin-top: 0.3rem;" b-k974kyz3h5><button class="nav-link nav-footer-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
+                Light Mode</button></div></div></div></div>
 
     <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
             <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod>CSharp Mapping GitHub</a>
@@ -86,10 +84,10 @@
 <div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi bi-grid-3x3 tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text"><h1 class="tool-page-title">Optimize Triangle Compression</h1><p class="tool-page-desc">Optimize vertex values of MediaTracker triangles for LZO compression to reduce filesize.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" aria-controls="optimize-triangle-compression-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
                     Show Help</button></div></div><div class="tool-io-row "><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Input Clip</h2><p class="tool-panel-desc">Load the clip that should be optimized.</p></div>
-    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-0036089ddba74b8fa00b3fb7202d33be" class="visually-hidden" accept=".Clip.Gbx" type="file" />
+    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-7eec63d4c5994b0e8e601d306bd21b29" class="visually-hidden" accept=".Clip.Gbx" type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No clip loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop a .Clip.Gbx file in this area or
-                <label for="filePicker-0036089ddba74b8fa00b3fb7202d33be" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+                <label for="filePicker-7eec63d4c5994b0e8e601d306bd21b29" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
             </div></div></div></div></div></div><div class="tool-io-history"><div class="tool-panel tool-operation-history-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Operation History</h2><p class="tool-panel-desc">Recent clip operations in this session.</p></div>
     <div class="tool-panel-body "><div class="tool-operation-history-content" b-bh3ft5vkq7><ul class="tool-operation-history-list list-unstyled mb-0" b-bh3ft5vkq7><li class="tool-operation-empty-row" b-bh3ft5vkq7>(nothing yet)</li></ul></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the updated clip.</p></div>
     <div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>No export available.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Track Selection</h2></div>

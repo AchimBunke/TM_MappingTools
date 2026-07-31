@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.native.js": "./_framework/dotnet.native.oye69he4wy.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.a6jcqbs390.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.vbynoikswe.js"
+    "./_framework/dotnet.js": "./_framework/dotnet.3p47arqq1l.js",
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.l7303kdkks.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU=",
-    "./_framework/dotnet.native.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
-    "./_framework/dotnet.native.oye69he4wy.js": "sha256-QP5TAOTL71lJZJ8alJzs0BpQon8acoGQZrQsiByJYx4=",
-    "./_framework/dotnet.runtime.a6jcqbs390.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
-    "./_framework/dotnet.runtime.js": "sha256-7i3usfTrnzC/9qWO4si5Bw4w7D9fUSnSBdhQ47blX2M=",
-    "./_framework/dotnet.vbynoikswe.js": "sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="
+    "./_framework/dotnet.3p47arqq1l.js": "sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY=",
+    "./_framework/dotnet.js": "sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY=",
+    "./_framework/dotnet.native.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
+    "./_framework/dotnet.native.l7303kdkks.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
+    "./_framework/dotnet.runtime.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
+    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU="
   }
 }</script>
         <script>
@@ -48,7 +48,7 @@
         })()
     </script>
     
-    <link href="_framework/dotnet.vbynoikswe.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-dRJkq3dj//Tpj/pnaWK+36N9eIipDW3j8DyvRvNHxYU="/>
+    <link href="_framework/dotnet.3p47arqq1l.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-eTaMo+9V3xbWFcF/XjKZcXHBlhyqkVjvbUNf8b/igrY="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -66,16 +66,14 @@
 <div class="page" b-yrpmrvqeod><div class="sidebar" b-yrpmrvqeod><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5><div class="container-fluid" b-k974kyz3h5><a class="navbar-brand" href b-k974kyz3h5>TM Mapping Tools</a>
         <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5><span class="navbar-toggler-icon" b-k974kyz3h5></span></button></div></div>
 
-<div class="collapse nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+<div class="collapse nav-sidebar-body" b-k974kyz3h5><div class="nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+                </a></div>
+
+            <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="mediatracker-deduplication" class="nav-link"><i class="nav-menu-icon bi bi-intersect" aria-hidden="true" b-k974kyz3h5></i> MediaTracker Deduplicator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator-standalone" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator (Standalone)</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-model-converter" class="nav-link"><i class="nav-menu-icon bi bi-arrow-left-right" aria-hidden="true" b-k974kyz3h5></i> Item Model Converter</a></div><hr class="nav-separator" b-k974kyz3h5></div></nav></div>
+    <div class="nav-footer" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link nav-footer-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
             </a></div>
-
-        <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
-            </a></div>
-
-        <hr class="nav-separator" b-k974kyz3h5>
-
-        <div class="nav-item px-3 nav-item-theme-toggle" b-k974kyz3h5><button class="nav-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
-                Light Mode</button></div></nav></div></div>
+        <div class="nav-item px-3 nav-item-theme-toggle" style="margin-top: 0.3rem;" b-k974kyz3h5><button class="nav-link nav-footer-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
+                Light Mode</button></div></div></div></div>
 
     <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
             <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod>CSharp Mapping GitHub</a>
@@ -85,38 +83,19 @@
 
 <div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-lightning-charge-fill tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text"><h1 class="tool-page-title">Gate Variant Creator</h1><p class="tool-page-desc">Create variants of gate items for every effect.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" aria-controls="gate-variant-creator-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
-                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Info</h2></div>
-    <div class="tool-panel-body "><h4>Trigger Item Variant Creator (Gate Variant Creator)</h4>
-                    <p>Source Code: <a href="https://github.com/AchimBunke/TM_TriggerSurfaceMapping" target="_blank" rel="noopener noreferrer">Gate Variant Creator Github</a></p>
-                    <p>
-                        This tool is a C# implementation of
-                        <a href="https://openplanet.dev/file/112" target="_blank" rel="noopener noreferrer">Custom
-                            Gates</a>
-                            (<a href="https://github.com/schadocalex/gbx-py/blob/a140ca0f51664fc2e935f40a74f859672ed99861/custom_gates.py" target="_blank" rel="noopener noreferrer">GitHub</a>) by <strong>schadocalex</strong>.
-                        </p>
+                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Source Item</h2><p class="tool-panel-desc">Load a .Item.Gbx files that should become moving items.</p></div>
+    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-7ef6153561eb4be29148d71fb9d05122" class="visually-hidden" accept=".Item.Gbx" type="file" />
 
-                        <h5>Item Requirements for Blender</h5>
-                        <ul><li><code>_trigger_</code> objects define the zone where the gameplay takes effect.</li>
-                            <li>
-                                Materials are resolved via their Link, so use TriggerFX, SpecialFX, Sign, SignOff, or Decal
-                                links.
-                                The material name and the effect of the link (Turbo, Boost, etc.) do not matter.
-                            </li>
-                            <li>Export the item as usual.</li>
-                            <li>Drag and drop it onto the exe file to create all available effect variants as a zip file.
-                            </li></ul>
-
-                        <h5>Notes</h5>
-                        <ul><li>No guarantee it will work with all items. There is currently a problem with parsing items
-                                with trigger effects in GBX.NET.</li>
-                                <li>Not all effects have icons, decals, signs, and TriggerFX. For those, either a default one or
-                                    a texture from another effect is used.</li></ul></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Export</h2></div>
-    <div class="tool-panel-body tool-export-panel-body"><div><ul><li class="mb-3">Last updated:  24.05.2026</li>
-                                        <li class="d-flex align-items-center gap-2 mb-1 export-panel-row"><span class="text-truncate small flex-grow-1" title="TM_TriggerItemVariantCreator.exe">TM_TriggerItemVariantCreator.exe</span>
-                                            <a href="Assets/TM_TriggerItemVariantCreator.exe" download class="btn btn-sm btn-outline-primary flex-shrink-0" title="Download TM_TriggerItemVariantCreator.exe"><span class="bi bi-download" aria-hidden="true"></span></a></li>
-                                            <li class="d-flex align-items-center gap-2 mb-1 export-panel-row"><span class="text-truncate small flex-grow-1" title="README.md">README.md</span>
-                                                <a href="Assets/README.md" download class="btn btn-sm btn-outline-primary flex-shrink-0" title="Download README.md"><span class="bi bi-download" aria-hidden="true"></span></a></li></ul></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"></div>
-            <div class="tool-page-main"></div></div></div></div></article>
+    <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No files loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop the item here you want to create effect variants from or
+                <label for="filePicker-7ef6153561eb4be29148d71fb9d05122" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+            </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the created gate variant items.</p></div>
+    <div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Input Selection</h2></div>
+    <div class="tool-panel-body small text-muted"><div>Template item loaded: No</div></div></div></div>
+            <div class="tool-page-main"><div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Actions</h2></div>
+    <div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Create Gate Variant Items</strong></span></span>
+    <button type="button" class="btn btn-primary " disabled title="Execute the tool with the loaded item." b-0uij2y1ggg><span b-0uij2y1ggg>Execute</span></button></div></div></div>
+        <div class="tool-panel "><div class="tool-panel-header"><h2 class="tool-panel-title">Parameters</h2></div>
+    <div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo></div></div></div></div></div></div></div></div></article>
 
         <div class="message-log-row message-log-collapsed " b-poo0z6q6cd><div class="message-log-body" b-poo0z6q6cd><div class="message-log-header" b-poo0z6q6cd><div class="message-log-header-left" b-poo0z6q6cd><button class="btn btn-link btn-sm message-log-toggle" title="Show output" b-poo0z6q6cd><span class="bi bi-chevron-up" aria-hidden="true" b-poo0z6q6cd></span>
                     <span class="message-log-title" b-poo0z6q6cd>Output</span></button></div></div></div></div></main></div>
