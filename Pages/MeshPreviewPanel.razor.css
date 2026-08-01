@@ -6,7 +6,7 @@
     max-height: 520px;
     border-radius: 0.4rem;
     overflow: hidden;
-    background: #12182a;
+    background: var(--tm-bg);
     transition: border-radius 0.15s;
 }
 
@@ -52,10 +52,10 @@
 }
 
 .mesh-preview-toolbar-btn {
-    background: rgba(18, 24, 42, 0.75);
-    border: 1px solid #334466;
+    background: color-mix(in srgb, var(--tm-surface) 80%, transparent);
+    border: 1px solid var(--tm-border);
     border-radius: 0.3rem;
-    color: #8899aa;
+    color: var(--tm-text-muted);
     font-size: 0.8rem;
     line-height: 1;
     padding: 0.25rem 0.4rem;
@@ -64,14 +64,14 @@
 }
 
 .mesh-preview-toolbar-btn:hover {
-    color: #ccddef;
-    border-color: #556688;
+    color: var(--tm-text);
+    border-color: var(--tm-accent);
 }
 
 .mesh-preview-toolbar-btn.active {
-    color: #88ddff;
-    border-color: #4488bb;
-    background: rgba(30, 60, 90, 0.85);
+    color: var(--tm-accent);
+    border-color: var(--tm-accent);
+    background: var(--tm-accent-soft);
 }
 
 /* ── control hints (bottom-right) ───────────────────────────────────────── */
@@ -83,17 +83,18 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.63rem;
-    color: #556677;
+    color: var(--tm-text-muted);
+    opacity: 0.7;
     pointer-events: none;
     line-height: 1;
 }
 
 .hint-sep {
-    color: #334455;
+    color: var(--tm-border);
 }
 
 .hint-action {
-    color: #7799aa;
+    color: var(--tm-text-muted);
 }
 
 /* ── placeholder overlay (shown before JS init) ─────────────────────────── */
@@ -124,7 +125,7 @@
     align-items: center;
     gap: 0.2rem 0.6rem;
     font-size: 0.68rem;
-    color: #aabbcc;
+    color: var(--tm-text-muted);
     pointer-events: none;
     line-height: 1.4;
 }
@@ -144,12 +145,12 @@
     top: 0.45rem;
     right: 0.6rem;
     font-size: 0.68rem;
-    color: #8899aa;
+    color: var(--tm-text-muted);
     pointer-events: none;
 }
 
 .mesh-preview-selected-label {
-    color: #ffee88;
+    color: var(--tm-accent-strong);
 }
 
 /* ── settings panel ─────────────────────────────────────────────────────── */
@@ -157,8 +158,8 @@
     position: absolute;
     top: 2.1rem;
     left: 0.6rem;
-    background: rgba(14, 20, 36, 0.92);
-    border: 1px solid #334466;
+    background: color-mix(in srgb, var(--tm-surface) 94%, transparent);
+    border: 1px solid var(--tm-border);
     border-radius: 0.4rem;
     padding: 0.55rem 0.7rem;
     display: flex;
@@ -176,18 +177,18 @@
 
 .settings-row label {
     font-size: 0.68rem;
-    color: #8899aa;
+    color: var(--tm-text-muted);
     display: flex;
     justify-content: space-between;
 }
 
 .settings-val {
-    color: #ccddef;
+    color: var(--tm-text);
     font-variant-numeric: tabular-nums;
 }
 
 .settings-row input[type="range"] {
     width: 100%;
-    accent-color: #4488ff;
+    accent-color: var(--tm-accent);
     cursor: pointer;
 }

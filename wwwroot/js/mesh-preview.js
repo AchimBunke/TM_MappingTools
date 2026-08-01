@@ -23,6 +23,38 @@ function configColor(config) {
 // canvas → preview-state  map
 const previews = new Map();
 
+// ─── theme helpers ───────────────────────────────────────────────────────────
+
+function resolveCSSColor(varName, fallback) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    return v || fallback;
+}
+
+function syncPreviewTheme(preview) {
+    const bg         = resolveCSSColor('--tm-bg',         '#0f1623');
+    const gridCenter = resolveCSSColor('--tm-text-muted', '#7a93b2');
+    const gridLines  = resolveCSSColor('--tm-border',     '#253149');
+
+    preview.scene.background = new THREE.Color(bg);
+
+    // GridHelper bakes vertex colours – rebuild it to pick up new palette
+    const old = preview.grid;
+    const py = old.position.y, sx = old.scale.x, sz = old.scale.z;
+    preview.scene.remove(old);
+    old.geometry?.dispose();
+    (Array.isArray(old.material) ? old.material : [old.material]).forEach(m => m?.dispose());
+    const grid = new THREE.GridHelper(20, 20, new THREE.Color(gridCenter), new THREE.Color(gridLines));
+    grid.position.y = py;
+    grid.scale.set(sx, 1, sz);
+    preview.scene.add(grid);
+    preview.grid = grid;
+}
+
+// Re-sync all live previews whenever [data-theme] changes
+new MutationObserver(() => {
+    for (const p of previews.values()) syncPreviewTheme(p);
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function buildMaterial(type) {
@@ -115,7 +147,7 @@ export function initMeshPreview(canvas, dotNetRef) {
 
     // scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x12182a);
+    scene.background = new THREE.Color(resolveCSSColor('--tm-bg', '#0f1623'));
 
     // lights
     const ambient = new THREE.AmbientLight(0xffffff, 0.45);
@@ -138,7 +170,9 @@ export function initMeshPreview(canvas, dotNetRef) {
     controls.screenSpacePanning = false;
 
     // grid (positioned at y=0 until first mesh load)
-    const grid = new THREE.GridHelper(20, 20, 0x334466, 0x223355);
+    const grid = new THREE.GridHelper(20, 20,
+        new THREE.Color(resolveCSSColor('--tm-text-muted', '#7a93b2')),
+        new THREE.Color(resolveCSSColor('--tm-border',     '#253149')));
     scene.add(grid);
 
     // mesh group

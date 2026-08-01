@@ -15,6 +15,15 @@
     box-shadow: var(--tm-focus-ring);
 }
 
+.file-drop-area.hover {
+    border-color: var(--tm-accent);
+    border-style: solid;
+    background: color-mix(in srgb, var(--tm-accent) 10%, var(--tm-surface));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-accent) 30%, transparent);
+    transform: scale(1.01);
+    transition: border-color 80ms ease, box-shadow 80ms ease, background 80ms ease, transform 80ms ease;
+}
+
 .file-drop-content {
     display: flex;
     flex-direction: column;
