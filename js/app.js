@@ -52,20 +52,26 @@ window.downloadFileFromStream = async (fileName, streamRef) => {
         }
 
 window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
-    // Add a class when the user drags a file over the drop zone
-    function onDragHover(e) {
+    let dragDepth = 0;
+
+    function onDragEnter(e) {
         e.preventDefault();
-        dropZoneElement.classList.add("hover");
+        if (++dragDepth === 1) dropZoneElement.classList.add("hover");
+    }
+
+    function onDragOver(e) {
+        e.preventDefault();
     }
 
     function onDragLeave(e) {
         e.preventDefault();
-        dropZoneElement.classList.remove("hover");
+        if (--dragDepth <= 0) { dragDepth = 0; dropZoneElement.classList.remove("hover"); }
     }
 
     // Handle the paste and drop events
     function onDrop(e) {
         e.preventDefault();
+        dragDepth = 0;
         dropZoneElement.classList.remove("hover");
 
         // Set the files property of the input element and raise the change event
@@ -82,8 +88,8 @@ window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
     }
 
     // Register all events
-    dropZoneElement.addEventListener("dragenter", onDragHover);
-    dropZoneElement.addEventListener("dragover", onDragHover);
+    dropZoneElement.addEventListener("dragenter", onDragEnter);
+    dropZoneElement.addEventListener("dragover", onDragOver);
     dropZoneElement.addEventListener("dragleave", onDragLeave);
     dropZoneElement.addEventListener("drop", onDrop);
     dropZoneElement.addEventListener('paste', onPaste);
@@ -91,8 +97,8 @@ window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
     // The returned object allows to unregister the events when the Blazor component is destroyed
     return {
         dispose: () => {
-            dropZoneElement.removeEventListener('dragenter', onDragHover);
-            dropZoneElement.removeEventListener('dragover', onDragHover);
+            dropZoneElement.removeEventListener('dragenter', onDragEnter);
+            dropZoneElement.removeEventListener('dragover', onDragOver);
             dropZoneElement.removeEventListener('dragleave', onDragLeave);
             dropZoneElement.removeEventListener("drop", onDrop);
             dropZoneElement.removeEventListener('paste', onPaste);
