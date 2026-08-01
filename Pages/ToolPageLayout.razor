@@ -3,7 +3,7 @@
         <HeaderActions>
             @if (HelpContent is not null)
             {
-                <button type="button" class="btn btn-outline-secondary btn-sm tool-help-toggle" @onclick="ToggleHelp"
+                <button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" @onclick="ToggleHelp"
                         aria-expanded="@_showHelp" aria-controls="@_helpPanelId">
                     <span class="bi @(_showHelp ? "bi-x-circle" : "bi-info-circle")" aria-hidden="true"></span>
                     @(_showHelp ? "Hide Help" : "Show Help")

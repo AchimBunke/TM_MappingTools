@@ -1,9 +1,17 @@
 <div class="tool-panel @Class">
-    <div class="tool-panel-header">
-        <h2 class="tool-panel-title">@Title</h2>
-        @if (!string.IsNullOrWhiteSpace(Description))
+    <div class="tool-panel-header" style="@(HeaderContent is not null ? "display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;" : null)">
+        <div>
+            <h2 class="tool-panel-title">@Title</h2>
+            @if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <p class="tool-panel-desc">@Description</p>
+            }
+        </div>
+        @if (HeaderContent is not null)
         {
-            <p class="tool-panel-desc">@Description</p>
+            <div style="flex-shrink:0;">
+                @HeaderContent
+            </div>
         }
     </div>
     <div class="tool-panel-body @BodyClass">
@@ -28,4 +36,8 @@
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Optional content rendered at the top-right of the card header (e.g. action buttons).</summary>
+    [Parameter]
+    public RenderFragment? HeaderContent { get; set; }
 }

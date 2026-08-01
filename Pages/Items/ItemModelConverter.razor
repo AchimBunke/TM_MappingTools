@@ -31,6 +31,18 @@
     </IORow>
     <Sidebar>
         <ToolCard Title="Input Selection" BodyClass="small">
+            <HeaderContent>  
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn"
+                        enable="@isMeshLoaded" disabled="@(!isMeshLoaded)"
+                        @onclick="() => _showPreview = !_showPreview"
+                        title="@(_showPreview ? "Hide mesh preview" : "Show mesh preview")">
+                        <span class="bi @(_showPreview ? "bi-eye-slash" : "bi-eye")" aria-hidden="true"></span>
+                        @(_showPreview ? "Hide Preview" : "Show Preview")
+                    </button>
+                </div>
+            </HeaderContent>
+            <ChildContent>
             @if (isMeshLoaded)
             {
                 <div style="overflow-x:auto; overflow-y:auto; max-height:400px;">
@@ -53,7 +65,11 @@
                                 @foreach (var (index, subMesh) in group)
                                 {
                                     var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
-                                    <li class="d-flex align-items-center gap-2 py-1" style="@SubmeshRowStyle(cfg.Enabled)">
+                                    var localIndex = index;
+                                    <li class="d-flex align-items-center gap-2 py-1"
+                                        style="@SubmeshRowStyle(cfg.Enabled, localIndex == _selectedSubmeshIndex)"
+                                        role="button"
+                                        @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
                                         <span style="flex:1 1 0; min-width:0;" class="text-truncate small"
                                               title="@subMesh.Name">@subMesh.Name</span>
                                         @* <span style="flex:0 0 7rem; min-width:0;" class="text-truncate small"
@@ -90,9 +106,19 @@
                 {
                     <div class="text-danger small">Failed to load mesh from item. See output for more details.</div>
                 }
+                </ChildContent>
             </ToolCard>
         </Sidebar>
         <Main>
+            @if (_showPreview)
+            {
+                <ToolCard Title="Mesh Preview" Description="Click a mesh part in the list or 3D view to select it.">
+                    <MeshPreviewPanel Mesh="@(isMeshLoaded ? loadedMesh : null)"
+                                      SubmeshConfigs="_previewConfigs"
+                                      SelectedSubmeshIndex="_selectedSubmeshIndex"
+                                      SelectedSubmeshIndexChanged="OnPreviewSubmeshSelected" />
+                </ToolCard>
+            }
             <ToolCard Title="Actions">
                 <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Model Converter"
                                ExecutionTargetOverwrite="Generate Converted Items" Tooltip="Execute the tool with the loaded items."
@@ -153,6 +179,9 @@
     [SessionStored] private Dictionary<int, SubMeshConfig> submeshConfigs = new();
 
     private IReadOnlyList<ValidationIssue> _validationIssues = Array.Empty<ValidationIssue>();
+    private bool _showPreview = false;
+    private int? _selectedSubmeshIndex;
+    private IReadOnlyDictionary<int, SubmeshDisplayConfig>? _previewConfigs;
 
     private class SubMeshConfig
     {
@@ -235,6 +264,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
     {
         if (ItemFileService.Item != null)
         {
+            _selectedSubmeshIndex = null;
             isMeshLoaded = TryLoadMeshFromItem(out loadedMesh);
             if (isMeshLoaded)
             {
@@ -245,11 +275,37 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         {
             isMeshLoaded = false;
             submeshConfigs = new();
+            _selectedSubmeshIndex = null;
+            _previewConfigs = null;
         }
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string SubmeshRowStyle(bool enabled) => enabled ? string.Empty : "opacity:0.45";
+    private static string SubmeshRowStyle(bool enabled, bool selected)
+    {
+        var s = enabled ? "" : "opacity:0.45;";
+        if (selected) s += "background:var(--tm-accent-soft,#1a2f4a);border-left:3px solid var(--tm-accent);padding-left:0.25rem;";
+        return s;
+    }
+
+    private void OnPreviewSubmeshSelected(int? index) => _selectedSubmeshIndex = index;
+
+    private void BuildPreviewConfigs()
+    {
+        var dict = new Dictionary<int, SubmeshDisplayConfig>(submeshConfigs.Count);
+        foreach (var (k, v) in submeshConfigs)
+        {
+            dict[k] = new SubmeshDisplayConfig
+            {
+                Enabled    = v.Enabled,
+                Visible    = v.Visible,
+                Collidable = v.Collidable,
+                Trigger    = v.Trigger,
+                Movable    = v.Movable,
+            };
+        }
+        _previewConfigs = dict;
+    }
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
@@ -320,6 +376,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
             _validationIssues = issues;
             return;
         }
+        BuildPreviewConfigs();
         if (!parameterValues.GetBool("useConfiguration"))
         {
             switch (targetType)

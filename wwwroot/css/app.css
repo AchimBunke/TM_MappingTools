@@ -280,7 +280,7 @@ code {
     flex-shrink: 0;
 }
 
-.tool-help-toggle {
+.tool-toggle-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;

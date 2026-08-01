@@ -1,0 +1,317 @@
+@using TM_GenericMapping.Common
+@using TM_GenericMapping.Items
+@using TM_MappingTools.Model
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@if (_expanded)
+{
+    <div class="mesh-preview-backdrop" @onclick="ToggleExpanded"></div>
+}
+<div class="mesh-preview-wrapper @(_expanded ? "expanded" : "")">
+    <canvas @ref="_canvas" class="mesh-preview-canvas" tabindex="0"
+            title="Click a mesh part to select it. Drag to orbit, scroll to zoom."></canvas>
+
+    @if (!_ready)
+    {
+        <div class="mesh-preview-placeholder">
+            <span class="bi bi-bounding-box" aria-hidden="true"></span>
+            <span class="mesh-preview-placeholder-label">
+                @(Mesh is null || Mesh.Submeshes.Length == 0
+                    ? "Load an item to preview it"
+                    : "Initialising preview\u2026")
+            </span>
+        </div>
+    }
+
+    @if (_ready)
+    {
+        <div class="mesh-preview-toolbar">
+            <button class="mesh-preview-toolbar-btn @(_renderMode > 0 ? "active" : "")"
+                    title="@(_renderMode switch { 1 => "Wireframe", 2 => "Solid + Edges", _ => "Solid" })"
+                    @onclick="CycleRenderMode">
+                <span class="bi @(_renderMode switch { 1 => "bi-grid-3x3", 2 => "bi-pentagon", _ => "bi-pentagon-fill" })" aria-hidden="true"></span>
+            </button>
+            <button class="mesh-preview-toolbar-btn @(_showSettings ? "active" : "")" title="Camera sensitivity" @onclick="ToggleSettings">
+                <span class="bi bi-sliders" aria-hidden="true"></span>
+            </button>
+            <button class="mesh-preview-toolbar-btn @(_expanded ? "active" : "")" title="@(_expanded ? "Collapse" : "Expand")" @onclick="ToggleExpanded">
+                <span class="bi @(_expanded ? "bi-fullscreen-exit" : "bi-fullscreen")" aria-hidden="true"></span>
+            </button>
+        </div>
+
+        @if (_showSettings)
+        {
+            <div class="mesh-preview-settings-panel">
+                <div class="settings-row">
+                    <label>Orbit <span class="settings-val">@_rotateSpeed.ToString("0.0")</span></label>
+                    <input type="range" min="0.1" max="5.0" step="0.1"
+                           value="@_rotateSpeed"
+                           @ref="_rotateSliderRef" />
+                </div>
+                <div class="settings-row">
+                    <label>Zoom <span class="settings-val">@_zoomSpeed.ToString("0.0")</span></label>
+                    <input type="range" min="0.1" max="5.0" step="0.1"
+                           value="@_zoomSpeed"
+                           @ref="_zoomSliderRef" />
+                </div>
+                <div class="settings-row">
+                    <label>Pan <span class="settings-val">@_panSpeed.ToString("0.0")</span></label>
+                    <input type="range" min="0.1" max="5.0" step="0.1"
+                           value="@_panSpeed"
+                           @ref="_panSliderRef" />
+                </div>
+            </div>
+        }
+    }
+
+    @if (_ready && Mesh is not null)
+    {
+        <div class="mesh-preview-legend">
+            <span class="legend-dot" style="--dot-color:#4488ff;"></span><span>Default</span>
+            <span class="legend-dot" style="--dot-color:#ddaa22;"></span><span>Collidable</span>
+            <span class="legend-dot" style="--dot-color:#ff4488;"></span><span>Trigger</span>
+            <span class="legend-dot" style="--dot-color:#33ccbb;"></span><span>Movable</span>
+        </div>
+
+        <div class="mesh-preview-hints">
+            <span>Drag</span><span class="hint-sep">·</span><span class="hint-action">Orbit</span>
+            <span>Scroll</span><span class="hint-sep">·</span><span class="hint-action">Zoom</span>
+            <span>Right-drag</span><span class="hint-sep">·</span><span class="hint-action">Pan</span>
+            <span>Click</span><span class="hint-sep">·</span><span class="hint-action">Select</span>
+        </div>
+
+        <div class="mesh-preview-status">
+            @Mesh.Submeshes.Length part(s)
+            @if (SelectedSubmeshIndex.HasValue && SelectedSubmeshIndex.Value < Mesh.Submeshes.Length)
+            {
+                <span class="mesh-preview-selected-label">
+                    &nbsp;&middot;&nbsp;@Mesh.Submeshes[SelectedSubmeshIndex.Value].Name
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    // ── Parameters ────────────────────────────────────────────────────────────
+
+    /// <summary>Mesh to render. The component reloads the Three.js scene whenever this changes.</summary>
+    [Parameter] public NormalizedMesh? Mesh { get; set; }
+
+    /// <summary>Per-index configuration (enabled/visible/collidable/trigger/movable).</summary>
+    [Parameter] public IReadOnlyDictionary<int, SubmeshDisplayConfig>? SubmeshConfigs { get; set; }
+
+    /// <summary>Currently highlighted submesh index (null = none).</summary>
+    [Parameter] public int? SelectedSubmeshIndex { get; set; }
+
+    /// <summary>Fires when the user clicks a submesh inside the 3-D canvas.</summary>
+    [Parameter] public EventCallback<int?> SelectedSubmeshIndexChanged { get; set; }
+
+    // ── Private state ─────────────────────────────────────────────────────────
+
+    private ElementReference _canvas;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<MeshPreviewPanel>? _dotNetRef;
+    private bool _ready;
+
+    // ── Camera sensitivity settings ───────────────────────────────────────────
+    private bool _showSettings;
+    private bool _settingsSlidersInitialized;    
+    private int  _renderMode = 0; // 0=solid  1=wireframe  2=solid+edges
+    private bool _expanded;
+    private float _rotateSpeed = 1.0f;
+    private float _zoomSpeed   = 1.0f;
+    private float _panSpeed    = 1.0f;
+    private ElementReference _rotateSliderRef;
+    private ElementReference _zoomSliderRef;
+    private ElementReference _panSliderRef;
+
+    // Track what we last pushed to JS. Use the submesh array reference
+    // for change detection to avoid comparing the full struct.
+    private NormalizedSubmesh[]? _lastSubmeshArray;
+    private IReadOnlyDictionary<int, SubmeshDisplayConfig>? _lastConfigs;
+    private int? _lastSelectedIndex;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/mesh-preview.js");
+            await _module.InvokeVoidAsync("initMeshPreview", _canvas, _dotNetRef);
+            _ready = true;
+
+            if (Mesh is not null && Mesh.Submeshes.Length > 0)
+                await PushMeshAsync();
+            else if (SubmeshConfigs is not null)
+                await PushConfigsAsync();
+
+            if (SelectedSubmeshIndex.HasValue)
+                await _module.InvokeVoidAsync("highlightSubmesh", _canvas, SelectedSubmeshIndex.Value);
+
+            StateHasChanged();
+        }
+
+        if (_showSettings && !_settingsSlidersInitialized && _module is not null)
+        {
+            await _module.InvokeVoidAsync("initSettingsSliders", _canvas, _rotateSliderRef, _zoomSliderRef, _panSliderRef);
+            _settingsSlidersInitialized = true;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_module is null) return; // not yet initialised
+
+        bool meshChanged    = !ReferenceEquals(Mesh?.Submeshes, _lastSubmeshArray);
+        bool configsChanged = !ReferenceEquals(SubmeshConfigs, _lastConfigs);
+        bool selChanged     = SelectedSubmeshIndex != _lastSelectedIndex;
+
+        if (meshChanged)
+            await PushMeshAsync();
+        else if (configsChanged)
+            await PushConfigsAsync();
+
+        if (selChanged)
+        {
+            _lastSelectedIndex = SelectedSubmeshIndex;
+            await _module.InvokeVoidAsync("highlightSubmesh", _canvas, SelectedSubmeshIndex ?? -1);
+        }
+    }
+
+    // ── JS bridge ─────────────────────────────────────────────────────────────
+
+    private async Task PushMeshAsync()
+    {
+        if (_module is null || Mesh is null) return;
+
+        _lastSubmeshArray = Mesh.Submeshes;
+        _lastConfigs = SubmeshConfigs;
+        _lastSelectedIndex = SelectedSubmeshIndex;
+
+        var submeshDtos = BuildSubmeshDtos(Mesh, SubmeshConfigs);
+        await _module.InvokeVoidAsync("updateMesh", _canvas, submeshDtos);
+        await _module.InvokeVoidAsync("highlightSubmesh", _canvas, SelectedSubmeshIndex ?? -1);
+    }
+
+    private async Task PushConfigsAsync()
+    {
+        if (_module is null) return;
+
+        _lastConfigs = SubmeshConfigs;
+        var configMap = BuildConfigMap(SubmeshConfigs);
+        await _module.InvokeVoidAsync("updateConfigs", _canvas, configMap);
+    }
+
+    // ── Settings panel ────────────────────────────────────────────────────────
+    private async Task CycleRenderMode()
+    {
+        _renderMode = (_renderMode + 1) % 3;
+        if (_module is not null)
+            await _module.InvokeVoidAsync("setRenderMode", _canvas, _renderMode);
+    }
+    private async Task ToggleExpanded()
+    {
+        _expanded = !_expanded;
+        if (_expanded && _module is not null)
+            await _module.InvokeVoidAsync("addEscapeListener", _dotNetRef);
+    }
+
+    [JSInvokable]
+    public void CollapsePreview()
+    {
+        _expanded = false;
+        StateHasChanged();
+    }
+    private void ToggleSettings()
+    {
+        _showSettings = !_showSettings;
+        _settingsSlidersInitialized = false;
+    }
+
+    // ── JS → Blazor callback ──────────────────────────────────────────────────
+
+    [JSInvokable]
+    public async Task OnSubmeshSelected(int index)
+    {
+        _lastSelectedIndex = index >= 0 ? index : null;
+        await SelectedSubmeshIndexChanged.InvokeAsync(_lastSelectedIndex);
+    }
+
+    // ── Data serialisation ────────────────────────────────────────────────────
+
+    private static object[] BuildSubmeshDtos(
+        NormalizedMesh mesh,
+        IReadOnlyDictionary<int, SubmeshDisplayConfig>? configs)
+    {
+        var result = new object[mesh.Submeshes.Length];
+        for (int i = 0; i < mesh.Submeshes.Length; i++)
+        {
+            var s = mesh.Submeshes[i];
+            var cfg = configs?.GetValueOrDefault(i);
+
+            float[] positions = FlattenVec3(s.Positions);
+            float[]? normals  = s.Normals?.Length > 0 ? FlattenVec3(s.Normals) : null;
+
+            result[i] = new
+            {
+                name       = s.Name,
+                type       = (int)s.Type,
+                positions,
+                normals,
+                indices    = s.Indices,
+                enabled    = cfg?.Enabled    ?? true,
+                visible    = cfg?.Visible    ?? true,
+                collidable = cfg?.Collidable ?? false,
+                trigger    = cfg?.Trigger    ?? false,
+                movable    = cfg?.Movable    ?? false,
+            };
+        }
+        return result;
+    }
+
+    private static Dictionary<int, object> BuildConfigMap(IReadOnlyDictionary<int, SubmeshDisplayConfig>? configs)
+    {
+        if (configs is null) return [];
+        var map = new Dictionary<int, object>(configs.Count);
+        foreach (var (k, v) in configs)
+        {
+            map[k] = new
+            {
+                enabled    = v.Enabled,
+                visible    = v.Visible,
+                collidable = v.Collidable,
+                trigger    = v.Trigger,
+                movable    = v.Movable,
+            };
+        }
+        return map;
+    }
+
+    private static float[] FlattenVec3(GBX.NET.Vec3[] vecs)
+    {
+        var arr = new float[vecs.Length * 3];
+        for (int i = 0; i < vecs.Length; i++)
+        {
+            arr[i * 3]     = vecs[i].X;
+            arr[i * 3 + 1] = vecs[i].Y;
+            arr[i * 3 + 2] = vecs[i].Z;
+        }
+        return arr;
+    }
+
+    // ── Disposal ──────────────────────────────────────────────────────────────
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            try { await _module.InvokeVoidAsync("disposeMeshPreview", _canvas); } catch { }
+            await _module.DisposeAsync();
+        }
+        _dotNetRef?.Dispose();
+    }
+}
