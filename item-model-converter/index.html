@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.3ph2kw92r0.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.l7303kdkks.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js"
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.zwue5b1r3w.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.3ph2kw92r0.js": "sha256-F+oVZFtlocRCehTA+9gdBb7AdW3FuWj5AS9Y1AdYckk=",
-    "./_framework/dotnet.js": "sha256-F+oVZFtlocRCehTA+9gdBb7AdW3FuWj5AS9Y1AdYckk=",
+    "./_framework/dotnet.js": "sha256-A5WSUGCX0JY/0aJ4BS7roRcXaUkUPar9W6LxZA3/3hE=",
     "./_framework/dotnet.native.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
     "./_framework/dotnet.native.l7303kdkks.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
     "./_framework/dotnet.runtime.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
-    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU="
+    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
+    "./_framework/dotnet.zwue5b1r3w.js": "sha256-A5WSUGCX0JY/0aJ4BS7roRcXaUkUPar9W6LxZA3/3hE="
   }
 }</script>
         <script>
@@ -48,7 +48,7 @@
         })()
     </script>
     
-    <link href="_framework/dotnet.3ph2kw92r0.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-F+oVZFtlocRCehTA+9gdBb7AdW3FuWj5AS9Y1AdYckk="/>
+    <link href="_framework/dotnet.zwue5b1r3w.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-A5WSUGCX0JY/0aJ4BS7roRcXaUkUPar9W6LxZA3/3hE="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -83,20 +83,16 @@
 
 <div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-arrow-left-right tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text"><h1 class="tool-page-title">Item Model Converter</h1><p class="tool-page-desc">Convert item models for different formats. Create in-game editable, moving, custom gate and other types of items from any input item.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" aria-controls="item-model-converter-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
-                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Item To Convert</h2><p class="tool-panel-desc">Load the item you want to convert.</p></div></div>
-    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-5e9ea039da8849bc84510994df5eb522" class="visually-hidden" accept=".Item.Gbx" type="file" />
+                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Item To Convert</h2><p class="tool-panel-desc">Load the item you want to convert.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-71ba185f6f8b47009b2b7331bbbfbff7" class="visually-hidden" accept=".Item.Gbx" type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No file loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop the item you want to convert here or
-                <label for="filePicker-5e9ea039da8849bc84510994df5eb522" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
-            </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><div><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the created item.</p></div></div>
-    <div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar" style="flex: 0 1 clamp(480px, 50vw, 750px); width: clamp(480px, 50vw, 750px);"><div class="tool-panel "><div class="tool-panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;"><div><h2 class="tool-panel-title">Input Selection</h2></div><div style="flex-shrink:0;"><div class="d-flex justify-content-end mb-2"><button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" disabled title="Show mesh preview"><span class="bi bi-eye" aria-hidden="true"></span>
-                        Show Preview</button></div></div></div>
-    <div class="tool-panel-body small"></div></div></div>
-            <div class="tool-page-main"><div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Actions</h2></div></div>
-    <div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Generate Converted Items</strong></span></span>
+                <label for="filePicker-71ba185f6f8b47009b2b7331bbbfbff7" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+            </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the created item.</p></div></div><div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar" style="flex: 0 1 clamp(480px, 50vw, 750px); width: clamp(480px, 50vw, 750px);"><div class="tool-panel  "><div class="tool-panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;"><div><h2 class="tool-panel-title">Mesh Configuration</h2></div><div style="flex-shrink:0; display:flex; align-items:center; gap:0.4rem;"><div class="d-flex justify-content-end mb-2"><button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" disabled title="Show mesh preview"><span class="bi bi-eye" aria-hidden="true"></span>
+                        Show Preview</button></div></div></div><div class="tool-panel-body small"></div></div>
+        <div class="tool-panel  tool-panel--collapsed"><div class="tool-panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;"><div><h2 class="tool-panel-title">LOD Configuration</h2></div><div style="flex-shrink:0; display:flex; align-items:center; gap:0.4rem;"><button class="tool-panel-collapse-btn tool-panel-collapse-btn--collapsed" title="Expand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 L8 5 L13 10"></path></svg></button></div></div></div></div>
+            <div class="tool-page-main"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Actions</h2></div></div><div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Generate Converted Items</strong></span></span>
     <button type="button" class="btn btn-primary " disabled title="Execute the tool with the loaded items." b-0uij2y1ggg><span b-0uij2y1ggg>Execute</span></button></div></div></div>
-            <div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Parameters</h2></div></div>
-    <div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_useConfiguration" title="Whether to use the configuration from the input selection for the item." b-8y05qc4gvo>Use Configuration</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Whether to use the configuration from the input selection for the item." aria-label="Whether to use the configuration from the input selection for the item." b-8y05qc4gvo>?</span></div></div>
+    <div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Parameters</h2></div></div><div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_useConfiguration" title="Whether to use the configuration from the input selection for the item." b-8y05qc4gvo>Use Configuration</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Whether to use the configuration from the input selection for the item." aria-label="Whether to use the configuration from the input selection for the item." b-8y05qc4gvo>?</span></div></div>
                     <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_useConfiguration" b-naxks4w9st><input id="tool_parameter_useConfiguration" type="checkbox" checked b-naxks4w9st />
                 <span b-naxks4w9st>Enabled</span></label></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_targetType" title="The target type of the item. Crystal: In-game editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger." b-8y05qc4gvo>Target Type</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="The target type of the item. Crystal: In-game editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger." aria-label="The target type of the item. Crystal: In-game editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger." b-8y05qc4gvo>?</span></div></div>
                     <div b-naxks4w9st><select id="tool_parameter_targetType" class="form-select" value="Solid2Model" b-naxks4w9st><option value="Crystal" b-naxks4w9st>Crystal</option><option value="CrystalWaypoint" b-naxks4w9st>Crystal Waypoint</option><option value="Solid2Model" b-naxks4w9st selected>Solid2Model</option><option value="Moving" b-naxks4w9st>Moving</option><option value="CustomGate" b-naxks4w9st>CustomGate</option></select></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_gateGameplayEffect" title="The gameplay effect of the custom gate." b-8y05qc4gvo>Gate Gameplay Effect</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="The gameplay effect of the custom gate." aria-label="The gameplay effect of the custom gate." b-8y05qc4gvo>?</span></div></div>

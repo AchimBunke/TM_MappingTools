@@ -486,6 +486,142 @@ code {
     color: var(--tm-text-muted);
 }
 
+.tool-panel--collapsed .tool-panel-header {
+    border-bottom: none;
+}
+
+.tool-panel-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--tm-radius-sm);
+    background: transparent;
+    color: var(--tm-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.tool-panel-collapse-btn:hover {
+    background: var(--tm-border);
+    color: var(--tm-text);
+}
+
+.tool-panel-collapse-btn svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    display: block;
+    transition: transform 0.2s ease;
+    transform: rotate(0deg);
+}
+
+.tool-panel-collapse-btn--collapsed svg {
+    transform: rotate(180deg);
+}
+
+/* ── Shared mesh/LOD configuration table ─────────────────────── */
+.cfg-table-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.cfg-table {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.cfg-table-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    font-size: 0.72em;
+    color: var(--tm-text-muted);
+    font-weight: 600;
+    border-bottom: 2px solid var(--tm-border);
+    position: sticky;
+    top: 0;
+    background: var(--tm-surface);
+    z-index: 1;
+}
+
+.cfg-table-group {
+    font-weight: 600;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tm-text-muted);
+    border-bottom: 1px solid var(--tm-border);
+    padding-bottom: 0.2rem;
+    margin-top: 0.6rem;
+    margin-bottom: 0.25rem;
+}
+
+.cfg-table-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.cfg-col-name {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.cfg-col-verts {
+    width: 2.5rem;
+    text-align: right;
+    flex-shrink: 0;
+    color: var(--tm-text-muted);
+    font-size: 0.78em;
+}
+
+.cfg-col-check {
+    width: 2rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+.cfg-col-vertical
+{
+    transform: rotate(-90deg);
+    transform-origin: center;
+}
+
+/* ── LOD distances editor ─────────────────────────────────────── */
+.lod-distances-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--tm-border);
+}
+
+.lod-distance-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lod-distance-label {
+    width: 7rem;
+    flex-shrink: 0;
+    font-size: 0.8em;
+    color: var(--tm-text-muted);
+}
+
+.lod-distance-input {
+    width: 5rem;
+    text-align: right;
+}
+
 .tool-help-panel {
     position: sticky;
     top: 5.25rem;

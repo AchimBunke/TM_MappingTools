@@ -758,6 +758,12 @@ main[b-yrpmrvqeod] {
     background: var(--tm-accent-soft);
 }
 
+.lod-btn-label[b-t6g1p4ci08] {
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+
 /* ── control hints (bottom-right) ───────────────────────────────────────── */
 .mesh-preview-hints[b-t6g1p4ci08] {
     position: absolute;
@@ -869,6 +875,25 @@ main[b-yrpmrvqeod] {
 .settings-val[b-t6g1p4ci08] {
     color: var(--tm-text);
     font-variant-numeric: tabular-nums;
+}
+
+.settings-row--lod[b-t6g1p4ci08] {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.settings-row--lod label:first-child[b-t6g1p4ci08] {
+    width: 2.8rem;
+}
+
+.settings-row--lod label:last-child[b-t6g1p4ci08] {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.mesh-preview-settings-panel--lod[b-t6g1p4ci08] {
+    min-width: 120px;
 }
 
 .settings-row input[type="range"][b-t6g1p4ci08] {

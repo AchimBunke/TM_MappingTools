@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.3ph2kw92r0.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.l7303kdkks.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js"
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.zwue5b1r3w.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.3ph2kw92r0.js": "sha256-F+oVZFtlocRCehTA+9gdBb7AdW3FuWj5AS9Y1AdYckk=",
-    "./_framework/dotnet.js": "sha256-F+oVZFtlocRCehTA+9gdBb7AdW3FuWj5AS9Y1AdYckk=",
+    "./_framework/dotnet.js": "sha256-A5WSUGCX0JY/0aJ4BS7roRcXaUkUPar9W6LxZA3/3hE=",
     "./_framework/dotnet.native.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
     "./_framework/dotnet.native.l7303kdkks.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
     "./_framework/dotnet.runtime.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
-    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU="
+    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
+    "./_framework/dotnet.zwue5b1r3w.js": "sha256-A5WSUGCX0JY/0aJ4BS7roRcXaUkUPar9W6LxZA3/3hE="
   }
 }</script>
         <script>
@@ -48,7 +48,7 @@
         })()
     </script>
     
-    <link href="_framework/dotnet.3ph2kw92r0.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-F+oVZFtlocRCehTA+9gdBb7AdW3FuWj5AS9Y1AdYckk="/>
+    <link href="_framework/dotnet.zwue5b1r3w.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-A5WSUGCX0JY/0aJ4BS7roRcXaUkUPar9W6LxZA3/3hE="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -83,26 +83,20 @@
 
 <div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-box-arrow-in-right tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text"><h1 class="tool-page-title">Moving Item Creator</h1><p class="tool-page-desc">Create moving items.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" aria-controls="moving-item-creator-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
-                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Animation Template (Optional)</h2><p class="tool-panel-desc">Load one .Item.Gbx to copy moving animation data and placement from.</p></div></div>
-    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-ad654d48917543a7913d5555f8b5231e" class="visually-hidden" accept=".Item.Gbx" type="file" />
+                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Animation Template (Optional)</h2><p class="tool-panel-desc">Load one .Item.Gbx to copy moving animation data and placement from.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-b21aea032e25460c84d5003d4b6cbdc3" class="visually-hidden" accept=".Item.Gbx" type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No template item loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop a .Item.Gbx template item in this area or
-                <label for="filePicker-ad654d48917543a7913d5555f8b5231e" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+                <label for="filePicker-b21aea032e25460c84d5003d4b6cbdc3" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
             </div></div></div></div></div>
-                <div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Items To Convert</h2><p class="tool-panel-desc">Load all .Item.Gbx files that should become moving items.</p></div></div>
-    <div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-f7ab302bb4f14840870f47d52824b91a" class="visually-hidden" accept=".Item.Gbx" multiple type="file" />
+                <div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Items To Convert</h2><p class="tool-panel-desc">Load all .Item.Gbx files that should become moving items.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-6dcb9dd5b9ae4865b8af4f3ce61dd5ac" class="visually-hidden" accept=".Item.Gbx" multiple type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No files loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop all items you want to convert to moving here or
-                <label for="filePicker-f7ab302bb4f14840870f47d52824b91a" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
-            </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel"><div class="tool-panel-header"><div><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the created moving item.</p></div></div>
-    <div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"><div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Input Selection</h2></div></div>
-    <div class="tool-panel-body small text-muted"><div>Template item loaded: No</div>
+                <label for="filePicker-6dcb9dd5b9ae4865b8af4f3ce61dd5ac" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
+            </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the created moving item.</p></div></div><div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout "><div class="tool-page-sidebar"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Input Selection</h2></div></div><div class="tool-panel-body small text-muted"><div>Template item loaded: No</div>
             <div>Items to convert: 0</div></div></div></div>
-            <div class="tool-page-main"><div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Actions</h2></div></div>
-    <div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Generate Moving Items</strong></span></span>
+            <div class="tool-page-main"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Actions</h2></div></div><div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Generate Moving Items</strong></span></span>
     <button type="button" class="btn btn-primary " disabled title="Execute the tool with the loaded items." b-0uij2y1ggg><span b-0uij2y1ggg>Execute</span></button></div></div></div>
-        <div class="tool-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Parameters</h2></div></div>
-    <div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_author" title="The author of the moving item." b-8y05qc4gvo>Author Name</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="The author of the moving item." aria-label="The author of the moving item." b-8y05qc4gvo>?</span></div></div>
+        <div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Parameters</h2></div></div><div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_author" title="The author of the moving item." b-8y05qc4gvo>Author Name</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="The author of the moving item." aria-label="The author of the moving item." b-8y05qc4gvo>?</span></div></div>
                     <div b-naxks4w9st><input id="tool_parameter_author" class="form-control" type="text" value="" b-naxks4w9st /></div></div><div class="parameter-input-field parameter-input-group-field" style="grid-column: span 2" b-8y05qc4gvo><div class="parameter-input-group-header" b-8y05qc4gvo>Prefix / Suffix</div><div class="parameter-input-group-inner" style="grid-template-columns: repeat(2, minmax(0, 1fr))" b-8y05qc4gvo><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_namePrefix" title="The prefix to prepend to the name of the source item." b-8y05qc4gvo>Item Name Prefix</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="The prefix to prepend to the name of the source item." aria-label="The prefix to prepend to the name of the source item." b-8y05qc4gvo>?</span></div></div>
                                 <div b-naxks4w9st><input id="tool_parameter_namePrefix" class="form-control" type="text" value="" b-naxks4w9st /></div></div><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_nameSuffix" title="The suffix to append to the name of the source item." b-8y05qc4gvo>Item Name Suffix</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="The suffix to append to the name of the source item." aria-label="The suffix to append to the name of the source item." b-8y05qc4gvo>?</span></div></div>
                                 <div b-naxks4w9st><input id="tool_parameter_nameSuffix" class="form-control" type="text" value="" b-naxks4w9st /></div></div></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_useTemplateAnimations" title="Whether to use the template animations for the moving item if there is one." b-8y05qc4gvo>Use Template Animations</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Whether to use the template animations for the moving item if there is one." aria-label="Whether to use the template animations for the moving item if there is one." b-8y05qc4gvo>?</span></div></div>
