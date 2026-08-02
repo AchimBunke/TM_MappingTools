@@ -74,6 +74,12 @@
     background: var(--tm-accent-soft);
 }
 
+.lod-btn-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+
 /* ── control hints (bottom-right) ───────────────────────────────────────── */
 .mesh-preview-hints {
     position: absolute;
@@ -185,6 +191,25 @@
 .settings-val {
     color: var(--tm-text);
     font-variant-numeric: tabular-nums;
+}
+
+.settings-row--lod {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.settings-row--lod label:first-child {
+    width: 2.8rem;
+}
+
+.settings-row--lod label:last-child {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.mesh-preview-settings-panel--lod {
+    min-width: 120px;
 }
 
 .settings-row input[type="range"] {

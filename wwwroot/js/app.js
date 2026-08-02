@@ -41,15 +41,15 @@ window.initOutputPanelResize = (panelEl, handleEl) => {
 };
 
 window.downloadFileFromStream = async (fileName, streamRef) => {
-            const arrayBuffer = await streamRef.arrayBuffer();
-            const blob = new Blob([arrayBuffer]);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+    const arrayBuffer = await streamRef.arrayBuffer();
+    const blob = new Blob([arrayBuffer]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
 window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
     let dragDepth = 0;
@@ -80,6 +80,19 @@ window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
         inputFile.dispatchEvent(event);
     }
 
+    function onDragEnd() {
+        dragDepth = 0;
+        dropZoneElement.classList.remove("hover");
+    }
+
+    // Catches the case where the user drags out of the browser window entirely
+    function onDocumentDragLeave(e) {
+        if (e.relatedTarget === null) {
+            dragDepth = 0;
+            dropZoneElement.classList.remove("hover");
+        }
+    }
+
     function onPaste(e) {
         // Set the files property of the input element and raise the change event
         inputFile.files = e.clipboardData.files;
@@ -93,6 +106,8 @@ window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
     dropZoneElement.addEventListener("dragleave", onDragLeave);
     dropZoneElement.addEventListener("drop", onDrop);
     dropZoneElement.addEventListener('paste', onPaste);
+    dropZoneElement.addEventListener("dragend", onDragEnd);
+    document.addEventListener("dragleave", onDocumentDragLeave);
 
     // The returned object allows to unregister the events when the Blazor component is destroyed
     return {
@@ -102,9 +117,12 @@ window.initializeFileDropZone = async (dropZoneElement, inputFile) => {
             dropZoneElement.removeEventListener('dragleave', onDragLeave);
             dropZoneElement.removeEventListener("drop", onDrop);
             dropZoneElement.removeEventListener('paste', onPaste);
+            dropZoneElement.removeEventListener("dragend", onDragEnd);
+            document.removeEventListener("dragleave", onDocumentDragLeave);
         }
     }
 }
+
 
 window.getTheme = () => localStorage.getItem('tm-theme') || 'dark';
 

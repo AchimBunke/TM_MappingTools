@@ -1,5 +1,5 @@
-<div class="tool-panel @Class">
-    <div class="tool-panel-header" style="@(HeaderContent is not null ? "display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;" : null)">
+<div class="tool-panel @Class @(_collapsed ? "tool-panel--collapsed" : null)">
+    <div class="tool-panel-header" style="@(HeaderContent is not null || Collapsible ? "display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;" : null)">
         <div>
             <h2 class="tool-panel-title">@Title</h2>
             @if (!string.IsNullOrWhiteSpace(Description))
@@ -7,16 +7,27 @@
                 <p class="tool-panel-desc">@Description</p>
             }
         </div>
-        @if (HeaderContent is not null)
+        @if (HeaderContent is not null || Collapsible)
         {
-            <div style="flex-shrink:0;">
+            <div style="flex-shrink:0; display:flex; align-items:center; gap:0.4rem;">
                 @HeaderContent
+                @if (Collapsible)
+                {
+                    <button class="tool-panel-collapse-btn @(_collapsed ? "tool-panel-collapse-btn--collapsed" : null)" title="@(_collapsed ? "Expand" : "Collapse")" @onclick="ToggleCollapsed">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 10 L8 5 L13 10" />
+                        </svg>
+                    </button>
+                }
             </div>
         }
     </div>
-    <div class="tool-panel-body @BodyClass">
-        @ChildContent
-    </div>
+    @if (!_collapsed)
+    {
+        <div class="tool-panel-body @BodyClass">
+            @ChildContent
+        </div>
+    }
 </div>
 
 @code {
@@ -40,4 +51,21 @@
     /// <summary>Optional content rendered at the top-right of the card header (e.g. action buttons).</summary>
     [Parameter]
     public RenderFragment? HeaderContent { get; set; }
+
+    /// <summary>When true, a collapse/expand toggle button is shown in the header.</summary>
+    [Parameter]
+    public bool Collapsible { get; set; }
+
+    /// <summary>Controls the initial collapsed state when Collapsible is true.</summary>
+    [Parameter]
+    public bool InitiallyCollapsed { get; set; }
+
+    private bool _collapsed;
+
+    protected override void OnInitialized()
+    {
+        _collapsed = Collapsible && InitiallyCollapsed;
+    }
+
+    private void ToggleCollapsed() => _collapsed = !_collapsed;
 }

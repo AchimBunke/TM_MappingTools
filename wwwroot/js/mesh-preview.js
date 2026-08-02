@@ -94,13 +94,14 @@ function applyConfigs(preview) {
         const isSelected = index === selectedIndex;
         const isShape    = SHAPE_TYPES.has(type);
         const isGhost    = !config.visible;
-
+        const isVisibleInLOD = (preview.visibleLODMask & config.lodMask) !== 0;  
+              
         if (!config.enabled) {
             mesh.visible = false;
             if (wireEdges) wireEdges.visible = false;
             continue;
         }
-        mesh.visible = true;
+        mesh.visible = isVisibleInLOD;
 
         const mat = mesh.material;
 
@@ -190,6 +191,7 @@ export function initMeshPreview(canvas, dotNetRef) {
         selectedIndex: null,
         wireframeMode: false,
         renderMode: 0,        // 0=solid  1=wireframe  2=solid+edges
+        visibleLODMask: 0xFFFFFFFF,
         dotNetRef,
         animFrameId: null,
         resizeObserver: null,
@@ -311,6 +313,7 @@ export function updateMesh(canvas, submeshes) {
                 collidable: sub.collidable,
                 trigger: sub.trigger,
                 movable: sub.movable,
+                lodMask: sub.lodMask,
             },
         });
 
@@ -378,6 +381,13 @@ export function setRenderMode(canvas, mode) {
     const preview = previews.get(canvas);
     if (!preview) return;
     preview.renderMode = mode;
+    applyConfigs(preview);
+}
+
+export function setLODVisibility(canvas, visibleLODMask) {
+    const preview = previews.get(canvas);
+    if (!preview) return;
+    preview.visibleLODMask = visibleLODMask;
     applyConfigs(preview);
 }
 
