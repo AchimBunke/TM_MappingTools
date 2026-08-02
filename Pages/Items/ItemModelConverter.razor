@@ -718,6 +718,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
     {
         var last = meshConfig.LODDistances.Count > 0 ? meshConfig.LODDistances[^1] : 0f;
         meshConfig.LODDistances.Add(last + 100f);
+        ValidateConfiguration();
     }
     private void RemoveLodDistance(int idx)
     {
@@ -729,6 +730,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
                 if (cfg.HasLOD)
                     cfg.LODMask = RemoveLodDistance(cfg.LODMask, idx, meshConfig.LODDistances.Count);
             }
+            ValidateConfiguration();
         }
     }
 
