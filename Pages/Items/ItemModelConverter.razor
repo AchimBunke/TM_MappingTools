@@ -530,6 +530,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
                         issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the gate will have no gameplay effect."));
                     break;
             }
+
             _validationIssues = issues;
             return;
         }
@@ -549,6 +550,10 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         bool hasMovable = enabledConfigs.Any(kv => kv.Value.Movable && kv.Value.Collidable);
         bool hasTrigger = enabledConfigs.Any(kv => kv.Value.Trigger);
         bool hasCollidable = enabledConfigs.Any(kv => kv.Value.Collidable);
+        if(meshConfig.LODDistances.Count >= 4)
+        {
+            issues.Add(new ValidationIssue(ValidationSeverity.Error, "No more than 4 LOD levels are supported — the item will crash the game when placed."));
+        }
 
         if (!hasVisible)
             issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No visible meshes selected — the item will be invisible in-game."));
@@ -691,7 +696,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
                 }
                 break;
         }
-        float[] lodDistances = meshConfig.LODDistances.ToArray();
+        float[] lodDistances = meshConfig.LODDistances.Select(ld=>ld / 2f).ToArray();
         Dictionary<int, int> lodMasks = submeshConfigs
             .Where(s => s.Value.HasLOD)
             .ToDictionary(kv => kv.Key, kv => kv.Value.LODMask);
