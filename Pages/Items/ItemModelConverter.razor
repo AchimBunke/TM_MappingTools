@@ -147,9 +147,6 @@
             </div>
             @* ── LOD mask table ───────────────────────────────────── *@
 
-            var lodCount = meshConfig.LODDistances.Count + 1;
-            var allLodsMask = NormalizedMesh.GetAllLodsMask(lodCount);
-
             <div class="cfg-table-wrap">
                 <ul class="cfg-table">
                     <li class="cfg-table-head">
@@ -157,7 +154,7 @@
                         <span class="cfg-col-verts">Verts</span>
                         <span class="cfg-col-check" title="Has LODs">LOD</span>
                         <span class="cfg-col-check" title="Visible in all LODs">All</span>
-                        @for (int lod = 0; lod < lodCount; lod++)
+                        @for (int lod = 0; lod < meshConfig.LODDistances.Count + 1; lod++)
                         {
                             <span class="cfg-col-check" title="LOD @lod">L@(lod)</span>
                         }
@@ -170,7 +167,7 @@
                             var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
                             var localIndex = index;
                             bool enabledLOD = cfg.Enabled && cfg.Visible && cfg.HasLOD;
-                            var isAllLods = NormalizedMesh.IsVisibleInAllLods(cfg.LODMask, meshConfig.LODDistances.Count);
+                            var isAllLods = NormalizedMesh.IsVisibleInAllLods(cfg.LODMask, meshConfig.LODDistances.Count + 1);
                             <li class="cfg-table-row"
                                 style="@SubmeshRowStyle(enabledLOD, localIndex == _selectedSubmeshIndex)" role="button"
                                 @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
@@ -183,10 +180,10 @@
                                 </div>
                                 <div class="cfg-col-check">
                                     <input type="checkbox" checked="@isAllLods" disabled="@(!enabledLOD)"
-                                           @onchange="e => { submeshConfigs[localIndex].LODMask = (bool)e.Value! ? allLodsMask : 0; ValidateConfiguration(); }"
+                                           @onchange="e => { submeshConfigs[localIndex].LODMask = (bool)e.Value! ? NormalizedMesh.GetAllLodsMask(meshConfig.LODDistances.Count + 1) : 0; ValidateConfiguration(); }"
                                            @onclick:stopPropagation />
                                 </div>
-                                @for (int lod = 0; lod < lodCount; lod++)
+                                @for (int lod = 0; lod < meshConfig.LODDistances.Count + 1; lod++)
                                 {
                                     var localLod = lod;
                                     <div class="cfg-col-check">
