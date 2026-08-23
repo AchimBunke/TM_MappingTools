@@ -21,34 +21,33 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.magfjwj326.js",
-    "./_framework/dotnet.native.js": "./_framework/dotnet.native.l7303kdkks.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.web2r9gqbh.js"
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.jwfp2jqb9l.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.zbexyp8zrs.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.uf7msipaqz.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-PmOJQk/hBIQ0AczrXcLWXsNWjAWWT4tgufaow9d4QmY=",
-    "./_framework/dotnet.magfjwj326.js": "sha256-PmOJQk/hBIQ0AczrXcLWXsNWjAWWT4tgufaow9d4QmY=",
-    "./_framework/dotnet.native.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
-    "./_framework/dotnet.native.l7303kdkks.js": "sha256-v2w5fX0DW9G7KyHaLR3CO8etdBAcWfK0tVxntbq/V/g=",
-    "./_framework/dotnet.runtime.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU=",
-    "./_framework/dotnet.runtime.web2r9gqbh.js": "sha256-SOUHEQ3FhDAibBSR2u90NWZpoBjPuWRmH0BAATUlhJU="
+    "./_framework/dotnet.js": "sha256-KgPKFI1XmDJKF/bUPBedZ0E5na+mG33Kv+1vm0aMGwE=",
+    "./_framework/dotnet.native.js": "sha256-PRXv24snhAv8VvBNKFCnQDHlib9tKYwlGBFnfStSm6A=",
+    "./_framework/dotnet.native.jwfp2jqb9l.js": "sha256-PRXv24snhAv8VvBNKFCnQDHlib9tKYwlGBFnfStSm6A=",
+    "./_framework/dotnet.runtime.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40=",
+    "./_framework/dotnet.runtime.zbexyp8zrs.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40=",
+    "./_framework/dotnet.uf7msipaqz.js": "sha256-KgPKFI1XmDJKF/bUPBedZ0E5na+mG33Kv+1vm0aMGwE="
   }
 }</script>
-        <script>
-        (function()
-        {
-            var t=localStorage.getItem('tm-theme')||'dark';
-            if(t==='dark')
-                document.documentElement.setAttribute('data-theme','dark');
-            else 
-            document.documentElement.removeAttribute('data-theme');
+    <script>
+        (function () {
+            var t = localStorage.getItem('tm-theme') || 'dark';
+            if (t === 'dark')
+                document.documentElement.setAttribute('data-theme', 'dark');
+            else
+                document.documentElement.removeAttribute('data-theme');
         })()
     </script>
-    
-    <link href="_framework/dotnet.magfjwj326.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-PmOJQk/hBIQ0AczrXcLWXsNWjAWWT4tgufaow9d4QmY="/>
+
+    <link href="_framework/dotnet.uf7msipaqz.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-KgPKFI1XmDJKF/bUPBedZ0E5na+mG33Kv+1vm0aMGwE="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -113,9 +112,25 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
-    <script src="_framework/blazor.webassembly.66stpp682q.js"></script>
+    <script src="_framework/blazor.webassembly.66stpp682q.js" autostart="false"></script>
     <script src="js/app.js"></script>
-
+    <script>
+        Blazor.start({
+            loadBootResource: function (type, name, defaultUri, integrity) {
+                if (type === 'dotnetjs') {
+                    // This resource must be a URI string, not a custom fetch/Response
+                    return defaultUri;
+                }
+                if (type === 'manifest') {
+                    // Only the boot manifest needs forced revalidation
+                    return fetch(defaultUri, { cache: 'no-cache' });
+                }
+                // Everything else: normal caching, integrity check intact
+                return fetch(defaultUri, { integrity: integrity, cache: 'default' });
+            }
+        });
+    </script>
+    <script src="js/app.js"></script>
 
 
 </body></html>
