@@ -35,7 +35,7 @@
             <HeaderContent>
                 <div class="d-flex justify-content-end mb-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn"
-                            enable="@isMeshLoaded" disabled="@(!isMeshLoaded)" @onclick="() => _showPreview = !_showPreview"
+                            enable="@isItemLoaded" disabled="@(!isItemLoaded)" @onclick="() => _showPreview = !_showPreview"
                             title="@(_showPreview ? "Hide mesh preview" : "Show mesh preview")">
                         <span class="bi @(_showPreview ? "bi-eye-slash" : "bi-eye")" aria-hidden="true"></span>
                         @(_showPreview ? "Hide Preview" : "Show Preview")
@@ -43,57 +43,68 @@
                 </div>
             </HeaderContent>
             <ChildContent>
-                @if (isMeshLoaded)
+                @if (isItemLoaded)
                 {
                     <div class="cfg-table-wrap">
                         <ul class="cfg-table" style="min-width:450px;">
                             <li class="cfg-table-head">
                                 <span class="cfg-col-name">Name</span>
+                                <span class="cfg-col-type">Type</span>
                                 <span class="cfg-col-verts">Verts</span>
                                 <span class="cfg-col-check" title="Enabled">En</span>
                                 <span class="cfg-col-check" title="Visible">Vis</span>
                                 <span class="cfg-col-check" title="Collidable">Col</span>
-                                <span class="cfg-col-check" title="Trigger">Tri</span>
+                                <span class="cfg-col-check" title="Effect Trigger">Eff</span>
+                                <span class="cfg-col-check" title="Waypoint Trigger">Way</span>
                                 <span class="cfg-col-check" title="Movable">Mov</span>
                             </li>
                             @foreach (var group in GroupedSubMeshes)
                             {
-                                <li class="cfg-table-group">@group.Key</li>
-                                @foreach (var (index, subMesh) in group)
+                                <li class="cfg-table-group">Group: @group.Key</li>
+                                @foreach (var typeGroup in TypesInGroup(group.Key))
                                 {
-                                    var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
-                                    var localIndex = index;
-                                    <li class="cfg-table-row"
-                                        style="@SubmeshRowStyle(cfg.Enabled, localIndex == _selectedSubmeshIndex)" role="button"
-                                        @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
-                                        <span class="cfg-col-name text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
-                                        <span class="cfg-col-verts">@subMesh.Positions.Length</span>
-                                        <div class="cfg-col-check">
-                                            <input type="checkbox" checked="@cfg.Enabled"
-                                                   @onchange="e => { cfg.Enabled = (bool)e.Value!; ValidateConfiguration(); }"
-                                                   @onclick:stopPropagation />
-                                        </div>
-                                        <div class="cfg-col-check">
-                                            <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)"
-                                                   @onchange="e => { cfg.Visible = (bool)e.Value!; ValidateConfiguration(); }"
-                                                   @onclick:stopPropagation />
-                                        </div>
-                                        <div class="cfg-col-check">
-                                            <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)"
-                                                   @onchange="e => { cfg.Collidable = (bool)e.Value!; ValidateConfiguration(); }"
-                                                   @onclick:stopPropagation />
-                                        </div>
-                                        <div class="cfg-col-check">
-                                            <input type="checkbox" checked="@cfg.Trigger" disabled="@(!cfg.Enabled)"
-                                                   @onchange="e => { cfg.Trigger = (bool)e.Value!; ValidateConfiguration(); }"
-                                                   @onclick:stopPropagation />
-                                        </div>
-                                        <div class="cfg-col-check">
-                                            <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)"
-                                                   @onchange="e => { cfg.Movable = (bool)e.Value!; ValidateConfiguration(); }"
-                                                   @onclick:stopPropagation />
-                                        </div>
-                                    </li>
+                                    @foreach (var (index, subMesh) in typeGroup)
+                                    {
+                                        var cfg = submeshConfigs.GetValueOrDefault(index) ?? new MeshConfig();
+                                        var localIndex = index;
+                                        <li class="cfg-table-row"
+                                            style="@SubmeshRowStyle(cfg.Enabled, localIndex == _selectedSubmeshIndex)" role="button"
+                                            @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
+                                            <span class="cfg-col-name text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
+                                            <span class="cfg-col-type">@subMesh.Type</span>
+                                            <span class="cfg-col-verts">@subMesh.Positions.Length</span>
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@cfg.Enabled"
+                                                       @onchange="e => { cfg.Enabled = (bool)e.Value!; ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)"
+                                                       @onchange="e => { cfg.Visible = (bool)e.Value!; ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)"
+                                                       @onchange="e => { cfg.Collidable = (bool)e.Value!; ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@cfg.Trigger_Effect" disabled="@(!cfg.Enabled)"
+                                                       @onchange="e => { cfg.Trigger_Effect = (bool)e.Value!; ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@cfg.Trigger_Waypoint" disabled="@(!cfg.Enabled)"
+                                                       @onchange="e => { cfg.Trigger_Waypoint = (bool)e.Value!; ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)"
+                                                       @onchange="e => { cfg.Movable = (bool)e.Value!; ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                        </li>
+                                    }
                                 }
                             }
                         </ul>
@@ -107,28 +118,28 @@
         </ToolCard>
         <ToolCard Title="LOD Configuration" BodyClass="small" Collapsible="true" InitiallyCollapsed="true">
             <ChildContent>
-                @if (isMeshLoaded)
+                @if (isItemLoaded)
                 {
                     @* ── LOD Distances editor ─────────────────────────────── *@
                     <div class="lod-distances-editor">
                         <div style="font-size:0.78em; font-weight:600; color:var(--tm-text-muted); margin-bottom:0.25rem;">
-                            LOD Distances — @(meshConfig.LODDistances.Count + 1) LOD level(s)
+                            LOD Distances — @(itemConfig.LODDistances.Count + 1) LOD level(s)
                         </div>
-                        @for (int i = 0; i < meshConfig.LODDistances.Count + 1; i++)
+                        @for (int i = 0; i < itemConfig.LODDistances.Count + 1; i++)
                         {
                             var localI = i;
 
                             <div class="lod-distance-row">
                                 <span class="lod-distance-label">LOD @(localI):&nbsp;&nbsp;&nbsp;@(localI == 0 ? "0" :
-                                                                meshConfig.LODDistances[localI - 1])
+                                                                                                    itemConfig.LODDistances[localI - 1])
                         -
-                        @(localI < meshConfig.LODDistances.Count ? meshConfig.LODDistances[localI] : "∞")</span>
+                        @(localI < itemConfig.LODDistances.Count ? itemConfig.LODDistances[localI] : "∞")</span>
                         <input type="number" class="form-control form-control-sm lod-distance-input"
-                               disabled="@(localI >= meshConfig.LODDistances.Count)" min="0" step="10"
-                               value="@(localI < meshConfig.LODDistances.Count ? meshConfig.LODDistances[localI] : 0)"
-                               @onchange="e => { if (float.TryParse(e.Value?.ToString(), out var v)) { if (localI < meshConfig.LODDistances.Count) meshConfig.LODDistances[localI] = v; } }" />
+                               disabled="@(localI >= itemConfig.LODDistances.Count)" min="0" step="10"
+                               value="@(localI < itemConfig.LODDistances.Count ? itemConfig.LODDistances[localI] : 0)"
+                               @onchange="e => { if (float.TryParse(e.Value?.ToString(), out var v)) { if (localI < itemConfig.LODDistances.Count) itemConfig.LODDistances[localI] = v; } }" />
                         <span style="font-size:0.8em; color:var(--tm-text-muted);"></span>
-                        @if (localI < meshConfig.LODDistances.Count)
+                        @if (localI < itemConfig.LODDistances.Count)
                         {
                             <button class="tool-panel-collapse-btn" title="Remove this LOD distance"
                                     @onclick="() => RemoveLodDistance(localI)">
@@ -154,7 +165,7 @@
                         <span class="cfg-col-verts">Verts</span>
                         <span class="cfg-col-check" title="Has LODs">LOD</span>
                         <span class="cfg-col-check" title="Visible in all LODs">All</span>
-                        @for (int lod = 0; lod < meshConfig.LODDistances.Count + 1; lod++)
+                        @for (int lod = 0; lod < itemConfig.LODDistances.Count + 1; lod++)
                         {
                             <span class="cfg-col-check" title="LOD @lod">L@(lod)</span>
                         }
@@ -164,10 +175,10 @@
                         <li class="cfg-table-group">@group.Key</li>
                         @foreach (var (index, subMesh) in group)
                         {
-                            var cfg = submeshConfigs.GetValueOrDefault(index) ?? new SubMeshConfig();
+                            var cfg = submeshConfigs.GetValueOrDefault(index) ?? new MeshConfig();
                             var localIndex = index;
                             bool enabledLOD = cfg.Enabled && cfg.Visible && cfg.HasLOD;
-                            var isAllLods = NormalizedMesh.IsVisibleInAllLods(cfg.LODMask, meshConfig.LODDistances.Count + 1);
+                            var isAllLods = LODUtils.IsVisibleInAllLods(cfg.LODMask, itemConfig.LODDistances.Count + 1);
                             <li class="cfg-table-row"
                                 style="@SubmeshRowStyle(enabledLOD, localIndex == _selectedSubmeshIndex)" role="button"
                                 @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
@@ -180,14 +191,14 @@
                                 </div>
                                 <div class="cfg-col-check">
                                     <input type="checkbox" checked="@isAllLods" disabled="@(!enabledLOD)"
-                                           @onchange="e => { submeshConfigs[localIndex].LODMask = (bool)e.Value! ? NormalizedMesh.GetAllLodsMask(meshConfig.LODDistances.Count + 1) : 0; ValidateConfiguration(); }"
+                                           @onchange="e => { submeshConfigs[localIndex].LODMask = (bool)e.Value! ? LODUtils.GetAllLodsMask(itemConfig.LODDistances.Count + 1) : 0; ValidateConfiguration(); }"
                                            @onclick:stopPropagation />
                                 </div>
-                                @for (int lod = 0; lod < meshConfig.LODDistances.Count + 1; lod++)
+                                @for (int lod = 0; lod < itemConfig.LODDistances.Count + 1; lod++)
                                 {
                                     var localLod = lod;
                                     <div class="cfg-col-check">
-                                        <input type="checkbox" checked="@NormalizedMesh.IsVisibleInLod(cfg.LODMask, localLod)"
+                                        <input type="checkbox" checked="@LODUtils.IsVisibleInLod(cfg.LODMask, localLod)"
                                                disabled="@(!enabledLOD)"
                                                @onchange="e => { submeshConfigs[localIndex].LODMask = ToggleLodBit(submeshConfigs[localIndex].LODMask, localLod, (bool)e.Value!); ValidateConfiguration(); }"
                                                @onclick:stopPropagation />
@@ -210,8 +221,8 @@
     @if (_showPreview)
     {
         <ToolCard Title="Mesh Preview" Description="Click a mesh part in the list or 3D view to select it.">
-            <MeshPreviewPanel Mesh="@(isMeshLoaded ? loadedMesh : null)" SubmeshConfigs="_previewConfigs"
-                              MeshConfig="meshConfig" SelectedSubmeshIndex="_selectedSubmeshIndex"
+            <MeshPreviewPanel Item="@(isItemLoaded ? loadedItem : null)" SubmeshConfigs="_previewConfigs"
+                              ItemConfig="itemConfig" SelectedSubmeshIndex="_selectedSubmeshIndex"
                               SelectedSubmeshIndexChanged="OnPreviewSubmeshSelected" />
         </ToolCard>
     }
@@ -277,64 +288,78 @@
                                     <p><strong>Movable</strong>: Is it part of the movable collision shape.</p>
                                 </li>
                             </ul>
-                    <h3>LOD Configuration</h3>
-                    <p>Edit an item's LOD distances and assign parts to different LOD levels.</p>
-                    <p>A LOD (Level of Detail) defines the distance at which different versions of the item's geometry are displayed. <strong>Distance</strong> doesnt mean physical distance from the camera but depends on FOV and size on screen (i think).</p>
-                    <p>If you disabled LOD for a part, it will always be rendered regardless of the distance. If its enabled, it will be rendered based on the specified LOD distances and the LODs it is assigned for. The last LOD is reserved for every distance greater than the last specified.</p>
-                    <p>Note that removing a LOD level will affect all parts assigned to that and following levels because distance assignments will shift.</p>
-                    <p>Inside the preview you can enable/disable LODs to see how they affect the rendering of the item.</p>
-                    <p>Not all output types support LOD configuration!</p>
-                            <h3>Practical workflows</h3>
-                            <h7>Example 1: Convert a Blender export static item to an in-game editable item</h7>
-                            <p>A static item exported from Blender has no moving parts and no trigger and is usually a Solid2Model which can
-                                not be edited in the in-game MeshModeler.</p>
-                                <p> To convert them to an in-game editable item, load the item, select the target type <strong>Crystal</strong>
-                                    (or <strong>Crystal Waypoint</strong> for waypoints) and enable <strong>Use Configuration</strong>. Select
-                                    all meshes which should be converted into geometry layers. If the item contains collision shapes which are
-                                    not matched by mesh parts (e.g. invisible collision shapes or boxes around an item for simple collisions)
-                                    also enable the static shape part, otherwise disable it as it is just redundant data because it could encode
-                                    the same geometry as the mesh.</p>
-                                    <h7>Example 2: Convert a MeshModeler item into a Custom Gate</h7>
-                                    <p>The MeshModeler allows for the creation of custom gate items so you can create a template item and convert it
-                                        to a Gate here.</p>
-                                        <p>Create a new item in the in-game editor and construct a layer which represents your trigger shape (it doesn't
-                                            matter if it's a trigger layer or not). Load the created item and select <strong>Trigger</strong> for the
-                                            part you want to be recognized as the trigger shape. Disable <strong>Collidable</strong>. If it should
-                                            contain a visible, non-collidable material keep <strong>Visible</strong> enabled. Select
-                                            <strong>CustomGate</strong> as the target type and select your desired <strong>Gate Gameplay
-                                            Effect</strong>.</p>
-                                            <p>Execute and test your created gate item. If you want different effects you can use the <strong>Gate Variant
-                                                Creator</strong> to create all gameplay variants.</p>
+                            <h3>LOD Configuration</h3>
+                            <p>Edit an item's LOD distances and assign parts to different LOD levels.</p>
+                            <p>A LOD (Level of Detail) defines the distance at which different versions of the item's geometry are
+                                displayed. <strong>Distance</strong> doesnt mean physical distance from the camera but depends on FOV and
+                                size on screen (i think).</p>
+                                <p>If you disabled LOD for a part, it will always be rendered regardless of the distance. If its enabled, it
+                                    will be rendered based on the specified LOD distances and the LODs it is assigned for. The last LOD is
+                                    reserved for every distance greater than the last specified.</p>
+                                    <p>Note that removing a LOD level will affect all parts assigned to that and following levels because distance
+                                        assignments will shift.</p>
+                                        <p>Inside the preview you can enable/disable LODs to see how they affect the rendering of the item.</p>
+                                        <p>Not all output types support LOD configuration!</p>
+                                        <h3>Practical workflows</h3>
+                                        <h7>Example 1: Convert a Blender export static item to an in-game editable item</h7>
+                                        <p>A static item exported from Blender has no moving parts and no trigger and is usually a Solid2Model which can
+                                            not be edited in the in-game MeshModeler.</p>
+                                            <p> To convert them to an in-game editable item, load the item, select the target type <strong>Crystal</strong>
+                                                (or <strong>Crystal Waypoint</strong> for waypoints) and enable <strong>Use Configuration</strong>. Select
+                                                all meshes which should be converted into geometry layers. If the item contains collision shapes which are
+                                                not matched by mesh parts (e.g. invisible collision shapes or boxes around an item for simple collisions)
+                                                also enable the static shape part, otherwise disable it as it is just redundant data because it could encode
+                                                the same geometry as the mesh.</p>
+                                                <h7>Example 2: Convert a MeshModeler item into a Custom Gate</h7>
+                                                <p>The MeshModeler allows for the creation of custom gate items so you can create a template item and convert it
+                                                    to a Gate here.</p>
+                                                    <p>Create a new item in the in-game editor and construct a layer which represents your trigger shape (it doesn't
+                                                        matter if it's a trigger layer or not). Load the created item and select <strong>Trigger</strong> for the
+                                                        part you want to be recognized as the trigger shape. Disable <strong>Collidable</strong>. If it should
+                                                        contain a visible, non-collidable material keep <strong>Visible</strong> enabled. Select
+                                                        <strong>CustomGate</strong> as the target type and select your desired <strong>Gate Gameplay
+                                                        Effect</strong>.
+                                                    </p>
+                                                    <p>Execute and test your created gate item. If you want different effects you can use the <strong>Gate Variant
+                                                        Creator</strong> to create all gameplay variants.</p>
 
-                                                <h3>Note</h3>
-                                                <p>It is possible to create configurations that will create invalid items which will crash the editor when
-                                                    placed.</p>
-                                                    <p><strong>If you encounter such issues and you are sure it should work please reach out to me.</strong></p>
-                                                </HelpContent>
-                                            </ToolPageLayout>
+                                                        <h3>Note</h3>
+                                                        <p>It is possible to create configurations that will create invalid items which will crash the editor when
+                                                            placed.</p>
+                                                            <p><strong>If you encounter such issues and you are sure it should work please reach out to me.</strong></p>
+                                                        </HelpContent>
+                                                    </ToolPageLayout>
 
 
 @code {
     [SessionStored] private ItemFileService ItemFileService = default!;
 
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
-    [SessionStored] private NormalizedMesh loadedMesh = new();
-    [SessionStored] private bool isMeshLoaded = false;
-    [SessionStored] private Dictionary<int, SubMeshConfig> submeshConfigs = new();
-    [SessionStored] private MeshConfig meshConfig = new();
+    [SessionStored] private NormalizedItem loadedItem = new();
+    [SessionStored] private bool isItemLoaded = false;
+    [SessionStored] private Dictionary<int, MeshConfig> submeshConfigs = new();
+    [SessionStored] private ItemConfig itemConfig = new();
 
     private IReadOnlyList<ValidationIssue> _validationIssues = Array.Empty<ValidationIssue>();
     private bool _showPreview = false;
     private int? _selectedSubmeshIndex;
-    private IReadOnlyDictionary<int, SubMeshConfig>? _previewConfigs;
+    private IReadOnlyDictionary<int, MeshConfig>? _previewConfigs;
 
 
    
-    private enum TargetMeshType { Crystal, CrystalWaypoint, Solid2Model, Moving, CustomGate }
-    private IEnumerable<IGrouping<object, (int Index, NormalizedSubmesh Mesh)>> GroupedSubMeshes =>
-        loadedMesh.Submeshes
+    private enum TargetMeshType { General, Waypoint, CustomGate, MeshModeler, MeshModeler_Waypoint }
+
+    private IEnumerable<IGrouping<int, (int Index, NormalizedMesh Mesh)>> GroupedSubMeshes =>
+        loadedItem.Meshes
             .Select((m, i) => (Index: i, Mesh: m))
-            .GroupBy(x => (object)x.Mesh.Type);
+            .GroupBy(x => x.Mesh.GroupIndex)
+            .OrderBy(g => g.Key);
+    private IEnumerable<IGrouping<MeshType, (int Index, NormalizedMesh Mesh)>> TypesInGroup(int groupIndex) =>
+        loadedItem.Meshes
+            .Select((m, i) => (Index: i, Mesh: m))
+            .Where(x => x.Mesh.GroupIndex == groupIndex)
+            .GroupBy(x => x.Mesh.Type)
+            .OrderBy(g => g.Key);
 
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -352,14 +377,14 @@
             Label = "Target Type",
             Tooltip = "The target type of the item. Crystal: In-game editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger.",
             Kind = ToolParameterKind.Enum,
-            DefaultValue = "Solid2Model",
+            DefaultValue = "General",
             Options = new[]
     {
-                new ToolParameterOption { Value = "Crystal", Label = "Crystal" },
-                new ToolParameterOption { Value = "CrystalWaypoint", Label = "Crystal Waypoint" },
-                new ToolParameterOption { Value = "Solid2Model", Label = "Solid2Model" },
-                new ToolParameterOption { Value = "Moving", Label = "Moving" },
+                new ToolParameterOption { Value = "General", Label = "General" },
+                new ToolParameterOption { Value = "Waypoint", Label = "Waypoint" },
                 new ToolParameterOption { Value = "CustomGate", Label = "CustomGate" },
+                new ToolParameterOption { Value = "MeshModeler", Label = "MeshModeler" },
+                new ToolParameterOption { Value = "MeshModeler_Waypoint", Label = "MeshModeler_Waypoint" },
     },
         },
         new()
@@ -382,7 +407,8 @@ v.ToString() }).ToArray(),
             DefaultValue = "None",
             Options = Enum.GetValues<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>().Select(v => new ToolParameterOption {
 Value = v.ToString(), Label = v.ToString() }).ToArray(),
-            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.CrystalWaypoint
+            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.Waypoint ||
+Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.MeshModeler_Waypoint
         },
     };
 
@@ -404,15 +430,15 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         if (ItemFileService.Item != null)
         {
             _selectedSubmeshIndex = null;
-            isMeshLoaded = TryLoadMeshFromItem(out loadedMesh);
-            if (isMeshLoaded)
+            isItemLoaded = TryLoadMeshFromItem(out loadedItem);
+            if (isItemLoaded)
             {
                 LoadDefaultConfigurationFromMesh();
             }
         }
         else
         {
-            isMeshLoaded = false;
+            isItemLoaded = false;
             submeshConfigs = new();
             _selectedSubmeshIndex = null;
             _previewConfigs = null;
@@ -440,58 +466,55 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         return Task.CompletedTask;
     }
 
-    private bool TryLoadMeshFromItem(out NormalizedMesh mesh)
+    private bool TryLoadMeshFromItem(out NormalizedItem item)
     {
         var extractor = new MeshExtractor();
         var result = extractor.ExtractMesh(ItemFileService.Item!);
 
         if (result.IsFailure)
         {
-            mesh = default(NormalizedMesh)!;
+            item = default(NormalizedItem)!;
             return false;
         }
-        mesh = result.Value;
+        item = result.Value;
         return true;
     }
     private void LoadDefaultConfigurationFromMesh()
     {
-        if (!isMeshLoaded) return;
-        submeshConfigs = new Dictionary<int, SubMeshConfig>();
-        meshConfig = new MeshConfig();
-        meshConfig.LODDistances = loadedMesh.LODDistances.ToList();
+        if (!isItemLoaded) return;
+        submeshConfigs = new Dictionary<int, MeshConfig>();
+        itemConfig = new ItemConfig();
+        itemConfig.LODDistances = loadedItem.Groups.FirstOrDefault(g => g.LODDistances.Length > 0)?.LODDistances.ToList() ?? [];
 
-        for (int i = 0; i < loadedMesh.Submeshes.Length; i++)
+        for (int i = 0; i < loadedItem.Meshes.Length; i++)
         {
-            SubMeshConfig cfg = new SubMeshConfig();
-            var submesh = loadedMesh.Submeshes[i];
-            switch (submesh.Type)
+            MeshConfig cfg = new MeshConfig();
+            var submesh = loadedItem.Meshes[i];
+            var group = loadedItem.Groups[submesh.GroupIndex];
+            switch (group.GroupType)
             {
-                case SubmeshType.Mesh:
+                case GroupType.StaticObject:
                     break;
-                case SubmeshType.Dyna_Shape:
+                case GroupType.DynaObject:
                     cfg.Movable = true;
-                    cfg.Collidable = true;
                     break;
-                case SubmeshType.Static_Shape:
-                    cfg.Collidable = true;
+                case GroupType.Trigger_Special:
+                    cfg.Trigger_Effect = true;
                     break;
-                case SubmeshType.Trigger_Special:
-                    cfg.Trigger = true;
-                    break;
-                case SubmeshType.Trigger_Waypoint:
-                    cfg.Trigger = true;
+                case GroupType.Trigger_Waypoint:
+                    cfg.Trigger_Waypoint = true;
                     break;
                 default:
                     cfg.Enabled = false;
                     break;
             }
-            if (submesh.Properties.HasFlag(SubmeshProperties.Enabled))
+            if (submesh.Properties.HasFlag(MeshProperties.Enabled))
                 cfg.Enabled = true;
-            if (submesh.Properties.HasFlag(SubmeshProperties.Visible))
+            if (submesh.Properties.HasFlag(MeshProperties.Visible))
                 cfg.Visible = true;
-            if (submesh.Properties.HasFlag(SubmeshProperties.Collidable))
+            if (submesh.Properties.HasFlag(MeshProperties.Collidable))
                 cfg.Collidable = true;
-            if (submesh.Properties.HasFlag(SubmeshProperties.LOD))
+            if (submesh.Properties.HasFlag(MeshProperties.LOD))
                 cfg.HasLOD = true;
             cfg.LODMask = submesh.LODMask;
             submeshConfigs[i] = cfg;
@@ -503,7 +526,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
     {
         var issues = new List<ValidationIssue>();
         TargetMeshType targetType = Enum.Parse<TargetMeshType>(parameterValues.GetString("targetType"));
-        if (!isMeshLoaded)
+        if (!isItemLoaded)
         {
             _validationIssues = issues;
             return;
@@ -511,26 +534,6 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         BuildPreviewConfigs();
         if (!parameterValues.GetBool("useConfiguration"))
         {
-            switch (targetType)
-            {
-                case TargetMeshType.CrystalWaypoint:
-                    if (!loadedMesh.Submeshes.Any(s => s.Type == SubmeshType.Trigger_Waypoint || s.Type == SubmeshType.Trigger_Special))
-                        issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the item will not function as a waypoint."));
-                    break;
-                case TargetMeshType.Crystal:
-                    break;
-                case TargetMeshType.Solid2Model:
-                    break;
-                case TargetMeshType.Moving:
-                    if (!loadedMesh.Submeshes.Any(s => s.Type == SubmeshType.Dyna_Shape))
-                        issues.Add(new ValidationIssue(ValidationSeverity.Error, "Items contains no dynamic collision shapes - visible geometry will be used to generate collision shape"));
-                    break;
-                case TargetMeshType.CustomGate:
-                    if (!loadedMesh.Submeshes.Any(s => s.Type == SubmeshType.Trigger_Special || s.Type == SubmeshType.Trigger_Waypoint))
-                        issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the gate will have no gameplay effect."));
-                    break;
-            }
-
             _validationIssues = issues;
             return;
         }
@@ -548,9 +551,9 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
 
         bool hasVisible = enabledConfigs.Any(kv => kv.Value.Visible);
         bool hasMovable = enabledConfigs.Any(kv => kv.Value.Movable && kv.Value.Collidable);
-        bool hasTrigger = enabledConfigs.Any(kv => kv.Value.Trigger);
+        bool hasTrigger = enabledConfigs.Any(kv => kv.Value.Trigger_Waypoint);
         bool hasCollidable = enabledConfigs.Any(kv => kv.Value.Collidable);
-        if(meshConfig.LODDistances.Count >= 4)
+        if (itemConfig.LODDistances.Count >= 4)
         {
             issues.Add(new ValidationIssue(ValidationSeverity.Error, "No more than 4 LOD levels are supported — the item will crash the game when placed."));
         }
@@ -559,23 +562,27 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
             issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No visible meshes selected — the item will be invisible in-game."));
         switch (targetType)
         {
-            case TargetMeshType.CrystalWaypoint:
-                if (!hasTrigger)
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No trigger selected — the item will not function as a waypoint."));
+            case TargetMeshType.Waypoint:
+                if (!submeshConfigs.Any(g => g.Value.Trigger_Waypoint))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the item will not function as a waypoint."));
                 break;
-            case TargetMeshType.Crystal:
+            case TargetMeshType.MeshModeler_Waypoint:
+                if (!submeshConfigs.Any(g => g.Value.Trigger_Waypoint))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the item will not function as a waypoint."));
+                if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains Effects — Effect trigger will not function in a MeshModeler item."));
+                if (submeshConfigs.Any(g => g.Value.Movable))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains movable parts — Movable parts will not move in a MeshModeler item."));
                 break;
-            case TargetMeshType.Solid2Model:
-                if (!hasCollidable)
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No collidables selected — the item will have no collidable geometry."));
-                break;
-            case TargetMeshType.Moving:
-                if (!hasMovable)
-                    issues.Add(new ValidationIssue(ValidationSeverity.Error, "No movables selected — the item will not have any dynamic collision shapes."));
+            case TargetMeshType.MeshModeler:
+                if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains Effects — Effect trigger will not function in a MeshModeler item."));
+                if (submeshConfigs.Any(g => g.Value.Movable))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains movable parts — Movable parts will not move in a MeshModeler item."));
                 break;
             case TargetMeshType.CustomGate:
-                if (!hasTrigger)
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No trigger selected — the gate will have no gameplay effect."));
+                if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
+                    issues.Add(new ValidationIssue(ValidationSeverity.Error, "Item contains no effect trigger."));
                 break;
         }
 
@@ -584,7 +591,7 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
 
     private bool CanExecuteTool()
     {
-        return isMeshLoaded;
+        return isItemLoaded;
     }
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
@@ -596,40 +603,33 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
 
       
         string targetTypeString = parameterValues.GetString("targetType");
-        MeshBuilder.BuildOptions buildOptions;
+        MeshBuilder.BuildSettings buildOptions;
         TargetMeshType targetType = Enum.Parse<TargetMeshType>(targetTypeString);
         if (!parameterValues.GetBool("useConfiguration"))
         {
-            buildOptions = MeshBuilder.BuildOptions.DefaultFromMesh(loadedMesh);
+            buildOptions = MeshBuilder.BuildSettings.DefaultFromMesh(loadedItem);
         }
         else
         {
-            buildOptions = CreateBuildOptionsFromConfiguration(targetType);
-        }
-        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = default;
-        switch (targetType)
-        {
-            case TargetMeshType.Crystal:
-                builtItemResult = meshBuilder.BuildCrystalItem(loadedMesh, buildOptions);
-                break;
-            case TargetMeshType.CrystalWaypoint:
-                var waypointType =
+            var waypointType =
                 Enum.Parse<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>(parameterValues.GetString("waypointType"));
-                builtItemResult = meshBuilder.BuildCrystalWaypointItem(loadedMesh, waypointType, buildOptions);
-                break;
-            case TargetMeshType.Solid2Model:
-                builtItemResult = meshBuilder.BuildStaticObjectModelItem(loadedMesh, buildOptions);
-                break;
-            case TargetMeshType.Moving:
-                builtItemResult = meshBuilder.BuildMovingItem(loadedMesh, buildOptions);
-                break;
-            case TargetMeshType.CustomGate:
-                var effect = Enum.Parse<LegacyGameplayId>(parameterValues.GetString("gateGameplayEffect"));
-                builtItemResult = meshBuilder.BuildTriggerSpecialItem(loadedMesh, effect, buildOptions);
-                break;
-            default:
-                return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Unknown target type: {targetTypeString}");
+            var effect = Enum.Parse<LegacyGameplayId>(parameterValues.GetString("gateGameplayEffect"));
+            buildOptions = CreateBuildOptionsFromConfiguration(targetType, effect, waypointType);
+            switch (targetType)
+            {
+                case TargetMeshType.MeshModeler_Waypoint:
+                case TargetMeshType.MeshModeler:
+                    buildOptions.TargetModel = MeshBuilder.ItemModel.MeshModeler;
+                    break;
+                case TargetMeshType.General:
+                case TargetMeshType.CustomGate:
+                case TargetMeshType.Waypoint:
+                    buildOptions.TargetModel = MeshBuilder.ItemModel.General;
+                    break;
+            }
         }
+        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = meshBuilder.BuildItem(loadedItem, buildOptions);
+
         if (builtItemResult.IsFailure)
         {
             ToolMessageService.AddError($"Failed to build item model: {targetTypeString}", builtItemResult, "Item Model Converter");
@@ -646,131 +646,194 @@ Value = v.ToString(), Label = v.ToString() }).ToArray(),
         return new ExecuteActionResult(ExecuteActionResultStatus.Success, Message: $"Item model converted to {targetTypeString}.");
     }
 
-    MeshBuilder.BuildOptions CreateBuildOptionsFromConfiguration(TargetMeshType targetType)
+    MeshBuilder.BuildSettings CreateBuildOptionsFromConfiguration(TargetMeshType targetType,
+        LegacyGameplayId? legacyGameplayId,
+        GBX.NET.Engines.GameData.CGameItemModel.EWaypointType? waypointType)
     {
-        HashSet<int> geometries = new();
-        HashSet<int> triggers = new();
-        HashSet<int> dynaShapes = new();
-        HashSet<int> staticShapes = new();
-        HashSet<int> invisibles = new();
-        HashSet<int> nonCollidables = new();
-        bool isMeshCollidable = false;
+        var settings = new MeshBuilder.BuildSettings();
+        float[] lodDistances = itemConfig.LODDistances.Select(ld => ld / 2f).ToArray();
+        MeshBuilder.GroupSetting GetOrCreateMovableGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
+        {
+            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.DynaObject && gs.Position == position && gs.Rotation == rotation))
+                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.DynaObject && gs.Position == position && gs.Rotation == rotation);
+            var loadedItemMovingGroup = loadedItem.Groups.FirstOrDefault(g => g.GroupType == GroupType.DynaObject && g.Position == position && g.Rotation == rotation);
+            var group = new MeshBuilder.GroupSetting()
+            {
+                Type = GroupType.DynaObject,
+                GroupId = settings.GroupSettings.Count,
+                KinematicConstraint = loadedItemMovingGroup?.KinematicConstraint,
+                DynaObjectModelParams = loadedItemMovingGroup?.DynaObjectModelParams,
+                RelativeMovingParentGroup = loadedItemMovingGroup?.RelativeMovingParentIndex,
+                LODDistances = lodDistances,
+                Position = position,
+                Rotation = rotation,
+            };
+            settings.GroupSettings.Add(group);
+            return group;
+        }
+        MeshBuilder.GroupSetting GetOrCreateTriggerEffectGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
+        {
+            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.Trigger_Special && gs.Position == position && gs.Rotation == rotation))
+                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.Trigger_Special && gs.Position == position && gs.Rotation == rotation);
+            var group = new MeshBuilder.GroupSetting()
+            {
+                Type = GroupType.Trigger_Special,
+                GroupId = settings.GroupSettings.Count,
+                TriggerGameplayId = legacyGameplayId,
+                LODDistances = lodDistances,
+                Position = position,
+                Rotation = rotation,
+            };
+            settings.GroupSettings.Add(group);
+            return group;
+        }
+        MeshBuilder.GroupSetting GetOrCreateTriggerWaypointGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
+        {
+            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.Trigger_Waypoint && gs.Position == position && gs.Rotation == rotation))
+                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.Trigger_Waypoint && gs.Position == position && gs.Rotation == rotation);
+            var group = new MeshBuilder.GroupSetting()
+            {
+                Type = GroupType.Trigger_Waypoint,
+                GroupId = settings.GroupSettings.Count,
+                WaypointType = (GBX.NET.Engines.Plug.NPlugTrigger_SWaypoint.EGameItemWaypointType?)waypointType,
+                LODDistances = lodDistances,
+                Position = position,
+                Rotation = rotation,
+            };
+            settings.GroupSettings.Add(group);
+            return group;
+        }
+        MeshBuilder.GroupSetting GetOrCreateStaticGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
+        {
+            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.StaticObject && gs.Position == position && gs.Rotation == rotation))
+                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.StaticObject && gs.Position == position && gs.Rotation == rotation);
+            var group = new MeshBuilder.GroupSetting()
+            {
+                Type = GroupType.StaticObject,
+                GroupId = settings.GroupSettings.Count,
+                LODDistances = lodDistances,
+                Position = position,
+                Rotation = rotation,
+            };
+            settings.GroupSettings.Add(group);
+            return group;
+        }
         foreach (var (index, cfg) in submeshConfigs)
         {
-            if (!cfg.Enabled) continue;
-            if (cfg.Visible) geometries.Add(index);
-            if (!cfg.Visible) invisibles.Add(index);
-            if (cfg.Trigger) triggers.Add(index);
-            if (cfg.Movable && cfg.Collidable) dynaShapes.Add(index);
-            if (cfg.Collidable) staticShapes.Add(index);
-            if (!cfg.Collidable) nonCollidables.Add(index);
-        }
-        switch (targetType)
-        {
-            case TargetMeshType.Crystal:
-                // Crystal items don't have any special requirements for submeshes.
-                break;
-            case TargetMeshType.Solid2Model:
-                // Solid2Model items should not have any triggers or dyna shapes.
-                triggers.Clear();
-                dynaShapes.Clear();
-                if (staticShapes.All(s => loadedMesh.Submeshes[s].Type == SubmeshType.Mesh))
+            if (!cfg.Enabled)
+                continue;
+            var originalGroup = loadedItem.Groups[loadedItem.Meshes[index].GroupIndex];
+            var originalPosition = originalGroup.Position;
+            var originalRotation = originalGroup.Rotation;
+            var meshSetting = new MeshBuilder.MeshInstanceSetting()
+            {
+                MeshIndex = index,
+                Visible = cfg.Visible,
+                Collidable = cfg.Collidable,
+                LODMask = cfg.HasLOD ? cfg.LODMask : null
+            };
+            if (cfg.Movable)
+            {
+                var movableGroup = GetOrCreateMovableGroup(originalPosition, originalRotation);
+                var movableSetting = meshSetting with
                 {
-                    // all static meshes come from collidable meshes => IsMeshCollidabel can be used
-                    staticShapes.Clear();
-                    isMeshCollidable = true;
-                }
-                break;
-            case TargetMeshType.Moving:
-                // Moving items should not have any triggers.
-                triggers.Clear();
-                break;
-            case TargetMeshType.CustomGate:
-                // CustomGate items should not have any dyna shapes.
-                dynaShapes.Clear();
-                if (staticShapes.All(s => loadedMesh.Submeshes[s].Type == SubmeshType.Mesh))
+                    Movable = true,
+                    GroupId = movableGroup.GroupId
+                };
+                settings.MeshSettings.Add(movableSetting);
+            }
+            if (cfg.Trigger_Effect)
+            {
+                var effectGroup = GetOrCreateTriggerEffectGroup(originalPosition, originalRotation);
+                var effectSetting = meshSetting with
                 {
-                    // all static meshes come from collidable meshes => IsMeshCollidabel can be used
-                    staticShapes.Clear();
-                    isMeshCollidable = true;
-                }
-                break;
+                    Trigger = true,
+                    GroupId = effectGroup.GroupId
+                };
+                settings.MeshSettings.Add(effectSetting);
+            }
+            if (cfg.Trigger_Waypoint)
+            {
+                var waypointGroup = GetOrCreateTriggerWaypointGroup(originalPosition, originalRotation);
+                var effectSetting = meshSetting with
+                {
+                    Trigger = true,
+                    GroupId = waypointGroup.GroupId
+                };
+                settings.MeshSettings.Add(effectSetting);
+            }
+            if ((cfg.Collidable || cfg.Visible) && !cfg.Movable)
+            {
+                var staticGroup = GetOrCreateStaticGroup(originalPosition, originalRotation);
+                var staticSetting = meshSetting with
+                {
+                    GroupId = staticGroup.GroupId
+                };
+                settings.MeshSettings.Add(staticSetting);
+            }
         }
-        float[] lodDistances = meshConfig.LODDistances.Select(ld=>ld / 2f).ToArray();
-        Dictionary<int, int> lodMasks = submeshConfigs
-            .Where(s => s.Value.HasLOD)
-            .ToDictionary(kv => kv.Key, kv => kv.Value.LODMask);
-        return new MeshBuilder.BuildOptions()
-        {
-            Geometries = geometries,
-            Triggers = triggers,
-            DynaShapes = dynaShapes,
-            StaticShapes = staticShapes,
-            Invisibles = invisibles,
-            NonCollidables = nonCollidables,
-            IsMeshCollidable = isMeshCollidable,
-            LODDistances = lodDistances,
-            LODMasks = lodMasks
-        };
+        settings.TargetModel = MeshBuilder.ItemModel.General;
+        return settings;
     }
 
     private void AddLodDistance()
     {
-        var last = meshConfig.LODDistances.Count > 0 ? meshConfig.LODDistances[^1] : 0f;
-        meshConfig.LODDistances.Add(last + 100f);
+        var last = itemConfig.LODDistances.Count > 0 ? itemConfig.LODDistances[^1] : 0f;
+        itemConfig.LODDistances.Add(last + 100f);
         ValidateConfiguration();
     }
     private void RemoveLodDistance(int idx)
     {
-        if (idx >= 0 && idx < meshConfig.LODDistances.Count){
-            meshConfig.LODDistances.RemoveAt(idx);
+        if (idx >= 0 && idx < itemConfig.LODDistances.Count)
+        {
+            itemConfig.LODDistances.RemoveAt(idx);
             foreach (var kv in submeshConfigs)
             {
                 var cfg = kv.Value;
                 if (cfg.HasLOD)
-                    cfg.LODMask = RemoveLodDistance(cfg.LODMask, idx, meshConfig.LODDistances.Count);
+                    cfg.LODMask = RemoveLodDistance(cfg.LODMask, idx, itemConfig.LODDistances.Count);
             }
             ValidateConfiguration();
         }
     }
 
     int RemoveLodDistance(int lodMask, int removeIndex, int lodDistanceCount)
-{
-    int newMask = 0;
-    int oldLodCount = lodDistanceCount + 2;
-
-    for (int newLod = 0; newLod < oldLodCount - 1; newLod++)
     {
-        bool visible;
+        int newMask = 0;
+        int oldLodCount = lodDistanceCount + 2;
 
-        if (newLod < removeIndex)
+        for (int newLod = 0; newLod < oldLodCount - 1; newLod++)
         {
-            // Unchanged.
-            visible = NormalizedMesh.IsVisibleInLod(lodMask, newLod);
-        }
-        else if (newLod == removeIndex)
-        {
-            // Merge the two affected intervals.
-            visible =
-                NormalizedMesh.IsVisibleInLod(lodMask, removeIndex) ||
-                NormalizedMesh.IsVisibleInLod(lodMask, removeIndex + 1);
-        }
-        else
-        {
-            // Shift remaining intervals down.
-            visible = NormalizedMesh.IsVisibleInLod(lodMask, newLod + 1);
+            bool visible;
+
+            if (newLod < removeIndex)
+            {
+                // Unchanged.
+                visible = LODUtils.IsVisibleInLod(lodMask, newLod);
+            }
+            else if (newLod == removeIndex)
+            {
+                // Merge the two affected intervals.
+                visible =
+                    LODUtils.IsVisibleInLod(lodMask, removeIndex) ||
+                    LODUtils.IsVisibleInLod(lodMask, removeIndex + 1);
+            }
+            else
+            {
+                // Shift remaining intervals down.
+                visible = LODUtils.IsVisibleInLod(lodMask, newLod + 1);
+            }
+
+            if (visible)
+                newMask |= 1 << newLod;
         }
 
-        if (visible)
-            newMask |= 1 << newLod;
+        return newMask;
     }
-
-    return newMask;
-}
     private static int ToggleLodBit(int mask, int lod, bool on)
         => on ? mask | (1 << lod) : mask & ~(1 << lod);
 
-    private string SubmeshTypeToString(SubmeshType type)
+    private string SubmeshTypeToString(MeshType type)
     {
         return type.ToString();
     }

@@ -14,7 +14,7 @@ const SEL_EMISSIVE = 0x004455;
 //   collidable → gold  (#ddaa22)
 //   default    → blue  (#4488ff)
 function configColor(config) {
-    if (config.movable)    return 0x33ccbb;
+    if (config.movable)    return 0x33cc91;
     if (config.trigger)    return 0xff4488;
     if (config.collidable) return 0xddaa22;
     return 0x4488ff;

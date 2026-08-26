@@ -575,6 +575,13 @@ code {
     min-width: 0;
 }
 
+.cfg-col-type {
+    width: 2.8rem;
+    text-align: right;
+    flex-shrink: 0;
+    color: var(--tm-text-muted);
+    font-size: 0.78em;
+}
 .cfg-col-verts {
     width: 2.5rem;
     text-align: right;

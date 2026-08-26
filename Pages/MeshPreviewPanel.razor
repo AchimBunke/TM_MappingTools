@@ -1,3 +1,5 @@
+@using System.Numerics
+@using GBX.NET
 @using TM_GenericMapping.Common
 @using TM_GenericMapping.Items
 @using TM_MappingTools.Model
@@ -17,7 +19,7 @@
         <div class="mesh-preview-placeholder">
             <span class="bi bi-bounding-box" aria-hidden="true"></span>
             <span class="mesh-preview-placeholder-label">
-                @(Mesh is null || Mesh.Submeshes.Length == 0
+                @(Item is null || Item.Meshes.Length == 0
                     ? "Load an item to preview it"
                     : "Initialising preview\u2026")
             </span>
@@ -36,7 +38,7 @@
                 <span class="bi bi-sliders" aria-hidden="true"></span>
             </button>
             <button class="mesh-preview-toolbar-btn @(_showLODSettings ? "active" : "")" title="LOD visibility" @onclick="ToggleLODSettings">
-                <span class="bi @(NormalizedMesh.IsVisibleInAllLods(_visibleLODMask, MeshConfig?.LODDistances.Count + 1 ?? 1) ? "bi-eye-fill" : "bi-eye")" aria-hidden="true"></span>
+                <span class="bi @(LODUtils.IsVisibleInAllLods(_visibleLODMask, ItemConfig?.LODDistances.Count + 1 ?? 1) ? "bi-eye-fill" : "bi-eye")" aria-hidden="true"></span>
             </button>
             <button class="mesh-preview-toolbar-btn @(_expanded ? "active" : "")" title="@(_expanded ? "Collapse" : "Expand")" @onclick="ToggleExpanded">
                 <span class="bi @(_expanded ? "bi-fullscreen-exit" : "bi-fullscreen")" aria-hidden="true"></span>
@@ -74,18 +76,18 @@
                 <div class="settings-row settings-row--lod">
                     <label>All</label>
                     <input type="checkbox"
-                        checked="@NormalizedMesh.IsVisibleInAllLods(_visibleLODMask, MeshConfig?.LODDistances.Count + 1 ?? 1)"
+                        checked="@LODUtils.IsVisibleInAllLods(_visibleLODMask, ItemConfig?.LODDistances.Count + 1 ?? 1)"
                         @onchange="async e => { await ToggleAllLodsVisibility(); }"/>
                 </div>
-                @for(int i = 0; i < MeshConfig?.LODDistances.Count + 1; i++)
+                @for(int i = 0; i < ItemConfig?.LODDistances.Count + 1; i++)
                 {
                     var localIndex = i;
                     <div class="settings-row settings-row--lod">
                         <label>LOD @localIndex</label>
                         <input type="checkbox"
-                               checked="@NormalizedMesh.IsVisibleInLod(_visibleLODMask, localIndex)"
+                               checked="@LODUtils.IsVisibleInLod(_visibleLODMask, localIndex)"
                                @onchange="async e => { await ToggleLODVisibility(localIndex); }"/>
-                        <label>@(localIndex < MeshConfig?.LODDistances.Count ? MeshConfig.LODDistances[localIndex] : "∞")</label>
+                        <label>@(localIndex < ItemConfig?.LODDistances.Count ? ItemConfig.LODDistances[localIndex] : "∞")</label>
                     </div>
                 }
             </div>
@@ -93,13 +95,13 @@
 
     }
 
-    @if (_ready && Mesh is not null)
+    @if (_ready && Item is not null)
     {
         <div class="mesh-preview-legend">
             <span class="legend-dot" style="--dot-color:#4488ff;"></span><span>Default</span>
             <span class="legend-dot" style="--dot-color:#ddaa22;"></span><span>Collidable</span>
             <span class="legend-dot" style="--dot-color:#ff4488;"></span><span>Trigger</span>
-            <span class="legend-dot" style="--dot-color:#33ccbb;"></span><span>Movable</span>
+            <span class="legend-dot" style="--dot-color:#33cc91;"></span><span>Movable</span>
         </div>
 
         <div class="mesh-preview-hints">
@@ -110,11 +112,11 @@
         </div>
 
         <div class="mesh-preview-status">
-            @Mesh.Submeshes.Length part(s)
-            @if (SelectedSubmeshIndex.HasValue && SelectedSubmeshIndex.Value < Mesh.Submeshes.Length)
+            @Item.Meshes.Length part(s)
+            @if (SelectedSubmeshIndex.HasValue && SelectedSubmeshIndex.Value < Item.Meshes.Length)
             {
                 <span class="mesh-preview-selected-label">
-                    &nbsp;&middot;&nbsp;@Mesh.Submeshes[SelectedSubmeshIndex.Value].Name
+                    &nbsp;&middot;&nbsp;@Item.Meshes[SelectedSubmeshIndex.Value].Name
                 </span>
             }
         </div>
@@ -125,12 +127,12 @@
     // ── Parameters ────────────────────────────────────────────────────────────
 
     /// <summary>Mesh to render. The component reloads the Three.js scene whenever this changes.</summary>
-    [Parameter] public NormalizedMesh? Mesh { get; set; }
+    [Parameter] public NormalizedItem? Item { get; set; }
 
     /// <summary>Per-index configuration (enabled/visible/collidable/trigger/movable).</summary>
-    [Parameter] public IReadOnlyDictionary<int, SubMeshConfig>? SubmeshConfigs { get; set; }
+    [Parameter] public IReadOnlyDictionary<int, MeshConfig>? SubmeshConfigs { get; set; }
 
-    [Parameter] public MeshConfig? MeshConfig { get; set; }
+    [Parameter] public ItemConfig? ItemConfig { get; set; }
 
     /// <summary>Currently highlighted submesh index (null = none).</summary>
     [Parameter] public int? SelectedSubmeshIndex { get; set; }
@@ -163,9 +165,9 @@
 
     // Track what we last pushed to JS. Use the submesh array reference
     // for change detection to avoid comparing the full struct.
-    private NormalizedSubmesh[]? _lastSubmeshArray;
-    private IReadOnlyDictionary<int, SubMeshConfig>? _lastConfigs;
-    private MeshConfig? _lastMeshConfig;
+    private NormalizedMesh[]? _lastSubmeshArray;
+    private IReadOnlyDictionary<int, MeshConfig>? _lastConfigs;
+    private ItemConfig? _lastMeshConfig;
     private int? _lastSelectedIndex;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -179,7 +181,7 @@
             await _module.InvokeVoidAsync("initMeshPreview", _canvas, _dotNetRef);
             _ready = true;
 
-            if (Mesh is not null && Mesh.Submeshes.Length > 0)
+            if (Item is not null && Item.Meshes.Length > 0)
                 await PushMeshAsync();
             else if (SubmeshConfigs is not null)
                 await PushConfigsAsync();
@@ -201,8 +203,8 @@
     {
         if (_module is null) return; // not yet initialised
 
-        bool meshChanged    = !ReferenceEquals(Mesh?.Submeshes, _lastSubmeshArray);
-        bool configsChanged = !ReferenceEquals(SubmeshConfigs, _lastConfigs) || !ReferenceEquals(MeshConfig, _lastMeshConfig);
+        bool meshChanged    = !ReferenceEquals(Item?.Meshes, _lastSubmeshArray);
+        bool configsChanged = !ReferenceEquals(SubmeshConfigs, _lastConfigs) || !ReferenceEquals(ItemConfig, _lastMeshConfig);
         bool selChanged     = SelectedSubmeshIndex != _lastSelectedIndex;
 
         if (meshChanged)
@@ -221,14 +223,14 @@
 
     private async Task PushMeshAsync()
     {
-        if (_module is null || Mesh is null) return;
+        if (_module is null || Item is null) return;
 
-        _lastSubmeshArray = Mesh.Submeshes;
+        _lastSubmeshArray = Item.Meshes;
         _lastConfigs = SubmeshConfigs;
-        _lastMeshConfig = MeshConfig;
+        _lastMeshConfig = ItemConfig;
         _lastSelectedIndex = SelectedSubmeshIndex;
 
-        var submeshDtos = BuildSubmeshDtos(Mesh, SubmeshConfigs);
+        var submeshDtos = BuildSubmeshDtos(Item, SubmeshConfigs);
         await _module.InvokeVoidAsync("updateMesh", _canvas, submeshDtos);
         await _module.InvokeVoidAsync("highlightSubmesh", _canvas, SelectedSubmeshIndex ?? -1);
     }
@@ -257,14 +259,14 @@
     }
     private async Task ToggleLODVisibility(int i)
     {
-        _visibleLODMask = NormalizedMesh.SetLod(_visibleLODMask, i, !NormalizedMesh.IsVisibleInLod(_visibleLODMask, i));
+        _visibleLODMask = LODUtils.SetLod(_visibleLODMask, i, !LODUtils.IsVisibleInLod(_visibleLODMask, i));
          if (_module is not null)
             await _module.InvokeVoidAsync("setLODVisibility", _canvas, _visibleLODMask);
     }
 
     private async Task ToggleAllLodsVisibility()
     {
-        _visibleLODMask = NormalizedMesh.IsVisibleInAllLods(_visibleLODMask, MeshConfig?.LODDistances.Count + 1 ?? 1) ? 0 : NormalizedMesh.GetAllLodsMask(MeshConfig?.LODDistances.Count + 1 ?? 1);
+        _visibleLODMask = LODUtils.IsVisibleInAllLods(_visibleLODMask, ItemConfig?.LODDistances.Count + 1 ?? 1) ? 0 : LODUtils.GetAllLodsMask(ItemConfig?.LODDistances.Count + 1 ?? 1);
          if (_module is not null)
             await _module.InvokeVoidAsync("setLODVisibility", _canvas, _visibleLODMask);
     }
@@ -304,18 +306,18 @@
     // ── Data serialisation ────────────────────────────────────────────────────
 
     private static object[] BuildSubmeshDtos(
-        NormalizedMesh mesh,
-        IReadOnlyDictionary<int, SubMeshConfig>? configs)
+        NormalizedItem item,
+        IReadOnlyDictionary<int, MeshConfig>? configs)
     {
-        var result = new object[mesh.Submeshes.Length];
-        for (int i = 0; i < mesh.Submeshes.Length; i++)
+        var result = new object[item.Meshes.Length];
+        for (int i = 0; i < item.Meshes.Length; i++)
         {
-            var s = mesh.Submeshes[i];
+            var s = item.Meshes[i];
+            var group = item.Groups[s.GroupIndex];
             var cfg = configs?.GetValueOrDefault(i);
 
-            float[] positions = FlattenVec3(s.Positions);
-            float[]? normals  = s.Normals?.Length > 0 ? FlattenVec3(s.Normals) : null;
-
+            float[] positions = FlattenVec3(Transform(s.Positions, group.Position, group.Rotation));
+            float[]? normals  = s.Normals?.Length > 0 ? FlattenVec3(Transform(s.Normals, group.Position, group.Rotation)) : null;
             result[i] = new
             {
                 name       = s.Name,
@@ -326,7 +328,7 @@
                 enabled    = cfg?.Enabled    ?? true,
                 visible    = cfg?.Visible    ?? true,
                 collidable = cfg?.Collidable ?? false,
-                trigger    = cfg?.Trigger    ?? false,
+                trigger    = (cfg?.Trigger_Waypoint ?? false) || (cfg?.Trigger_Effect ?? false),
                 movable    = cfg?.Movable    ?? false,
                 lodMask    = (uint)((cfg?.HasLOD ?? false) ? (uint)cfg!.LODMask : 0xFFFFFFFF),
             };
@@ -334,7 +336,7 @@
         return result;
     }
 
-    private static Dictionary<int, object> BuildConfigMap(IReadOnlyDictionary<int, SubMeshConfig>? configs)
+    private static Dictionary<int, object> BuildConfigMap(IReadOnlyDictionary<int, MeshConfig>? configs)
     {
         if (configs is null) return new Dictionary<int, object>();
         var map = new Dictionary<int, object>(configs.Count);
@@ -345,7 +347,7 @@
                 enabled    = v.Enabled,
                 visible    = v.Visible,
                 collidable = v.Collidable,
-                trigger    = v.Trigger,
+                trigger    = v.Trigger_Waypoint || v.Trigger_Effect,
                 movable    = v.Movable,
                 lodMask    = (uint)((v.HasLOD) ? (uint)v.LODMask : 0xFFFFFFFF),
             };
@@ -363,6 +365,18 @@
             arr[i * 3 + 2] = vecs[i].Z;
         }
         return arr;
+    }
+
+    public static Vec3[] Transform(Vec3[] vecs, Vector3 position, Quaternion rotation)
+    {
+        var result = new Vec3[vecs.Length];
+
+        for (int i = 0; i < vecs.Length; i++)
+        {
+            result[i] = Vector3.Transform(vecs[i], rotation) + position;
+        }
+
+        return result;
     }
 
     // ── Disposal ──────────────────────────────────────────────────────────────
