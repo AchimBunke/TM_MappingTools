@@ -1,9 +1,7 @@
-@using System.Drawing
+@* ParamListCard.razor *@
 @using System.Globalization
-@using System.Numerics
-@using TM_MappingTools.Model
 
-<div class="param-dict-card @(IsVectorKind(Definition.DictionaryKeyKind) || IsVectorKind(Definition.DictionaryValueKind) ? "param-dict-card-wide" : "")">
+<div class="param-list-card @((Definition.ListItemKind == ToolParameterKind.Vector4) ? "param-list-card-wide" : "")"">
     <div class="parameter-input-header">
         <span class="parameter-input-label" title="@Definition.Tooltip">@Definition.Label</span>
         @if (Definition.IsOptional || !string.IsNullOrWhiteSpace(Definition.Tooltip))
@@ -27,11 +25,13 @@
 
     <div class="@(!IsEnabled ? "parameter-control-disabled" : null) param-list-content">
 
-        <div class="param-dict-col-headers">
-            <span class="param-dict-col-label">@Definition.DictionaryKeyLabel</span>
-            <span class="param-dict-col-label">@Definition.DictionaryValueLabel</span>
-            <span></span>
-        </div>
+        @if (!string.IsNullOrWhiteSpace(Definition.ListItemLabel))
+        {
+            <div class="param-dict-col-headers param-list-row">
+                <span class="param-dict-col-label">@Definition.ListItemLabel</span>
+                <span></span>
+            </div>
+        }
 
         @if (entries.Count == 0)
         {
@@ -41,18 +41,12 @@
             @for (var i = 0; i < entries.Count; i++)
             {
                 var rowIndex = i;
-                <div class="param-dict-row">
+                <div class="param-dict-row param-list-row">
                     <div class="param-dict-cell">
-                            <ParameterValueInput Kind="Definition.DictionaryKeyKind"
-                                            Options="Definition.DictionaryKeyOptions"
-                                            Value="@entries[rowIndex].Key"
-                                            ValueChanged="@(v => OnKeyChanged(rowIndex, v))" />
-                    </div>
-                    <div class="param-dict-cell">
-                            <ParameterValueInput Kind="Definition.DictionaryValueKind"
-                                                Options="Definition.DictionaryValueOptions"
-                                                Value="@entries[rowIndex].Value"
-                                                ValueChanged="@(v => OnValueChanged(rowIndex, v))" />
+                        <ParameterValueInput Kind="Definition.ListItemKind"
+                                            Options="Definition.ListItemOptions"
+                                            Value="@entries[rowIndex]"
+                                            ValueChanged="@(v => OnItemChanged(rowIndex, v))" />
                     </div>
                     <button type="button"
                             class="btn btn-sm param-dict-delete"
@@ -62,6 +56,7 @@
                 </div>
             }
         </div>
+
         <button type="button"
                 class="btn btn-sm btn-outline-secondary param-dict-add"
                 @onclick="AddRow">+ Add entry</button>
@@ -73,26 +68,21 @@
     [Parameter, EditorRequired] public ToolParameterValues Values { get; set; } = null!;
     [Parameter] public EventCallback<ToolParameterValues> ValuesChanged { get; set; }
 
-    private List<DictionaryParameterEntry> entries = [];
+    private List<object?> entries = [];
     private bool IsEnabled => !Definition.IsOptional || Values.IsParameterEnabled(Definition.Key);
-
+    private static bool IsVectorKind(ToolParameterKind kind) =>
+        kind is ToolParameterKind.Vector2 or ToolParameterKind.Vector3 or ToolParameterKind.Vector4 or ToolParameterKind.Quaternion;
     protected override void OnParametersSet()
     {
-        entries = Values.GetDictionaryEntries(Definition.Key);
+        entries = Values.GetListEntries(Definition.Key);
     }
 
     private Task AddRow()
     {
-        entries.Add(new DictionaryParameterEntry
-        {
-            Key = GetEntryDefault(Definition.DictionaryKeyKind, Definition.DictionaryKeyOptions)!,
-            Value = GetEntryDefault(Definition.DictionaryValueKind, Definition.DictionaryValueOptions),
-        });
+        entries.Add(ParameterDictionaryControl.GetEntryDefault(Definition.ListItemKind, Definition.ListItemOptions));
         return ValuesChanged.InvokeAsync(Values);
     }
 
-    private static bool IsVectorKind(ToolParameterKind kind) =>
-        kind is ToolParameterKind.Vector2 or ToolParameterKind.Vector3 or ToolParameterKind.Vector4 or ToolParameterKind.Quaternion;
     private Task RemoveRow(int index)
     {
         if (index >= 0 && index < entries.Count)
@@ -103,21 +93,11 @@
         return Task.CompletedTask;
     }
 
-    private Task OnKeyChanged(int index, object value)
+    private Task OnItemChanged(int index, object? value)
     {
         if (index < entries.Count)
         {
-            entries[index].Key = value;
-            return ValuesChanged.InvokeAsync(Values);
-        }
-        return Task.CompletedTask;
-    }
-
-    private Task OnValueChanged(int index, object? value)
-    {
-        if (index < entries.Count)
-        {
-            entries[index].Value = value;
+            entries[index] = value;
             return ValuesChanged.InvokeAsync(Values);
         }
         return Task.CompletedTask;
@@ -129,18 +109,4 @@
         return ValuesChanged.InvokeAsync(Values);
     }
 
-    public static object? GetEntryDefault(ToolParameterKind kind, IReadOnlyList<ToolParameterOption> options)
-        => kind switch
-        {
-            ToolParameterKind.Int => 0,
-            ToolParameterKind.Float => 0.0f,
-            ToolParameterKind.Bool => false,
-            ToolParameterKind.Enum => options.FirstOrDefault()?.Value ?? string.Empty,
-            ToolParameterKind.Color => "#000000",
-            ToolParameterKind.Vector2 => Vector2.Zero,
-            ToolParameterKind.Vector3 => Vector3.Zero,
-            ToolParameterKind.Vector4 => Vector4.Zero, 
-            ToolParameterKind.Quaternion => Quaternion.Identity,
-            _ => null,
-        };
 }
