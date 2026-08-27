@@ -81,13 +81,16 @@
                        value="@Values.GetString(Definition.Key, GetDefaultString())"
                        disabled="@(!Enabled)"
                        @oninput="@(args => OnColorSwatchChanged(args))" />
-                <input class="form-control parameter-color-hex"
-                       type="text"
-                       value="@Values.GetString(Definition.Key, GetDefaultString())"
-                       disabled="@(!Enabled)"
-                       maxlength="7"
-                       placeholder="#rrggbb"
-                       @onchange="@(args => OnColorHexChanged(args))" />
+                @if(AdvancedDisplay)
+                {
+                    <input class="form-control parameter-color-hex"
+                        type="text"
+                        value="@Values.GetString(Definition.Key, GetDefaultString())"
+                        disabled="@(!Enabled)"
+                        maxlength="7"
+                        placeholder="#rrggbb"
+                        @onchange="@(args => OnColorHexChanged(args))" />
+                }
             </div>
             break;
 
@@ -111,12 +114,15 @@
                     </div>
                 }
             </div>
-            <input class="form-control parameter-vector-raw"
-                   type="text"
-                   value="@GetVectorText()"
-                   disabled="@(!Enabled)"
-                   @onchange="@(args => OnVectorTextChanged(args))"
-                   placeholder="e.g. 0, 1" />
+            @if(AdvancedDisplay)
+            {
+                <input class="form-control parameter-vector-raw"
+                    type="text"
+                    value="@GetVectorText()"
+                    disabled="@(!Enabled)"
+                    @onchange="@(args => OnVectorTextChanged(args))"
+                    placeholder="e.g. 0, 1" />
+            }
             break;
 
         case ToolParameterKind.Vector3:
@@ -139,12 +145,15 @@
                     </div>
                 }
             </div>
-            <input class="form-control parameter-vector-raw"
-                   type="text"
-                   value="@GetVectorText()"
-                   disabled="@(!Enabled)"
-                   @onchange="@(args => OnVectorTextChanged(args))"
-                   placeholder="e.g. 0, 1, 2" />
+            @if(AdvancedDisplay)
+            {
+                <input class="form-control parameter-vector-raw"
+                    type="text"
+                    value="@GetVectorText()"
+                    disabled="@(!Enabled)"
+                    @onchange="@(args => OnVectorTextChanged(args))"
+                    placeholder="e.g. 0, 1, 2" />
+            }
             break;
 
         case ToolParameterKind.Vector4:
@@ -167,12 +176,15 @@
                     </div>
                 }
             </div>
-            <input class="form-control parameter-vector-raw"
-                   type="text"
-                   value="@GetVectorText()"
-                   disabled="@(!Enabled)"
-                   @onchange="@(args => OnVectorTextChanged(args))"
-                   placeholder="e.g. 0, 1, 2, 3" />
+            @if(AdvancedDisplay)
+            {
+                <input class="form-control parameter-vector-raw"
+                    type="text"
+                    value="@GetVectorText()"
+                    disabled="@(!Enabled)"
+                    @onchange="@(args => OnVectorTextChanged(args))"
+                    placeholder="e.g. 0, 1, 2, 3" />
+            }
             break;
 
         case ToolParameterKind.Quaternion:
@@ -195,12 +207,15 @@
                     </div>
                 }
             </div>
-            <input class="form-control parameter-vector-raw"
-                   type="text"
-                   value="@GetQuaternionEulerText()"
-                   disabled="@(!Enabled)"
-                   @onchange="@(args => OnQuaternionEulerTextChanged(args))"
-                   placeholder="e.g. 0, 90, 0" />
+            @if(AdvancedDisplay)
+            {
+                <input class="form-control parameter-vector-raw"
+                    type="text"
+                    value="@GetQuaternionEulerText()"
+                    disabled="@(!Enabled)"
+                    @onchange="@(args => OnQuaternionEulerTextChanged(args))"
+                    placeholder="e.g. 0, 90, 0" />
+            }
             break;
 
         default:
@@ -221,19 +236,19 @@
     [Parameter] public bool Enabled { get; set; } = true;
 
     private string GetInputId() => $"tool_parameter_{Definition.Key}";
-
+    private bool AdvancedDisplay => !Definition.HideAdvancedDisplay;
     private string GetComponentInputId(int index) => $"tool_parameter_{Definition.Key}_{index}";
 
     private static string? GetNumericAttribute(double? value)
         => value?.ToString(CultureInfo.InvariantCulture);
 
-    private static string FormatFloat(double value, double? step = null, int fallbackDecimals = 6)
+    public static string FormatFloat(double value, double? step = null, int fallbackDecimals = 6)
     {
         var rounded = RoundToPrecision(value, step, fallbackDecimals);
         return rounded.ToString("G15", CultureInfo.InvariantCulture);
     }
 
-    private static double RoundToPrecision(double value, double? step = null, int fallbackDecimals = 6)
+    public static double RoundToPrecision(double value, double? step = null, int fallbackDecimals = 6)
     {
         var decimals = GetDecimalPlaces(step, fallbackDecimals);
         return Math.Round(value, decimals, MidpointRounding.AwayFromZero);
@@ -267,8 +282,8 @@
     private string GetDefaultString()
         => Definition.GetDefaultValue()?.ToString() ?? string.Empty;
 
-    private int GetDimensions()
-        => Definition.Kind switch
+    public static int GetDimensions(ToolParameterKind kind)
+        => kind switch
         {
             ToolParameterKind.Vector2 => 2,
             ToolParameterKind.Vector3 => 3,
@@ -277,8 +292,8 @@
             _ => 0,
         };
 
-    private double[] GetVectorDefaults()
-        => Definition.GetDefaultValue() switch
+    public static double[] GetVectorDefaults(object? value, ToolParameterKind kind)
+        => value switch
         {
             Vector2 v => [v.X, v.Y],
             Vector3 v => [v.X, v.Y, v.Z],
@@ -286,21 +301,24 @@
             Quaternion q => QuaternionToEulerDegrees(q),
             float[] f => f.Select(x => (double)x).ToArray(),
             double[] d => d,
-            _ => new double[GetDimensions()],
+            _ => new double[GetDimensions(kind)],
         };
 
     private double GetVectorComponent(int index)
-        => Values.GetVectorComponent(Definition.Key, index, GetDimensions(), GetVectorDefaults());
+        => Values.GetVectorComponent(Definition.Key, 
+            index, 
+            GetDimensions(Definition.Kind), 
+            GetVectorDefaults(Definition.GetDefaultValue(), Definition.Kind));
 
     private string GetVectorText()
     {
-        var dims = GetDimensions();
+        var dims = GetDimensions(Definition.Kind);
         return string.Join(", ", Enumerable.Range(0, dims).Select(i => FormatFloat(GetVectorComponent(i), Definition.Step)));
     }
 
     private double[] GetRotationEulerDegrees()
     {
-        var fallback = GetVectorDefaults();
+        var fallback = GetVectorDefaults(Definition.GetDefaultValue(), Definition.Kind);
         if (Values.GetRaw(Definition.Key) is Quaternion q)
             return QuaternionToEulerDegrees(q);
         return Enumerable.Range(0, 3)
@@ -364,8 +382,8 @@
 
     private Task OnVectorComponentChanged(int index, ChangeEventArgs args)
     {
-        var dims = GetDimensions();
-        var fallback = GetVectorDefaults();
+        var dims = GetDimensions(Definition.Kind);
+        var fallback = GetVectorDefaults(Definition.GetDefaultValue(), Definition.Kind);
         var updated = Enumerable.Range(0, dims)
             .Select(i => Values.GetVectorComponent(Definition.Key, i, dims, fallback))
             .ToArray();
@@ -380,7 +398,7 @@
 
     private Task OnVectorTextChanged(ChangeEventArgs args)
     {
-        var dims = GetDimensions();
+        var dims = GetDimensions(Definition.Kind);
         var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
         if (!ToolParameterValues.TryParseVectorString(raw, dims, out var parsed))
             return Task.CompletedTask;
@@ -423,7 +441,7 @@
         return SetValueAsync(Definition.Key, q);
     }
 
-    private static Quaternion EulerDegreesToQuaternion(double xDeg, double yDeg, double zDeg)
+    public static Quaternion EulerDegreesToQuaternion(double xDeg, double yDeg, double zDeg)
     {
         var xr = (float)(Math.PI / 180d * xDeg);
         var yr = (float)(Math.PI / 180d * yDeg);
@@ -431,7 +449,7 @@
         return Quaternion.CreateFromYawPitchRoll(yr, xr, zr);
     }
 
-    private static double[] QuaternionToEulerDegrees(Quaternion q)
+    public static double[] QuaternionToEulerDegrees(Quaternion q)
     {
         var n = Quaternion.Normalize(q);
 

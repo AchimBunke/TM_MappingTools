@@ -18,12 +18,16 @@
     }
 
     <div class="tool-page-body">
-        <div
-            class="tool-page-layout @((_showHelp && HelpContent is not null) ? "tool-page-layout-with-help" : string.Empty)">
-            <div class="tool-page-sidebar" style="@SidebarStyle">
-                @Sidebar
-            </div>
-            <div class="tool-page-main">
+        <div class="tool-page-layout
+            @((_showHelp && HelpContent is not null) ? "tool-page-layout-with-help" : string.Empty)
+            @(Sidebar is null ? "tool-page-layout-no-sidebar" : string.Empty)">
+            @if(@Sidebar is not null)
+            {
+                <div class="tool-page-sidebar" style="@SidebarStyle">
+                    @Sidebar
+                </div>
+            }
+            <div class="tool-page-main" style="@MainStyle">
                 @Main
             </div>
             @if (HelpContent is not null && _showHelp)
@@ -77,6 +81,10 @@
     /// <summary>Optional inline style override for the sidebar column.</summary>
     [Parameter]
     public string? SidebarStyle { get; set; }
+
+    /// <summary>Optional inline style override for the sidebar column.</summary>
+    [Parameter]
+    public string? MainStyle { get; set; }
 
     [Parameter, EditorRequired]
     public RenderFragment? Main { get; set; }

@@ -1,0 +1,716 @@
+﻿@page "/item-placement-editor"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using TM_MappingTools.Services;
+@using TM_GenericMapping.Messaging
+@using TM_GenericMapping.Items;
+@using TM_GenericMapping.Templating;
+@using TM_GenericMapping.Common;
+@using System.Numerics;
+
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
+
+<PageTitle>Item Placement Editor</PageTitle>
+
+<ToolPageLayout IconClass="bi-arrows-move" Title="Item Placement Editor"
+                Description="Edit the placement parameter for items."
+                HelpDescription="What this tool changes and how to tune it safely.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Source Item" Description="Load a .Item.Gbx for that you want to edit placement parameters.">
+                    <FileLoader FileService="ItemFileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop the item here you want to edit placement parameters for" Accept=".Item.Gbx"
+                                AllowMultiple="false" MessageSource="Item Placement Editor" />
+                </ToolCard>
+                <ToolCard Title="Template Item" Description="Load a .Item.Gbx that you want to extract placement parameters from.">
+                    <FileLoader FileService="TemplateItemFileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop the item here you want to copy placement parameters from" Accept=".Item.Gbx"
+                                AllowMultiple="false" MessageSource="Item Placement Editor" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body" Description="Export the modified items.">
+                    <ExportPanel EmptyMessage="Run Execute to generate export content." Items="_exportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+   
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Placement Editor"
+                           ExecutionTargetOverwrite="Modify placement parameters" Tooltip="Execute the tool with the loaded item."
+                           CanExecute="CanExecuteTool" />
+        </ToolCard>
+        <ToolCard Title="Placement Parameters" Collapsible="true" InitiallyCollapsed="false">
+             <HeaderContent>
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            enable="@CanInjectItemPlacement" disabled="@(!CanInjectItemPlacement)" @onclick="() => CopyItemDefaultPlacement()"
+                            title="Copy Item Placement">
+                       Copy Item
+                    </button>
+                </div>
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            enable="@CanInjectTemplatePlacement" disabled="@(!CanInjectTemplatePlacement)" @onclick="() => CopyTemplateDefaultPlacement()"
+                            title="Copy Template Placement">
+                       Copy Template
+                    </button>
+                </div>
+                 
+            </HeaderContent>
+            <ChildContent>
+                <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                    ValuesChanged="OnParameterValuesChanged" />
+            </ChildContent>
+        </ToolCard>
+        <ToolCard Title="Advanced Placement Parameters" Collapsible="true" InitiallyCollapsed="@patchParametersCollapsed">
+             <HeaderContent>
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            enable="@CanInjectItemPlacement" disabled="@(!CanInjectItemPlacement)" @onclick="() => CopyItemPatchPlacement()"
+                            title="Copy Item Patch Placement">
+                       Copy Item
+                    </button>
+                </div>
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            enable="@CanInjectTemplatePlacement" disabled="@(!CanInjectTemplatePlacement)" @onclick="() => CopyTemplatePatchPlacement()"
+                            title="Copy Template Patch Placement">
+                       Copy Template
+                    </button>
+                </div>
+            </HeaderContent>
+            <ChildContent>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <ParameterInput Definitions="patchParameterDefinitions" Values="patchParameterValues"
+                        ValuesChanged="OnPatchParameterValuesChanged" />
+
+                    @if(HasPatchLayoutParams)
+                    {
+                        <ToolCard Title="Patch Layout Definitions" Collapsible="true" InitiallyCollapsed ="true">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                @for(int i=0;i < patchLayoutValues.Count;++i)
+                                {
+                                    int index = i;
+                                    <div style="display: flex; align-items: center; gap: 0.4rem; width: 100%; padding: 0.5rem 0.6rem; border: 1px solid var(--tm-border); border-radius: var(--tm-radius-sm); background: var(--tm-surface-soft); box-sizing: border-box;">
+                                        <div style="flex: 1 1 auto; min-width: 0;">
+                                            <ParameterInput
+                                                Definitions="patchLayoutDefinitions"
+                                                Values="@patchLayoutValues[index]"
+                                                ValuesChanged="_ => OnPatchLayoutChanged(index)" />
+                                        </div>
+
+                                        <button type="button"
+                                                class="btn btn-sm param-dict-delete"
+                                                style="flex: 0 0 auto; width: 1.8rem; height: 1.8rem; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--tm-danger);"
+                                                @onclick="() => RemovePatchLayoutDefinition(index)"
+                                                title="Remove Patch Layout"
+                                                aria-label="Remove Patch Layout">
+                                            ×
+                                        </button>
+                                    </div>
+                                }
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        @onclick="() => CreatePatchLayoutDefinition()"
+                                        enable = true
+                                        title = "Create Patch Layout">
+                                        Add Patch Layout
+                                </button>
+                            </div>
+                        </ToolCard>
+                    }
+                </div>
+
+            </ChildContent>
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>This tool will modify the placement parameter of the loaded item.</p>
+        <h3>Placement Parameters</h3>
+        <p>Placement parameters define the general placement of items mostly for the ItemMode.</p>
+        <h3>Parameters:</h3>
+        <ul>
+            <h3>Yaw Only</h3>
+            <p>Defines if item rotation is locked to Y axis.</p>
+            <h3>Not On Object</h3>
+            <p>Defines if item can be placed ontop of other objects.</p>
+            <h3>Auto Rotation</h3>
+            <p>Defines if item takes the ground normal to orient itself on the ground.</p>
+            <h3>Switch Pivot Manually</h3>
+            <p>Defines if item pivot is automatically switched to match hovered pivot.</p>
+            <h3>Pivot Snap Distance</h3>
+            <p>Defines the distance from which a pivot is snapped to.</p>
+            <h3>Placement Cube</h3>
+            <p>The placement cube prevents placement of items within an area.</p>
+            <h3>Grid Snap</h3>
+            <p>Step size and offset for the grid the item is placed on.</p>
+            <h3>Fly</h3>
+            <p>Vertical step and offset when hovering with the item selected.</p>
+            <h3>Pivots</h3>
+            <p>A pivot is an offset and rotation from the actual placement position. Item position (pivot position) can often be snapped to pivot positions of other items.</p>
+        </ul>
+        <h3>Advanced Placement Parameters</h3>
+        <p>Advanced placement parameters defines the placement of items on <strong>patches</strong>.</p>
+        <h3>Patch & Patch Layout</h3>
+        <p>Items are often designed to be placed ontop of blocks such as platform-borders, road-borders, holes, support-structures and more. This placement is not restricted to a single anchor position but instead allows complex placement layouts.</p>
+        <p>The area in which the placement layout takes effect is called a <strong>patch</strong>. A patch can contain the placement of any number of items with different rotations and positions, see e.g. flags on road-borders.</p>
+        <p>When hovering a patch with an item, the item defines the layouts it can take inside that patch, which are defined in the <strong>Patch Layout Definitions</strong></p>
+        <h3>Parameters:</h3>
+        <ul>
+            <h3>Enabled</h3>
+            <p>If disabled, no patch layouts are defined and the item does not attach to patches.</p>
+            <h3>Size Group</h3>
+            <p>Effect is not known, but it is required to be set. Leave as <strong>'0x0'</strong> unless you feel experimental.</p>
+            <h3>Always Up</h3>
+            <p>Defines if the item should stand upright no matter the normal of the patch position.</p>
+            <h3>Align To Interior</h3>
+            <p>Defines if the item is always oriented towards the inside (e.g. towards the inside of platform blocks).</p>
+            <h3>Align To World Dir</h3>
+            <p>Defines if the item is always oriented towards the defined <strong>World Direction</strong> parameter.</p>
+            <h3>World Direction</h3>
+            <p>Item orientation used by <strong>Align To World Dir</strong>.</p>
+            <h3>Compatible Patch Groups</h3>
+            <p>Each block defines its patches with a group identifier. An entry here makes it possible for the item to use the patch of the block. A selection of known groups is displayed when clicking into an empty field, but there are probably more so feel free to add your own group ids.</p>
+        </ul>
+        <h3>Patch Layout Definitions</h3>
+        <p>A patch layout definition describes the layout configuration for an item for a set of patches (group id). This defines the number, positions and offsets for each item created within a patch.</p>
+        <p>Multiple patch layout definitions can be created for the same patch group. They can be cycled through by right-clicking during hovering.</p>
+        <p>Each patch layout definition can only be applied once for each patch group. This means that the same item cannot be placed on the same patch with the same layout. It is however possible to place the same item with different layouts. It is not yet clear if different items that use similar patch layouts can be placed on the same patch</p>
+         <h3>Parameters:</h3>
+        <ul>
+            <h3>ItemCount</h3>
+            <p><strong>0 for automatic count (as many as spacing allows).</strong> The number of items to place.</p>
+            <h3>Item Spacing</h3>
+            <p>Distance between items on the patch.</p>
+            <h3>Fill Align</h3>
+            <p>Each patch has a start and an end point. Defines where item placement begins.</p>
+            <h3>Fill Dir</h3>
+            <p>Impacts fill align. <strong>None</strong> does renders fill align useless.</p>
+            <h3>Normed Position</h3>
+            <p>Each patch has a width. Defines where along the width of the patch the item is placed. (E.g. place item on the edge or the middle of the road border)</p>
+            <p><strong>0</strong> is generally the 'inside' and <strong>1</strong> the 'outside' of the patch.</p>
+            <h3>Altitude</h3>
+            <p>Item height offset above the patch.</p>
+            <h3>Groups</h3>
+            <p>The patch group identifier for which this layout can be applied.</p>
+        </ul>
+    </HelpContent>
+</ToolPageLayout>
+
+    
+@code {
+    [SessionStored] private ItemFileService ItemFileService = default!;
+    [SessionStored] private ItemFileService TemplateItemFileService = default!;
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
+
+    private readonly List<ToolParameterDefinition> parameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "yawOnly",
+            Label = "Yaw Only",
+            Tooltip = "Rotation around Y only.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "notOnObject",
+            Label = "Not On Object",
+            Tooltip = "Prevents item placement ontop of other items.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "autoRotation",
+            Label = "Auto Rotation",
+            Tooltip = "Automatically aligns item with ground normal.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "switchPivotManually",
+            Label = "Switch Pivot Manually",
+            Tooltip = "Pivot must be manually switched to match when hovering over another pivot. If disabled, the pivot is automatically chosen to match the attachment point.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "pivotSnapDistance",
+            Label = "Pivot Snap Distance",
+            Tooltip = "Distance threshold for snapping to a pivot.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "cubeSize",
+            Label = "Cube Size",
+            GroupKey = "PlacementCube",
+            GroupLabel = "Placement Cube",
+            Tooltip = "Size of the placement cube. The placement cube prevents placement of other items inside that cube.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "cubeCenter",
+            Label = "Cube Center",
+            GroupKey = "PlacementCube",
+            Tooltip = "Center of the placement cube.  The placement cube prevents placement of other items inside that cube.",
+            HideAdvancedDisplay = true,
+            Kind = ToolParameterKind.Vector3,
+            DefaultValue = Vector3.Zero,
+        },
+        new()
+        {
+            Key = "gridSnapHStep",
+            Label = "HStep",
+            GroupKey = "Grid Snap",
+            GroupLabel = "Grid Snap",
+            Tooltip = "Horizontal grid snap step distance.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "gridSnapHOffset",
+            Label = "HOffset",
+            GroupKey = "Grid Snap",
+            Tooltip = "Horizontal grid snap offset.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "gridSnapVStep",
+            Label = "VStep",
+            GroupKey = "Grid Snap",
+            Tooltip = "Vertical grid snap step distance.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+
+        new()
+        {
+            Key = "gridSnapVOffset",
+            Label = "VOffset",
+            GroupKey = "Grid Snap",
+            Tooltip = "Vertical grid snap offset.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "flyVStep",
+            Label = "VStep",
+            GroupKey = "Fly",
+            GroupLabel = "Fly",
+            Tooltip = "Vertical step distance while flying.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "flyVOffset",
+            Label = "VOffset",
+            GroupKey = "Fly",
+            Tooltip = "Vertical offset while flying.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0f,
+        },
+        new()
+        {
+            Key = "pivotPositions",
+            Label = "Pivot Positions",
+            Tooltip = "Pivot Positions.",
+            Kind = ToolParameterKind.List,
+            ListItemKind = ToolParameterKind.Vector3,
+        },
+        new()
+        {
+            Key = "pivotRotations",
+            Label = "Pivot Rotations",
+            Tooltip = "Pivot Rotations.",
+            Kind = ToolParameterKind.List,
+            ListItemKind = ToolParameterKind.Quaternion,
+        },
+    };
+
+    [SessionStored] private ToolParameterValues parameterValues = new();
+
+    private readonly List<ToolParameterDefinition> patchParameterDefinitions = new()
+    {
+        new()
+        {
+            Key = "enabled",
+            Label = "Enabled",
+            Tooltip = "Patch placement parameters enabled.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "sizeGroup",
+            Label = "Size Group",
+            VisibleWhenKey = "enabled",
+            Tooltip = "Size group definition. Effect not known. 0x0 seems to work for all cases.",
+            Kind = ToolParameterKind.Text,
+            DefaultValue = "0x0",
+        },
+        new()
+        {
+            Key = "alwaysUp",
+            Label = "Always Up",
+            VisibleWhenKey = "enabled",
+            Tooltip = "Item will always stand upright no matter the patch position normal.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "alignToInterior",
+            Label = "Align To Interior",
+            VisibleWhenKey = "enabled",
+            Tooltip = "Item will always point inwards.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "alignToWorldDir",
+            Label = "Align To World Dir",
+            VisibleWhenKey = "enabled",
+            Tooltip = "Item will point towards the specified World Direction.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = false,
+        },
+        new()
+        {
+            Key = "worldDirection",
+            Label = "World Direction",
+            VisibleWhenKey = "enabled",
+            Tooltip = "Default forward direction for this item.",
+            Kind = ToolParameterKind.Vector3,
+            DefaultValue = Vector3.UnitZ,
+            HideAdvancedDisplay = true,
+        },
+        new()
+        {
+            Key = "compatiblePatchGroups",
+            Label = "Compatible Patch Groups",
+            VisibleWhenKey = "enabled",
+            Tooltip = "Which patch groups and which items this item will snap to.",
+            Kind = ToolParameterKind.List,
+            ListItemKind = ToolParameterKind.Text,
+            ListItemOptions = 
+            Enum.GetValues<ItemPlacementUtils.PlacementPatchGroups>()
+                .Select(g=>new ToolParameterOption {Label = g.ToString(),Value = g.ToString()})
+                .ToArray(),
+        },
+    };
+
+    [SessionStored] private ToolParameterValues patchParameterValues = new();
+
+
+    enum FillAlign { Start = -1, Center = 0, End = 1, }
+    enum FillDir { None = 0, Default = 1 }
+    private readonly List<ToolParameterDefinition> patchLayoutDefinitions = new()
+    {
+        new()
+        {
+            Key = "itemCount",
+            Label = "ItemCount",
+            Tooltip = "Number of items. 0 for automatic from patch length and item spacing.",
+            Kind = ToolParameterKind.Int,
+            DefaultValue = 0,
+        },
+        new()
+        {
+            Key = "itemSpacing",
+            Label = "Item Spacing",
+            Tooltip = "Space between items.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 12,
+        },
+        new()
+        {
+            Key = "fillAlign",
+            Label = "Fill Align",
+            Tooltip = "Fill Align",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = FillAlign.Center,
+            Options = [
+                new ToolParameterOption(){ Label = "Start", Value= "Start"},
+                new ToolParameterOption(){ Label = "Center", Value= "Center"},
+                new ToolParameterOption(){ Label = "End", Value= "End"}
+            ]
+        },
+        new()
+        {
+            Key = "fillDir",
+            Label = "Fill Dir",
+            Tooltip = "Direction items are placed from. None makes FillAlign unnecessary as items will be placed at patch center.",
+            Kind = ToolParameterKind.Enum,
+            DefaultValue = FillDir.Default,
+            Options = [
+                new ToolParameterOption(){ Label = "None", Value= "None"},
+                new ToolParameterOption(){ Label = "Default", Value= "Default"},
+            ]
+        },
+        new()
+        {
+            Key = "normedPos",
+            Label = "Normed Position",
+            Tooltip = "Horizontal position in patch area. From 0 to 1 refering from inside to outside of patch.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0.5f,
+            Min = 0,
+            Max = 1,
+            Step = 0.1d
+        },
+        new()
+        {
+            Key = "altitude",
+            Label = "Altitude",
+            Tooltip = "Height offset over patch.",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 0,
+        },
+        new()
+        {
+            Key = "groups",
+            Label = "Groups",
+            Tooltip = "The groups this layout settings applies for.",
+            Kind = ToolParameterKind.List,
+            ListItemKind = ToolParameterKind.Text,
+            ListItemOptions = Enum.GetValues<ItemPlacementUtils.PlacementPatchGroups>()
+                .Select(g=>new ToolParameterOption {Label = g.ToString(),Value = g.ToString()})
+                .ToArray(),
+
+        },
+    };
+
+    [SessionStored] private List<ToolParameterValues> patchLayoutValues = [];
+    [SessionStored] private bool patchParametersCollapsed = true;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ItemFileService.FileChanged += OnFileChanged;
+        TemplateItemFileService.FileChanged += OnTemplateFileChanged;
+
+    }
+    public void Dispose()
+    {
+        ItemFileService.FileChanged -= OnFileChanged;
+        TemplateItemFileService.FileChanged -= OnTemplateFileChanged;
+    }
+    async void OnFileChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    async void OnTemplateFileChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    private Task OnParameterValuesChanged(ToolParameterValues values)
+    {
+        parameterValues = values;
+        return Task.CompletedTask;
+    }
+    private Task OnPatchParameterValuesChanged(ToolParameterValues values)
+    {
+        patchParameterValues = values;
+        return Task.CompletedTask;
+    }
+    private Task OnPatchLayoutChanged(int index)
+    {
+        return Task.CompletedTask;
+    }
+
+    bool HasTemplateItem => TemplateItemFileService.Item is not null;
+    bool HasItem => ItemFileService.Item is not null;
+    bool CanInjectTemplatePlacement => HasTemplateItem;
+    bool CanInjectItemPlacement => HasItem;
+    bool HasPatchLayoutParams => patchParameterValues.GetBool("enabled", false);
+
+    private void CopyDefaultPlacement(GBX.NET.Engines.GameData.CGameItemModel item)
+    {
+        var templatePlacement = item.DefaultPlacement!;
+
+        parameterValues.Set("yawOnly", templatePlacement.YawOnly);
+        parameterValues.Set("notOnObject", templatePlacement.NotOnObject);
+        parameterValues.Set("autoRotation", templatePlacement.AutoRotation);
+        parameterValues.Set("switchPivotManually", templatePlacement.SwitchPivotManually);
+        parameterValues.Set("pivotSnapDistance", templatePlacement.PivotSnapDistance);
+
+        parameterValues.Set("cubeSize", templatePlacement.CubeSize);
+        parameterValues.Set("cubeCenter", templatePlacement.CubeCenter);
+
+        parameterValues.Set("gridSnapHStep", templatePlacement.GridSnapHStep);
+        parameterValues.Set("gridSnapHOffset", templatePlacement.GridSnapHOffset);
+        parameterValues.Set("gridSnapVStep", templatePlacement.GridSnapVStep);
+        parameterValues.Set("gridSnapVOffset", templatePlacement.GridSnapVOffset);
+
+        parameterValues.Set("flyVStep", templatePlacement.FlyVStep);
+        parameterValues.Set("flyVOffset", templatePlacement.FlyVOffset);
+
+        parameterValues.SetList("pivotPositions", templatePlacement.PivotPositions?.Select(p=>p.ToVector3()).ToList() ?? []);
+        parameterValues.SetList("pivotRotations", templatePlacement.PivotRotations?.Select(q=>q.AsQuaternion()).ToList() ?? []);
+    }
+
+    private void CopyItemDefaultPlacement()
+    {
+        CopyDefaultPlacement(ItemFileService.Item!);
+    }
+    private void CopyTemplateDefaultPlacement()
+    {
+        CopyDefaultPlacement(TemplateItemFileService.Item!);
+    }
+
+    private void CopyPatchPlacement(GBX.NET.Engines.GameData.CGameItemModel item)
+    {
+        var templatePlacement = item.DefaultPlacement!;
+        var placementClass = templatePlacement.PlacementClass;
+
+        if(placementClass is null)
+        {
+            patchParameterValues.Set("enabled", false);
+            return;
+        }
+        patchParameterValues.Set("enabled", true);
+        patchParameterValues.Set("sizeGroup", placementClass.SizeGroup);
+        patchParameterValues.Set("alwaysUp", placementClass.AlwaysUp);
+
+        patchParameterValues.Set("alignToInterior", placementClass.AlignToInterior);
+        patchParameterValues.Set("alignToWorldDir", placementClass.AlignToWorldDir);
+        patchParameterValues.Set("worldDirection", placementClass.WorldDir.ToVector3());
+        patchParameterValues.SetList("compatiblePatchGroups", placementClass.CompatibleGroupsIds ?? []);
+
+        patchLayoutValues.Clear();
+        for(int i=0; i < (placementClass.PatchLayouts?.Length ?? 0) ; ++i)
+        {
+            var patchLayout = placementClass.PatchLayouts![i];
+            var patchLayoutValue = new ToolParameterValues();
+            patchLayoutValue.Set("itemCount", patchLayout.ItemCount);
+            patchLayoutValue.Set("itemSpacing", patchLayout.ItemSpacing);
+            patchLayoutValue.Set("fillAlign", (FillAlign)patchLayout.FillAlign);
+            patchLayoutValue.Set("fillDir", (FillDir)patchLayout.FillDir);
+            patchLayoutValue.Set("normedPos", patchLayout.NormedPos);
+            patchLayoutValue.Set("altitude", patchLayout.Altitude);
+            patchLayoutValue.SetList("groups", patchLayout.OnlyOnGroups ?? []);
+            patchLayoutValues.Add(patchLayoutValue);
+        }
+    }
+    
+    private void CopyItemPatchPlacement()
+    {
+        CopyPatchPlacement(ItemFileService.Item!);
+    }
+    private void CopyTemplatePatchPlacement()
+    {
+        CopyPatchPlacement(TemplateItemFileService.Item!);
+    }
+
+    private void CreatePatchLayoutDefinition()
+    {
+        patchLayoutValues.Add(new());
+    }
+    private void RemovePatchLayoutDefinition(int index)
+    {
+        patchLayoutValues.RemoveAt(index);
+    }
+    private bool CanExecuteTool()
+    {
+        return ItemFileService.Item != null;
+    }
+
+    private GbxTemplate<GBX.NET.Engines.GameData.CGameItemPlacementParam> CreatePlacementParams()
+    {
+        GbxTemplate<GBX.NET.Engines.GameData.CGameItemPlacementParam> template;
+        bool withClass = patchParameterValues.GetBool("enabled");
+        if(withClass)
+            template = GbxTemplateLibrary.CreatePlacementParamTemplateWithPlacementClass();
+        else
+            template = GbxTemplateLibrary.CreatePlacementParamTemplate();
+
+        var paramTemplate = template.Value;
+
+        paramTemplate.YawOnly = parameterValues.GetBool("yawOnly");
+        paramTemplate.NotOnObject = parameterValues.GetBool("notOnObject");
+        paramTemplate.AutoRotation = parameterValues.GetBool("autoRotation");
+
+        paramTemplate.CubeSize = parameterValues.GetFloat("cubeSize");
+        paramTemplate.CubeCenter = parameterValues.GetVector3("cubeCenter", Vector3.Zero);
+
+        paramTemplate.GridSnapHStep = parameterValues.GetFloat("gridSnapHStep");
+        paramTemplate.GridSnapHOffset = parameterValues.GetFloat("gridSnapHOffset");
+        paramTemplate.GridSnapVStep = parameterValues.GetFloat("gridSnapVStep");
+        paramTemplate.GridSnapVOffset = parameterValues.GetFloat("gridSnapVOffset");
+
+        paramTemplate.FlyVStep = parameterValues.GetFloat("flyVStep");
+        paramTemplate.FlyVOffset = parameterValues.GetFloat("flyVOffset");     
+
+        paramTemplate.PivotSnapDistance = parameterValues.GetFloat("pivotSnapDistance");
+        paramTemplate.SwitchPivotManually = parameterValues.GetBool("switchPivotManually");
+
+        var entries1 = parameterValues.GetListEntries("pivotPositions");
+        var entries2 = parameterValues.GetListEntries("pivotRotations");
+
+        paramTemplate.PivotPositions = parameterValues.GetListEntries("pivotPositions").Cast<Vector3>().Select(v=>v.ToVec3()).ToArray();
+        paramTemplate.PivotRotations = parameterValues.GetListEntries("pivotRotations").Cast<Quaternion>().Select(q=>q.ToQuat()).ToArray();
+
+        if(!withClass)
+            return template;
+
+        var paramClass = paramTemplate.PlacementClass!;
+
+        paramClass.SizeGroup = patchParameterValues.GetString("sizeGroup");
+        paramClass.AlwaysUp = patchParameterValues.GetBool("alwaysUp");
+
+        paramClass.AlignToInterior = patchParameterValues.GetBool("alignToInterior");
+        paramClass.AlignToWorldDir = patchParameterValues.GetBool("alignToWorldDir");
+        paramClass.WorldDir = patchParameterValues.GetVector3("worldDirection", Vector3.UnitZ);
+        paramClass.CompatibleGroupsIds = patchParameterValues.GetListEntries("compatiblePatchGroups").Cast<string>().ToArray();
+        List<GBX.NET.Engines.Plug.NPlugItemPlacement_SClass.PatchLayout> patchLayouts = [];
+        for(int i=0; i < patchLayoutValues.Count ; ++i)
+        {
+            var patchLayoutValue = patchLayoutValues[i];
+            var patchLayout = new GBX.NET.Engines.Plug.NPlugItemPlacement_SClass.PatchLayout();
+            patchLayout.ItemCount = patchLayoutValue.GetInt("itemCount");
+            patchLayout.ItemSpacing = patchLayoutValue.GetFloat("itemSpacing");
+            patchLayout.FillAlign = (int)patchLayoutValue.GetEnum<FillAlign>("fillAlign", FillAlign.Center);
+            patchLayout.FillDir = (int)patchLayoutValue.GetEnum<FillDir>("fillDir", FillDir.Default);
+            patchLayout.NormedPos = patchLayoutValue.GetFloat("normedPos");
+            patchLayout.Altitude = patchLayoutValue.GetFloat("altitude");
+            patchLayout.OnlyOnGroups = patchLayoutValue.GetListEntries("groups").Cast<string>().ToArray();
+            patchLayouts.Add(patchLayout);
+        }
+        paramClass.PatchLayouts = patchLayouts.ToArray();
+        return template;
+    }
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
+    {
+
+
+        var item =  ItemFileService.Item!;
+        item.DefaultPlacement = CreatePlacementParams();
+        using var s = new MemoryStream();
+        item.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
+        var bytes = s.ToArray();
+        _exportItems = [ new ExportableItem { FileName = ItemFileService.FileName, GetBytes = () => bytes }];
+
+        await InvokeAsync(StateHasChanged);
+
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, "Modified placement parameters");
+    }
+}

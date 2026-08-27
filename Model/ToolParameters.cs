@@ -15,7 +15,8 @@ public enum ToolParameterKind
     Vector4,
     Quaternion,
     Color,
-    Dictionary
+    Dictionary,
+    List
 }
 
 public sealed class ToolParameterOption
@@ -26,8 +27,8 @@ public sealed class ToolParameterOption
 
 public sealed class DictionaryParameterEntry
 {
-    public string Key { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
+    public object Key { get; set; } = null!;
+    public object? Value { get; set; } = null;
 }
 
 public sealed class ToolParameterDefinition
@@ -51,6 +52,11 @@ public sealed class ToolParameterDefinition
     public IReadOnlyList<ToolParameterOption> DictionaryValueOptions { get; init; } = Array.Empty<ToolParameterOption>();
     public string DictionaryKeyLabel { get; init; } = "Key";
     public string DictionaryValueLabel { get; init; } = "Value";
+
+    public ToolParameterKind ListItemKind { get; init; } = ToolParameterKind.Text;
+    public IReadOnlyList<ToolParameterOption> ListItemOptions { get; init; } = Array.Empty<ToolParameterOption>();
+    public string? ListItemLabel { get; init; } = string.Empty;
+
     /// <summary>Hide this parameter when the predicate returns false.</summary>
     public Func<ToolParameterValues, bool>? VisibleWhen { get; init; }
     /// <summary>Shorthand: hide this parameter when the named bool parameter is false.</summary>
@@ -59,6 +65,8 @@ public sealed class ToolParameterDefinition
     public Func<ToolParameterValues, bool>? EnabledWhen { get; init; }
     /// <summary>Shorthand: disable this parameter when the named bool parameter is false.</summary>
     public string? EnabledWhenKey { get; init; }
+    /// <summary>If advanced display exists, hide it. e.g. Vector copy fields</summary>
+    public bool HideAdvancedDisplay {get; init;}
 
     /// <summary>Returns false if this parameter is hidden or disabled based on current values.</summary>
     public bool IsEffectivelyEnabled(ToolParameterValues values)
@@ -91,6 +99,7 @@ public sealed class ToolParameterDefinition
             ToolParameterKind.Quaternion => Quaternion.Identity,
             ToolParameterKind.Color => "#000000",
             ToolParameterKind.Dictionary => new List<DictionaryParameterEntry>(),
+            ToolParameterKind.List => new List<object?>(),
             _ => null,
         };
     }
@@ -172,6 +181,23 @@ public sealed class ToolParameterValues
         if (int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedInt))
         {
             return parsedInt;
+        }
+
+        return fallback;
+    }
+
+    public T GetEnum<T>(string key, T fallback)
+        where T : struct
+    {
+        if (!values.TryGetValue(key, out var value) || value == null)
+        {
+            return fallback;
+        }
+
+        if(value is string stringValue)
+        {
+            if (Enum.TryParse<T>(stringValue, true, out var result))
+                return result;
         }
 
         return fallback;
@@ -301,7 +327,7 @@ public sealed class ToolParameterValues
         return GetVectorComponents(value, dimensions, fallback);
     }
 
-    private static double[] GetVectorComponents(object value, int dimensions, IReadOnlyList<double> fallback)
+    public static double[] GetVectorComponents(object value, int dimensions, IReadOnlyList<double> fallback)
     {
         return value switch
         {
@@ -341,6 +367,13 @@ public sealed class ToolParameterValues
         return result;
     }
 
+    public void SetDictionary<TKey,TValue>(string key, IEnumerable<KeyValuePair<TKey,TValue>> entries)
+    {
+        Set(key, entries.
+            Select(e=>new DictionaryParameterEntry(){ Key = e.Key!, Value = e.Value })
+            .Cast<object?>()
+            .ToList());
+    }
     public List<DictionaryParameterEntry> GetDictionaryEntries(string key)
     {
         if (values.TryGetValue(key, out var val) && val is List<DictionaryParameterEntry> list)
@@ -349,4 +382,16 @@ public sealed class ToolParameterValues
         values[key] = newList;
         return newList;
     }
+    public void SetList<T>(string key, IEnumerable<T> values)
+    {
+        Set(key, values.Cast<object?>().ToList());
+    }
+    public List<object?> GetListEntries(string key)
+    {
+        if (values.TryGetValue(key, out var val) && val is List<object?> list)
+            return list;
+        var newList = new List<object?>();
+        values[key] = newList;
+        return newList;
+    } 
 }

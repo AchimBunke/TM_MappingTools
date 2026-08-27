@@ -1,0 +1,169 @@
+@* ParameterValueInput.razor *@
+@using System.Globalization
+@using System.Numerics
+
+@if (Kind == ToolParameterKind.Int)
+{
+    <input type="number"
+           class="form-control param-dict-input"
+           step="1",
+           value="@Value"
+           @onchange="@OnValueChanged" />
+}
+else if (Kind == ToolParameterKind.Float)
+{
+    <input type="number"
+           class="form-control param-dict-input"
+           step="1f",
+           value="@Value"
+           @onchange="@OnValueChanged" />
+}
+else if (Kind == ToolParameterKind.Bool)
+{
+    <input type="checkbox"
+           class="param-dict-bool"
+           checked="@Value"
+           @onchange="@OnValueChanged"/>
+}
+else if (Kind == ToolParameterKind.Vector2 || Kind == ToolParameterKind.Vector3 || Kind == ToolParameterKind.Vector4)
+{
+    <span class="param-vector-inline">  
+        @{
+            var dims = ParameterInputControl.GetDimensions(Kind);
+        }
+        @for (var i = 0; i < dims; i++)
+        {
+            var componentIndex = i;
+            var axisLabel = componentIndex switch { 0 => "X", 1 => "Y", 2 => "Z", _ => "W" };
+            <span class="param-vector-item">
+                <span class="param-vector-axis">@axisLabel</span>
+                <input class="param-vector-input" type="number" step="any"
+                       value="@ParameterInputControl.FormatFloat(GetVectorComponent(componentIndex))" aria-label="@axisLabel"
+                       @onchange="@(args => OnVectorComponentChanged(componentIndex, args))" />
+            </span>
+        }
+    </span>
+}
+else if (Kind == ToolParameterKind.Quaternion)
+{
+    <span class="param-vector-inline">  
+        @for (var i = 0; i < 3; i++)
+        {
+            var componentIndex = i;
+            var axisLabel = componentIndex switch { 0 => "X", 1 => "Y", 2 => "Z", _ => "W" };
+            <span class="param-vector-item">
+                <span class="param-vector-axis">@axisLabel</span>
+                <input class="param-vector-input" type="number" step="any"
+                       value="@ParameterInputControl.FormatFloat(GetRotationEulerDegrees()[componentIndex])" aria-label="@axisLabel"
+                       @onchange="@(args => OnQuaternionEulerComponentChanged(componentIndex, args))" />
+            </span>
+        }
+    </span>
+}
+else if (Kind == ToolParameterKind.Enum)
+{
+    <select class="form-select param-dict-input"
+            @onchange="@OnValueChanged">
+        @foreach (var opt in Options)
+        {
+            <option value="@opt.Value">@opt.Label</option>
+        }
+    </select>
+}
+else if (Kind == ToolParameterKind.Color)
+{
+    <input type="color"
+           class="param-dict-color"
+           value="@Value"
+           @onchange="@OnValueChanged" />
+}
+else
+{
+    var hasOptions = Options is { Count: > 0 };
+    var listId = hasOptions ? $"opts-{GetHashCode()}-{Kind}" : null;
+    <input type="text"
+           class="@(hasOptions ? "form-select" : "form-control") param-dict-input"
+           value="@Value"
+           list="@listId"
+           @onchange="@OnValueChanged" />
+    @if (hasOptions)
+    {
+        <datalist id="@listId">
+            @foreach (var opt in Options)
+            {
+                <option value="@opt.Value">@opt.Label</option>
+            }
+        </datalist>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public ToolParameterKind Kind { get; set; }
+    [Parameter] public IReadOnlyList<ToolParameterOption> Options { get; set; } = Array.Empty<ToolParameterOption>();
+    [Parameter, EditorRequired] public object? Value { get; set; } = null;
+    [Parameter] public EventCallback<object?> ValueChanged { get; set; }
+
+    private async Task OnValueChanged(ChangeEventArgs args)
+    {
+        object? val = args.Value;
+        await ValueChanged.InvokeAsync(val);
+    }
+
+    private double GetVectorComponent(int index)
+    {
+        var components = ToolParameterValues.GetVectorComponents(
+            Value!,
+            ParameterInputControl.GetDimensions(Kind),
+            ParameterInputControl.GetVectorDefaults(Value, Kind));
+        return index >= 0 && index < components.Length ? components[index] : 0d;
+    }
+    private async Task OnVectorComponentChanged(int index, ChangeEventArgs args)
+    {
+        var dims = ParameterInputControl.GetDimensions(Kind);
+        var updated = Enumerable.Range(0, dims)
+            .Select(i => GetVectorComponent(i))
+            .ToArray();
+
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
+            return;
+        updated[index] = parsed;
+        await SaveVectorValueAsync(updated);
+    }
+    private double[] GetRotationEulerDegrees()
+    {
+        var fallback = ParameterInputControl.GetVectorDefaults(Value, Kind);
+        if (Value is Quaternion q)
+            return ParameterInputControl.QuaternionToEulerDegrees(q);
+        return Enumerable.Range(0, 3)
+            .Select(i => GetVectorComponent(i))
+            .ToArray();
+    }
+    private Task OnQuaternionEulerComponentChanged(int index, ChangeEventArgs args)
+    {
+        var euler = GetRotationEulerDegrees();
+        var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
+        if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
+            return Task.CompletedTask;
+        return SaveQuaternionValueAsync(euler);
+    }
+    private async Task SaveVectorValueAsync(double[] components)
+    {
+        object value = Kind switch
+        {
+            ToolParameterKind.Vector2 => new Vector2((float)components[0], (float)components[1]),
+            ToolParameterKind.Vector3 => new Vector3((float)components[0], (float)components[1], (float)components[2]),
+            ToolParameterKind.Vector4 => new Vector4((float)components[0], (float)components[1], (float)components[2], (float)components[3]),
+            _ => components,
+        };
+        Value = value;
+        await ValueChanged.InvokeAsync(Value);
+    }
+    private async Task SaveQuaternionValueAsync(double[] components)
+    {
+        object value = ParameterInputControl.EulerDegreesToQuaternion(components[0], components[1], components[2]);
+        Value = value;
+        await ValueChanged.InvokeAsync(Value);
+    }
+    
+}

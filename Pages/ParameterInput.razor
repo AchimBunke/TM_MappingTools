@@ -11,7 +11,7 @@
                     {
                         <div class="parameter-input-group-header">@group.GroupLabel</div>
                     }
-                    <div class="parameter-input-group-inner" style="grid-template-columns: repeat(@group.Definitions.Count, minmax(0, 1fr))">
+                    <div class="parameter-input-group-inner" style="grid-template-columns: repeat(@group.Definitions.Count, auto)">
                         @foreach (var groupDef in group.Definitions)
                         {
                             <div class="parameter-input-group-item">
@@ -76,13 +76,18 @@
     </div>
     @{
         var dictDefs = GetDictionaryDefinitions();
+        var listDefs = GetListDefinitions();
     }
-    @if (dictDefs.Count > 0)
+    @if (dictDefs.Count > 0 || listDefs.Count > 0)
     {
         <div class="parameter-dict-list">
             @foreach (var dictDef in dictDefs)
             {
                 <ParameterDictionaryControl Definition="dictDef" Values="Values" ValuesChanged="ValuesChanged" />
+            }
+            @foreach (var listDef in listDefs)
+            {
+                <ParameterListControl Definition="listDef" Values="Values" ValuesChanged="ValuesChanged" />
             }
         </div>
     }
@@ -140,6 +145,8 @@
 
     private IReadOnlyList<ToolParameterDefinition> GetDictionaryDefinitions()
         => Definitions.Where(d => d.Kind == ToolParameterKind.Dictionary && IsVisible(d)).ToList();
+    private IReadOnlyList<ToolParameterDefinition> GetListDefinitions()
+        => Definitions.Where(d => d.Kind == ToolParameterKind.List && IsVisible(d)).ToList();
 
     private IReadOnlyList<RenderGroup> GetRenderGroups()
     {
@@ -148,7 +155,7 @@
 
         foreach (var def in Definitions)
         {
-            if (def.Kind == ToolParameterKind.Dictionary) continue;
+            if (def.Kind == ToolParameterKind.Dictionary || def.Kind == ToolParameterKind.List) continue;
             if (!IsVisible(def)) continue;
             if (!string.IsNullOrEmpty(def.GroupKey))
             {

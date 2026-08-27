@@ -97,6 +97,13 @@ public class ToolRegistryService
             Title: "Item Model Converter",
             Description: "Convert item models between different types.",
             SourceAliases: new[] { "item model converter", "convert item model" }),
+        new(
+            Category: "Item",
+            Href: "item-placement-editor",
+            IconClass: "bi-arrows-move",
+            Title: "Item Placement Editor",
+            Description: "Edit placement parameters for items.",
+            SourceAliases: new[] { "item placement editor", "edit placement parameter" }),
     };
 
     public string GetIconForSource(string? source)
