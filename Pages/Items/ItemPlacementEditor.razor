@@ -611,7 +611,7 @@
             patchLayoutValues.Add(patchLayoutValue);
         }
     }
-    
+
     private void CopyItemPatchPlacement()
     {
         CopyPatchPlacement(ItemFileService.Item!);
@@ -667,7 +667,7 @@
         var entries2 = parameterValues.GetListEntries("pivotRotations");
 
         paramTemplate.PivotPositions = parameterValues.GetListEntries("pivotPositions").Cast<Vector3>().Select(v=>v.ToVec3()).ToArray();
-        paramTemplate.PivotRotations = parameterValues.GetListEntries("pivotRotations").Cast<Quaternion>().Select(q=>q.ToQuat()).ToArray();
+        paramTemplate.PivotRotations = parameterValues.GetListEntries("pivotRotations").Cast<Quaternion>().Select(q=> new GBX.NET.Quat(q.X,q.Y,q.Z,q.W)).ToArray();
 
         if(!withClass)
             return template;
