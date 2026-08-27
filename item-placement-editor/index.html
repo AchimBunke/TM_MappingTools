@@ -1,0 +1,172 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TM_MappingTools</title>
+    <base href="/TM_MappingTools/"/>
+    <!-- Open Graph / Discord preview -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Home | TM Mapping Tools"/>
+    <meta name="twitter:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips."/>
+    <meta name="twitter:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Home | TM Mapping Tools"/>
+    <meta property="og:site_name" content="Trackmania Mapping Tools"/>
+    <meta property="og:description" content="A collection of tools for TrackMania mappers to create, edit, and optimize Maps, Items, and Clips."/>
+    <meta property="og:url" content="https://achimbunke.github.io/TM_MappingTools/"/>
+    <meta property="og:image" content="https://achimbunke.github.io/TM_MappingTools/Assets/preview.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+
+
+    <script type="importmap">{
+  "imports": {
+    "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.mavy34cdg0.js",
+    "./_framework/dotnet.native.js": "./_framework/dotnet.native.jwfp2jqb9l.js",
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.zbexyp8zrs.js"
+  },
+  "scopes": {},
+  "integrity": {
+    "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
+    "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
+    "./_framework/dotnet.js": "sha256-7kUepy1iNDgdK50v8Uz/lxLiyw7HLPRSUBXyTDPwrTU=",
+    "./_framework/dotnet.mavy34cdg0.js": "sha256-7kUepy1iNDgdK50v8Uz/lxLiyw7HLPRSUBXyTDPwrTU=",
+    "./_framework/dotnet.native.js": "sha256-PRXv24snhAv8VvBNKFCnQDHlib9tKYwlGBFnfStSm6A=",
+    "./_framework/dotnet.native.jwfp2jqb9l.js": "sha256-PRXv24snhAv8VvBNKFCnQDHlib9tKYwlGBFnfStSm6A=",
+    "./_framework/dotnet.runtime.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40=",
+    "./_framework/dotnet.runtime.zbexyp8zrs.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40="
+  }
+}</script>
+    <script>
+        (function () {
+            var t = localStorage.getItem('tm-theme') || 'dark';
+            if (t === 'dark')
+                document.documentElement.setAttribute('data-theme', 'dark');
+            else
+                document.documentElement.removeAttribute('data-theme');
+        })()
+    </script>
+
+    <link href="_framework/dotnet.mavy34cdg0.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-7kUepy1iNDgdK50v8Uz/lxLiyw7HLPRSUBXyTDPwrTU="/>
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <link rel="stylesheet" href="css/parameter-control.css"/>
+    <link rel="icon" type="image/png" href="icon-32.png"/>
+    <link href="TM_MappingTools.styles.css" rel="stylesheet"/>
+
+<!-- %%-PRERENDERING-HEADOUTLET-BEGIN-%% -->
+<title>Item Placement Editor</title>
+<!-- %%-PRERENDERING-HEADOUTLET-END-%% -->
+</head>
+
+<body>
+    <div id="app">
+<!-- %%-PRERENDERING-BEGIN-%% -->
+<div class="page" b-yrpmrvqeod><div class="sidebar" b-yrpmrvqeod><div class="top-row ps-3 navbar navbar-dark" b-k974kyz3h5><div class="container-fluid" b-k974kyz3h5><a class="navbar-brand" href b-k974kyz3h5>TM Mapping Tools</a>
+        <button title="Navigation menu" class="navbar-toggler" b-k974kyz3h5><span class="navbar-toggler-icon" b-k974kyz3h5></span></button></div></div>
+
+<div class="collapse nav-sidebar-body" b-k974kyz3h5><div class="nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
+                </a></div>
+
+            <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="mediatracker-deduplication" class="nav-link"><i class="nav-menu-icon bi bi-intersect" aria-hidden="true" b-k974kyz3h5></i> MediaTracker Deduplicator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator-standalone" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator (Standalone)</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-model-converter" class="nav-link"><i class="nav-menu-icon bi bi-arrow-left-right" aria-hidden="true" b-k974kyz3h5></i> Item Model Converter</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-placement-editor" class="nav-link active" aria-current="page"><i class="nav-menu-icon bi bi-arrows-move" aria-hidden="true" b-k974kyz3h5></i> Item Placement Editor</a></div><hr class="nav-separator" b-k974kyz3h5></div></nav></div>
+    <div class="nav-footer" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link nav-footer-link"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
+            </a></div>
+        <div class="nav-item px-3 nav-item-theme-toggle" style="margin-top: 0.3rem;" b-k974kyz3h5><button class="nav-link nav-footer-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
+                Light Mode</button></div></div></div></div>
+
+    <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
+            <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod>CSharp Mapping GitHub</a>
+            <a href="https://trackmania.exchange/usershow/131189" target="_blank" b-yrpmrvqeod>TMX</a></div>
+
+        <article class="content px-4" b-yrpmrvqeod>
+
+<div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-arrows-move tool-page-header-icon" aria-hidden="true"></span>
+        <div class="tool-page-header-text"><h1 class="tool-page-title">Item Placement Editor</h1><p class="tool-page-desc">Edit the placement parameter for items.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" aria-controls="item-placement-editor-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
+                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Source Item</h2><p class="tool-panel-desc">Load a .Item.Gbx for that you want to edit placement parameters.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-51edd751f3774f00899c61e7a48c7d3e" class="visually-hidden" accept=".Item.Gbx" type="file" />
+
+    <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No files loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop the item here you want to edit placement parameters for or
+                <label for="filePicker-51edd751f3774f00899c61e7a48c7d3e" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+            </div></div></div></div></div>
+                <div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Template Item</h2><p class="tool-panel-desc">Load a .Item.Gbx that you want to extract placement parameters from.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-ee9b51ed8c5644c08add72d2bd8a2ce8" class="visually-hidden" accept=".Item.Gbx" type="file" />
+
+    <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No files loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop the item here you want to copy placement parameters from or
+                <label for="filePicker-ee9b51ed8c5644c08add72d2bd8a2ce8" class="file-open-link" b-6u4mseu3x4>choose a file from disk</label>.
+            </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the modified items.</p></div></div><div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout&#xA;            &#xA;            tool-page-layout-no-sidebar"><div class="tool-page-main"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Actions</h2></div></div><div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Modify placement parameters</strong></span></span>
+    <button type="button" class="btn btn-primary " disabled title="Execute the tool with the loaded item." b-0uij2y1ggg><span b-0uij2y1ggg>Execute</span></button></div></div></div>
+        <div class="tool-panel  "><div class="tool-panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;"><div><h2 class="tool-panel-title">Placement Parameters</h2></div><div style="flex-shrink:0; display:flex; align-items:center; gap:0.4rem;"><div class="d-flex justify-content-end mb-2"><button type="button" class="btn btn-outline-secondary btn-sm" disabled title="Copy Item Placement">
+                       Copy Item
+                    </button></div>
+                <div class="d-flex justify-content-end mb-2"><button type="button" class="btn btn-outline-secondary btn-sm" disabled title="Copy Template Placement">
+                       Copy Template
+                    </button></div><button class="tool-panel-collapse-btn " title="Collapse"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 L8 5 L13 10"></path></svg></button></div></div><div class="tool-panel-body "><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_yawOnly" title="Rotation around Y only." b-8y05qc4gvo>Yaw Only</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Rotation around Y only." aria-label="Rotation around Y only." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_yawOnly" b-naxks4w9st><input id="tool_parameter_yawOnly" type="checkbox" b-naxks4w9st />
+                <span b-naxks4w9st>Enabled</span></label></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_notOnObject" title="Prevents item placement ontop of other items." b-8y05qc4gvo>Not On Object</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Prevents item placement ontop of other items." aria-label="Prevents item placement ontop of other items." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_notOnObject" b-naxks4w9st><input id="tool_parameter_notOnObject" type="checkbox" b-naxks4w9st />
+                <span b-naxks4w9st>Enabled</span></label></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_autoRotation" title="Automatically aligns item with ground normal." b-8y05qc4gvo>Auto Rotation</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Automatically aligns item with ground normal." aria-label="Automatically aligns item with ground normal." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_autoRotation" b-naxks4w9st><input id="tool_parameter_autoRotation" type="checkbox" b-naxks4w9st />
+                <span b-naxks4w9st>Enabled</span></label></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_switchPivotManually" title="Pivot must be manually switched to match when hovering over another pivot. If disabled, the pivot is automatically chosen to match the attachment point." b-8y05qc4gvo>Switch Pivot Manually</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Pivot must be manually switched to match when hovering over another pivot. If disabled, the pivot is automatically chosen to match the attachment point." aria-label="Pivot must be manually switched to match when hovering over another pivot. If disabled, the pivot is automatically chosen to match the attachment point." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_switchPivotManually" b-naxks4w9st><input id="tool_parameter_switchPivotManually" type="checkbox" b-naxks4w9st />
+                <span b-naxks4w9st>Enabled</span></label></div></div><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_pivotSnapDistance" title="Distance threshold for snapping to a pivot." b-8y05qc4gvo>Pivot Snap Distance</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Distance threshold for snapping to a pivot." aria-label="Distance threshold for snapping to a pivot." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><input id="tool_parameter_pivotSnapDistance" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div><div class="parameter-input-field parameter-input-group-field" style="grid-column: span 2" b-8y05qc4gvo><div class="parameter-input-group-header" b-8y05qc4gvo>Placement Cube</div><div class="parameter-input-group-inner" style="grid-template-columns: repeat(2, auto)" b-8y05qc4gvo><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_cubeSize" title="Size of the placement cube. The placement cube prevents placement of other items inside that cube." b-8y05qc4gvo>Cube Size</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Size of the placement cube. The placement cube prevents placement of other items inside that cube." aria-label="Size of the placement cube. The placement cube prevents placement of other items inside that cube." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_cubeSize" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_cubeCenter" title="Center of the placement cube.  The placement cube prevents placement of other items inside that cube." b-8y05qc4gvo>Cube Center</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Center of the placement cube.  The placement cube prevents placement of other items inside that cube." aria-label="Center of the placement cube.  The placement cube prevents placement of other items inside that cube." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><div class="parameter-vector-grid parameter-vector-grid-3" b-naxks4w9st><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>X</span>
+                        <input id="tool_parameter_cubeCenter_0" class="form-control" type="number" step="0.01" value="0" aria-label="X" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Y</span>
+                        <input id="tool_parameter_cubeCenter_1" class="form-control" type="number" step="0.01" value="0" aria-label="Y" b-naxks4w9st /></div><div class="parameter-vector-inline-item" b-naxks4w9st><span class="parameter-vector-label" b-naxks4w9st>Z</span>
+                        <input id="tool_parameter_cubeCenter_2" class="form-control" type="number" step="0.01" value="0" aria-label="Z" b-naxks4w9st /></div></div></div></div></div></div><div class="parameter-input-field parameter-input-group-field" style="grid-column: span 4" b-8y05qc4gvo><div class="parameter-input-group-header" b-8y05qc4gvo>Grid Snap</div><div class="parameter-input-group-inner" style="grid-template-columns: repeat(4, auto)" b-8y05qc4gvo><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_gridSnapHStep" title="Horizontal grid snap step distance." b-8y05qc4gvo>HStep</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Horizontal grid snap step distance." aria-label="Horizontal grid snap step distance." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_gridSnapHStep" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_gridSnapHOffset" title="Horizontal grid snap offset." b-8y05qc4gvo>HOffset</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Horizontal grid snap offset." aria-label="Horizontal grid snap offset." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_gridSnapHOffset" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_gridSnapVStep" title="Vertical grid snap step distance." b-8y05qc4gvo>VStep</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Vertical grid snap step distance." aria-label="Vertical grid snap step distance." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_gridSnapVStep" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_gridSnapVOffset" title="Vertical grid snap offset." b-8y05qc4gvo>VOffset</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Vertical grid snap offset." aria-label="Vertical grid snap offset." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_gridSnapVOffset" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div></div></div><div class="parameter-input-field parameter-input-group-field" style="grid-column: span 2" b-8y05qc4gvo><div class="parameter-input-group-header" b-8y05qc4gvo>Fly</div><div class="parameter-input-group-inner" style="grid-template-columns: repeat(2, auto)" b-8y05qc4gvo><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_flyVStep" title="Vertical step distance while flying." b-8y05qc4gvo>VStep</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Vertical step distance while flying." aria-label="Vertical step distance while flying." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_flyVStep" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div><div class="parameter-input-group-item" b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_flyVOffset" title="Vertical offset while flying." b-8y05qc4gvo>VOffset</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Vertical offset while flying." aria-label="Vertical offset while flying." b-8y05qc4gvo>?</span></div></div>
+                                <div b-naxks4w9st><input id="tool_parameter_flyVOffset" class="form-control" type="number" step="0.01" value="0" b-naxks4w9st /></div></div></div></div></div><div class="parameter-dict-list" b-8y05qc4gvo><div class="param-list-card " "><div class="parameter-input-header"><span class="parameter-input-label" title="Pivot Positions.">Pivot Positions</span><div class="parameter-input-header-actions"><span class="parameter-input-help" title="Pivot Positions." aria-label="Pivot Positions.">?</span></div></div>
+
+    <div class=" param-list-content"><div class="param-dict-empty">No entries</div><div class="param-list-entries"></div>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary param-dict-add">&#x2B; Add entry</button></div></div><div class="param-list-card " "><div class="parameter-input-header"><span class="parameter-input-label" title="Pivot Rotations.">Pivot Rotations</span><div class="parameter-input-header-actions"><span class="parameter-input-help" title="Pivot Rotations." aria-label="Pivot Rotations.">?</span></div></div>
+
+    <div class=" param-list-content"><div class="param-dict-empty">No entries</div><div class="param-list-entries"></div>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary param-dict-add">&#x2B; Add entry</button></div></div></div></div></div></div>
+        <div class="tool-panel  "><div class="tool-panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;"><div><h2 class="tool-panel-title">Advanced Placement Parameters</h2></div><div style="flex-shrink:0; display:flex; align-items:center; gap:0.4rem;"><div class="d-flex justify-content-end mb-2"><button type="button" class="btn btn-outline-secondary btn-sm" disabled title="Copy Item Patch Placement">
+                       Copy Item
+                    </button></div>
+                <div class="d-flex justify-content-end mb-2"><button type="button" class="btn btn-outline-secondary btn-sm" disabled title="Copy Template Patch Placement">
+                       Copy Template
+                    </button></div><button class="tool-panel-collapse-btn " title="Collapse"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 L8 5 L13 10"></path></svg></button></div></div><div class="tool-panel-body "><div style="display: flex; flex-direction: column; gap: 1rem;"><div b-8y05qc4gvo><div class="parameter-input-list" b-8y05qc4gvo><div class="parameter-input-field " b-8y05qc4gvo><div class="parameter-input-header" b-8y05qc4gvo><label class="parameter-input-label" for="tool_parameter_enabled" title="Patch placement parameters enabled." b-8y05qc4gvo>Enabled</label><div class="parameter-input-header-actions" b-8y05qc4gvo><span class="parameter-input-help" title="Patch placement parameters enabled." aria-label="Patch placement parameters enabled." b-8y05qc4gvo>?</span></div></div>
+                    <div b-naxks4w9st><label class="parameter-input-checkbox" for="tool_parameter_enabled" b-naxks4w9st><input id="tool_parameter_enabled" type="checkbox" b-naxks4w9st />
+                <span b-naxks4w9st>Enabled</span></label></div></div></div></div></div></div></div></div></div></div></div></article>
+
+        <div class="message-log-row message-log-collapsed " b-poo0z6q6cd><div class="message-log-body" b-poo0z6q6cd><div class="message-log-header" b-poo0z6q6cd><div class="message-log-header-left" b-poo0z6q6cd><button class="btn btn-link btn-sm message-log-toggle" title="Show output" b-poo0z6q6cd><span class="bi bi-chevron-up" aria-hidden="true" b-poo0z6q6cd></span>
+                    <span class="message-log-title" b-poo0z6q6cd>Output</span></button></div></div></div></div></main></div>
+        <blazor-focus-on-navigate selector="h1"></blazor-focus-on-navigate>
+<!-- %%-PRERENDERING-END-%% -->
+</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_framework/blazor.webassembly.66stpp682q.js" autostart="false"></script>
+    <script src="js/app.js"></script>
+    <script>
+        Blazor.start({
+            loadBootResource: function (type, name, defaultUri, integrity) {
+                if (type === 'dotnetjs') {
+                    // This resource must be a URI string, not a custom fetch/Response
+                    return defaultUri;
+                }
+                if (type === 'manifest') {
+                    // Only the boot manifest needs forced revalidation
+                    return fetch(defaultUri, { cache: 'no-cache' });
+                }
+                // Everything else: normal caching, integrity check intact
+                return fetch(defaultUri, { integrity: integrity, cache: 'default' });
+            }
+        });
+    </script>
+    <script src="js/app.js"></script>
+
+
+</body></html>

@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.mavy34cdg0.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.jwfp2jqb9l.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.zbexyp8zrs.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.uf7msipaqz.js"
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.zbexyp8zrs.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-KgPKFI1XmDJKF/bUPBedZ0E5na+mG33Kv+1vm0aMGwE=",
+    "./_framework/dotnet.js": "sha256-7kUepy1iNDgdK50v8Uz/lxLiyw7HLPRSUBXyTDPwrTU=",
+    "./_framework/dotnet.mavy34cdg0.js": "sha256-7kUepy1iNDgdK50v8Uz/lxLiyw7HLPRSUBXyTDPwrTU=",
     "./_framework/dotnet.native.js": "sha256-PRXv24snhAv8VvBNKFCnQDHlib9tKYwlGBFnfStSm6A=",
     "./_framework/dotnet.native.jwfp2jqb9l.js": "sha256-PRXv24snhAv8VvBNKFCnQDHlib9tKYwlGBFnfStSm6A=",
     "./_framework/dotnet.runtime.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40=",
-    "./_framework/dotnet.runtime.zbexyp8zrs.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40=",
-    "./_framework/dotnet.uf7msipaqz.js": "sha256-KgPKFI1XmDJKF/bUPBedZ0E5na+mG33Kv+1vm0aMGwE="
+    "./_framework/dotnet.runtime.zbexyp8zrs.js": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40="
   }
 }</script>
     <script>
@@ -47,10 +47,11 @@
         })()
     </script>
 
-    <link href="_framework/dotnet.uf7msipaqz.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-KgPKFI1XmDJKF/bUPBedZ0E5na+mG33Kv+1vm0aMGwE="/>
+    <link href="_framework/dotnet.mavy34cdg0.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-7kUepy1iNDgdK50v8Uz/lxLiyw7HLPRSUBXyTDPwrTU="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
+    <link rel="stylesheet" href="css/parameter-control.css"/>
     <link rel="icon" type="image/png" href="icon-32.png"/>
     <link href="TM_MappingTools.styles.css" rel="stylesheet"/>
 
@@ -68,7 +69,7 @@
 <div class="collapse nav-sidebar-body" b-k974kyz3h5><div class="nav-scrollable" b-k974kyz3h5><nav class="nav flex-column" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="" class="nav-link"><i class="nav-menu-icon bi-house-door-fill" aria-hidden="true" b-k974kyz3h5></i> Home
                 </a></div>
 
-            <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="mediatracker-deduplication" class="nav-link"><i class="nav-menu-icon bi bi-intersect" aria-hidden="true" b-k974kyz3h5></i> MediaTracker Deduplicator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator-standalone" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator (Standalone)</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-model-converter" class="nav-link"><i class="nav-menu-icon bi bi-arrow-left-right" aria-hidden="true" b-k974kyz3h5></i> Item Model Converter</a></div><hr class="nav-separator" b-k974kyz3h5></div></nav></div>
+            <hr class="nav-separator" b-k974kyz3h5><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="player-attached-triangles" class="nav-link"><i class="nav-menu-icon bi bi-paperclip" aria-hidden="true" b-k974kyz3h5></i> Player-Attached 3D Triangles</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-keyframe-animations" class="nav-link"><i class="nav-menu-icon bi bi-bezier" aria-hidden="true" b-k974kyz3h5></i> Optimize Keyframe Animations</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="optimize-triangle-compression" class="nav-link"><i class="nav-menu-icon bi bi-grid-3x3" aria-hidden="true" b-k974kyz3h5></i> Optimize Triangle Compression</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="import-triangle-animation" class="nav-link"><i class="nav-menu-icon bi bi-collection-play" aria-hidden="true" b-k974kyz3h5></i> Import Triangle Animation</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="project-3D-triangles" class="nav-link"><i class="nav-menu-icon bi bi-back" aria-hidden="true" b-k974kyz3h5></i> Project 3D Triangles</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="map-item-replacer" class="nav-link"><i class="nav-menu-icon bi bi-shuffle" aria-hidden="true" b-k974kyz3h5></i> Map Item Replacer</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="embedded-item-extractor" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-up" aria-hidden="true" b-k974kyz3h5></i> Embedded Item Extractor</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="mediatracker-deduplication" class="nav-link"><i class="nav-menu-icon bi bi-intersect" aria-hidden="true" b-k974kyz3h5></i> MediaTracker Deduplicator</a></div><hr class="nav-separator" b-k974kyz3h5></div><div class="nav-tools-section" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="moving-item-creator" class="nav-link"><i class="nav-menu-icon bi bi-box-arrow-in-right" aria-hidden="true" b-k974kyz3h5></i> Moving Item Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="gate-variant-creator-standalone" class="nav-link"><i class="nav-menu-icon bi bi-lightning-charge-fill" aria-hidden="true" b-k974kyz3h5></i> Gate Variant Creator (Standalone)</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-model-converter" class="nav-link"><i class="nav-menu-icon bi bi-arrow-left-right" aria-hidden="true" b-k974kyz3h5></i> Item Model Converter</a></div><div class="nav-item px-3" b-k974kyz3h5><a href="item-placement-editor" class="nav-link"><i class="nav-menu-icon bi bi-arrows-move" aria-hidden="true" b-k974kyz3h5></i> Item Placement Editor</a></div><hr class="nav-separator" b-k974kyz3h5></div></nav></div>
     <div class="nav-footer" b-k974kyz3h5><div class="nav-item px-3" b-k974kyz3h5><a href="about" class="nav-link nav-footer-link active" aria-current="page"><i class="nav-menu-icon bi-info-circle" aria-hidden="true" b-k974kyz3h5></i> About
             </a></div>
         <div class="nav-item px-3 nav-item-theme-toggle" style="margin-top: 0.3rem;" b-k974kyz3h5><button class="nav-link nav-footer-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
