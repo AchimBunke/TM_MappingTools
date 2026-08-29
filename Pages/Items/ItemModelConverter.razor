@@ -251,10 +251,9 @@
                 enabled, visible, collidable, trigger and movable. When disabled, the tool will try to figure out a useful
                 default configuration for the selected target type.</p>
                 <h3>Target Type</h3>
-                <p>The target type determines the item type to convert to. It decides what the item can do in-game. Crystal
-                    items are editable in MeshModeler, Crystal Waypoints are in-game editable checkpoints, Solid2Model items are
-                    static and have no moving parts, Moving items have dynamic collision shapes and can move, and Custom Gates
-                    are items that have effect triggers.</p>
+                <p>The target type determines the item type to convert to. It decides what the item can do in-game. General items are items with mixed content containing static, moving, effect triggers or waypoint triggers.
+                    MeshModeler items are in-game editable with the MeshModeler tool. MeshModeler items cannot contain moving or effect trigger parts.
+                </p>
                     <h3>Gate Gameplay Effect</h3>
                     <p>When the target type is set to Custom Gate, you can select the gameplay effect of the gate.</p>
                     <h3>Waypoint Type</h3>
@@ -347,7 +346,7 @@
 
 
    
-    private enum TargetMeshType { General, Waypoint, CustomGate, MeshModeler, MeshModeler_Waypoint }
+    private enum TargetMeshType { General, MeshModeler}
 
     private IEnumerable<IGrouping<int, (int Index, NormalizedMesh Mesh)>> GroupedSubMeshes =>
         loadedItem.Meshes
@@ -375,16 +374,13 @@
         {
             Key = "targetType",
             Label = "Target Type",
-            Tooltip = "The target type of the item. Crystal: In-game editable item. Solid2Model: Static item with no moving parts. Moving: Item with moving parts. CustomGate: Item that has effect trigger.",
+            Tooltip = "The target type of the item. General: All item/mesh types possible. MeshModeler: Ingame editable item.",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "General",
             Options = new[]
     {
                 new ToolParameterOption { Value = "General", Label = "General" },
-                new ToolParameterOption { Value = "Waypoint", Label = "Waypoint" },
-                new ToolParameterOption { Value = "CustomGate", Label = "CustomGate" },
-                new ToolParameterOption { Value = "MeshModeler", Label = "MeshModeler" },
-                new ToolParameterOption { Value = "MeshModeler_Waypoint", Label = "MeshModeler_Waypoint" },
+                new ToolParameterOption { Value = "MeshModeler", Label = "MeshModeler" }
     },
         },
         new()
@@ -394,9 +390,8 @@
             Tooltip = "The gameplay effect of the custom gate.",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "Turbo",
-            Options = Enum.GetValues<LegacyGameplayId>().Select(v => new ToolParameterOption { Value = v.ToString(), Label =
-v.ToString() }).ToArray(),
-            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.CustomGate
+            Options = Enum.GetValues<LegacyGameplayId>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
+            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.General
         },
         new()
         {
@@ -405,10 +400,7 @@ v.ToString() }).ToArray(),
             Tooltip = "The type of waypoint for the crystal item.",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "None",
-            Options = Enum.GetValues<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>().Select(v => new ToolParameterOption {
-Value = v.ToString(), Label = v.ToString() }).ToArray(),
-            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.Waypoint ||
-Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.MeshModeler_Waypoint
+            Options = Enum.GetValues<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
         },
     };
 
@@ -562,27 +554,11 @@ Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.MeshMode
             issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No visible meshes selected — the item will be invisible in-game."));
         switch (targetType)
         {
-            case TargetMeshType.Waypoint:
-                if (!submeshConfigs.Any(g => g.Value.Trigger_Waypoint))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the item will not function as a waypoint."));
-                break;
-            case TargetMeshType.MeshModeler_Waypoint:
-                if (!submeshConfigs.Any(g => g.Value.Trigger_Waypoint))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains no trigger — the item will not function as a waypoint."));
-                if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains Effects — Effect trigger will not function in a MeshModeler item."));
-                if (submeshConfigs.Any(g => g.Value.Movable))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains movable parts — Movable parts will not move in a MeshModeler item."));
-                break;
             case TargetMeshType.MeshModeler:
                 if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
                     issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains Effects — Effect trigger will not function in a MeshModeler item."));
                 if (submeshConfigs.Any(g => g.Value.Movable))
                     issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains movable parts — Movable parts will not move in a MeshModeler item."));
-                break;
-            case TargetMeshType.CustomGate:
-                if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Error, "Item contains no effect trigger."));
                 break;
         }
 
@@ -617,13 +593,10 @@ Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.MeshMode
             buildOptions = CreateBuildOptionsFromConfiguration(targetType, effect, waypointType);
             switch (targetType)
             {
-                case TargetMeshType.MeshModeler_Waypoint:
                 case TargetMeshType.MeshModeler:
                     buildOptions.TargetModel = MeshBuilder.ItemModel.MeshModeler;
                     break;
                 case TargetMeshType.General:
-                case TargetMeshType.CustomGate:
-                case TargetMeshType.Waypoint:
                     buildOptions.TargetModel = MeshBuilder.ItemModel.General;
                     break;
             }
