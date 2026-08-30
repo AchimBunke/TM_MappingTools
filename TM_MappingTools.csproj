@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalLibrary)' != 'true'">
-    <PackageReference Include="TM_CSharpMapping" Version="0.4.1-alpha.6" />
+    <PackageReference Include="TM_CSharpMapping" Version="0.4.1-alpha.7" />
   </ItemGroup>
 
 
