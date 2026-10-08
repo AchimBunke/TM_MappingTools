@@ -1,3 +1,5 @@
+using TM_GenericMapping.Items.MeshCompilation;
+
 namespace TM_MappingTools.Model;
 
 /// <summary>
@@ -13,6 +15,10 @@ public class MeshConfig
     public bool Movable { get; set; } = false;
     public int LODMask { get; set; } = 1;
     public bool HasLOD { get; set; } = false;
+}
+public class GroupConfig
+{
+    public ModelType Type { get; set; }
 }
 
 public class ItemConfig

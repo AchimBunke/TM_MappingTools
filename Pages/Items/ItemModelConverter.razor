@@ -2,6 +2,7 @@
 @inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using TM_MappingTools.Services;
 @using TM_GenericMapping.Items;
+@using TM_GenericMapping.Items.MeshCompilation;
 @using TM_GenericMapping.Messaging;
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 
@@ -58,10 +59,10 @@
                                 <span class="cfg-col-check" title="Waypoint Trigger">Way</span>
                                 <span class="cfg-col-check" title="Movable">Mov</span>
                             </li>
-                            @foreach (var group in GroupedSubMeshes)
+                            @foreach (var group in GroupedInstanceSettings)
                             {
-                                <li class="cfg-table-group">Group: @group.Key</li>
-                                @foreach (var typeGroup in TypesInGroup(group.Key))
+                                <li class="cfg-table-group">Group: @group.Key.Type</li>
+                                @foreach (var typeGroup in KindInGroup(group.Key))
                                 {
                                     @foreach (var (index, subMesh) in typeGroup)
                                     {
@@ -337,6 +338,7 @@
     [SessionStored] private NormalizedItem loadedItem = new();
     [SessionStored] private bool isItemLoaded = false;
     [SessionStored] private Dictionary<int, MeshConfig> submeshConfigs = new();
+    [SessionStored] private Dictionary<int, GroupConfig> groupConfigs = new();
     [SessionStored] private ItemConfig itemConfig = new();
 
     private IReadOnlyList<ValidationIssue> _validationIssues = Array.Empty<ValidationIssue>();
@@ -345,20 +347,10 @@
     private IReadOnlyDictionary<int, MeshConfig>? _previewConfigs;
 
 
-   
+
     private enum TargetMeshType { General, MeshModeler}
 
-    private IEnumerable<IGrouping<int, (int Index, NormalizedMesh Mesh)>> GroupedSubMeshes =>
-        loadedItem.Meshes
-            .Select((m, i) => (Index: i, Mesh: m))
-            .GroupBy(x => x.Mesh.GroupIndex)
-            .OrderBy(g => g.Key);
-    private IEnumerable<IGrouping<MeshType, (int Index, NormalizedMesh Mesh)>> TypesInGroup(int groupIndex) =>
-        loadedItem.Meshes
-            .Select((m, i) => (Index: i, Mesh: m))
-            .Where(x => x.Mesh.GroupIndex == groupIndex)
-            .GroupBy(x => x.Mesh.Type)
-            .OrderBy(g => g.Key);
+
 
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -460,8 +452,8 @@
 
     private bool TryLoadMeshFromItem(out NormalizedItem item)
     {
-        var extractor = new MeshExtractor();
-        var result = extractor.ExtractMesh(ItemFileService.Item!);
+        var extractor = new ItemParser();
+        var result = extractor.Parse(ItemFileService.Item!);
 
         if (result.IsFailure)
         {
@@ -475,11 +467,15 @@
     {
         if (!isItemLoaded) return;
         submeshConfigs = new Dictionary<int, MeshConfig>();
+        submeshConfigs = new Dictionary<int, MeshConfig>()
         itemConfig = new ItemConfig();
-        itemConfig.LODDistances = loadedItem.Groups.FirstOrDefault(g => g.LODDistances.Length > 0)?.LODDistances.ToList() ?? [];
+        itemConfig.LODDistances = loadedItem.ModelPool.FirstOrDefault(m => m.Value.LODDistances.Length > 0).Value?.LODDistances.ToList() ?? [];
 
-        for (int i = 0; i < loadedItem.Meshes.Length; i++)
+        for (int i = 0; i < loadedItem.ModelPool.Count; i++)
         {
+            var model = loadedItem.
+            var gcfg = new GroupConfig();
+            gcfg.Type = 
             MeshConfig cfg = new MeshConfig();
             var submesh = loadedItem.Meshes[i];
             var group = loadedItem.Groups[submesh.GroupIndex];
@@ -571,19 +567,24 @@
     }
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
-        var settings = new MeshBuilder.MeshBuilderSettings()
+        var settings = new MeshCompilerSettings()
         {
             Author = ItemFileService.Item!.Ident.Author,
         };
-        var meshBuilder = new MeshBuilder(settings);
+        var meshBuilder = new ItemCompiler(settings);
 
-      
+
         string targetTypeString = parameterValues.GetString("targetType");
-        MeshBuilder.BuildSettings buildOptions;
+        var compileOptions = new CompileOptions()
+        {
+            Optimization = ItemCompilerOptimization.PreferNadeoImporterStructure,
+            Target = ItemModel.Prefab,  
+        };
+        BuildSettings buildOptions;
         TargetMeshType targetType = Enum.Parse<TargetMeshType>(targetTypeString);
         if (!parameterValues.GetBool("useConfiguration"))
         {
-            buildOptions = MeshBuilder.BuildSettings.DefaultFromMesh(loadedItem);
+            buildOptions = BuildSettings.DefaultFromItem(loadedItem);
         }
         else
         {
@@ -594,14 +595,14 @@
             switch (targetType)
             {
                 case TargetMeshType.MeshModeler:
-                    buildOptions.TargetModel = MeshBuilder.ItemModel.MeshModeler;
+                    compileOptions = compileOptions with {Target = ItemModel.MeshModeler};
                     break;
                 case TargetMeshType.General:
-                    buildOptions.TargetModel = MeshBuilder.ItemModel.General;
+                    compileOptions = compileOptions with {Target = ItemModel.Prefab};
                     break;
             }
         }
-        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = meshBuilder.BuildItem(loadedItem, buildOptions);
+        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = meshBuilder.Compile(loadedItem, buildOptions, compileOptions);
 
         if (builtItemResult.IsFailure)
         {
