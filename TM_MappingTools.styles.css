@@ -1273,6 +1273,118 @@ main[b-yrpmrvqeod] {
         justify-self: start;
     }
 }
+/* /Pages/MovementEditor.razor.rz.scp.css */
+.mv-editor[b-ygy251q5i4] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mv-status[b-ygy251q5i4] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mv-badge[b-ygy251q5i4] {
+    padding: 0 0.5rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--tm-border);
+    color: var(--tm-text-muted);
+    font-size: 0.8em;
+}
+
+.mv-badge-custom[b-ygy251q5i4] {
+    border-color: var(--tm-accent);
+    color: var(--tm-accent);
+}
+
+.mv-title[b-ygy251q5i4] {
+    font-size: 0.95rem;
+    margin: 0 0 0.35rem 0;
+}
+
+.mv-fields[b-ygy251q5i4] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.mv-fields label[b-ygy251q5i4] {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78em;
+    color: var(--tm-text-muted);
+    min-width: 5.5rem;
+    flex: 1 1 5.5rem;
+}
+
+.mv-steps[b-ygy251q5i4] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.mv-step[b-ygy251q5i4] {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.mv-step-head[b-ygy251q5i4] {
+    font-size: 0.75em;
+    color: var(--tm-text-muted);
+}
+
+.mv-step-no[b-ygy251q5i4] {
+    width: 1.2rem;
+    text-align: right;
+    flex-shrink: 0;
+    color: var(--tm-text-muted);
+    font-size: 0.8em;
+}
+
+.mv-step-ease[b-ygy251q5i4] {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.mv-step-duration[b-ygy251q5i4] {
+    width: 6.5rem;
+    flex-shrink: 0;
+}
+
+.mv-step-reverse[b-ygy251q5i4] {
+    width: 2rem;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.mv-step-actions[b-ygy251q5i4] {
+    width: 6.2rem;
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.2rem;
+}
+
+.mv-step-actions .btn[b-ygy251q5i4] {
+    padding: 0 0.3rem;
+    font-size: 0.8em;
+    line-height: 1.4;
+}
+
+.mv-step-footer[b-ygy251q5i4] {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.2rem;
+}
+
+.mv-empty[b-ygy251q5i4] {
+    color: var(--tm-text-muted);
+    font-size: 0.85em;
+}
 /* /Pages/ParameterInput.razor.rz.scp.css */
 /* /Pages/ParameterInputControl.razor.rz.scp.css */
 .parameter-control-disabled[b-naxks4w9st] {
