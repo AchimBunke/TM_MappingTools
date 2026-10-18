@@ -1,6 +1,7 @@
 @page "/moving-item-creator"
 @inherits TM_MappingTools.Pages.SessionStorageComponentBase
 @using GBX.NET.Engines.GameData
+@using GBX.NET.Engines.Meta
 @using System.Text
 @using System.IO.Compression
 @using TM_GenericMapping.Messaging
@@ -53,6 +54,11 @@
             <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
                             ValuesChanged="OnParameterValuesChanged" />
         </ToolCard>
+        <ToolCard Title="Movement" Collapsible="true" InitiallyCollapsed="true"
+                  Description="Change how the moving parts move. The values start with the animation template and apply to every moving part of every generated item once you edit them.">
+            <MovementEditor Config="Movement" Changed="OnMovementChanged" Reset="ResetMovement"
+                            SourceLabel="@MovementSourceLabel" />
+        </ToolCard>
     </Main>
     <HelpContent>
         <h3>What happens when you click Execute</h3>
@@ -81,6 +87,11 @@
         <h3>Practical workflow</h3>
         <p>If you want to copy a specific animation to all moving items, load the item containing those into the 'Animation Template' input.
         </p>
+        <p>To fine tune the movement, open the <strong>Movement</strong> card. It starts with the values of the
+            template and only overwrites them once you change something. Every animation (translation and
+            rotation) has at most 4 steps with an ease, a duration in milliseconds and an optional reverse. The result
+            is applied to every moving part of every generated item. <strong>Reset</strong> goes back to the template.
+        </p>
         <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the
             'Items to Convert' section.
         </p>
@@ -102,6 +113,37 @@
     [SessionStored] private ItemFileService TemplateItemFileService = default!;
     [SessionStored] private FileService ItemModelsFileService = default!;
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
+    [SessionStored] private MovementConfig? movement;
+
+    private bool UseTemplateMovement => TemplateItemFileService.Item != null && parameterValues.GetBool("useTemplateAnimations", true);
+    private string MovementSourceLabel => UseTemplateMovement ? "Movement of the template" : "Default movement";
+
+    /// <summary>The movement values, starting with the template's (or the default) movement.</summary>
+    private MovementConfig Movement => movement ??= CreateBaseMovement();
+
+    private MovementConfig CreateBaseMovement()
+    {
+        NPlugDyna_SKinematicConstraint? constraint = null;
+        if (UseTemplateMovement)
+            TM_GenericMapping.Items.ItemExtensions.TryGetNPlugDyna_SKinematicConstraint(TemplateItemFileService.Item!, out constraint);
+        constraint ??= TM_GenericMapping.Templating.GbxTemplateLibrary.CreateKinematicConstraintTemplate().Value;
+        return MovementConfig.FromConstraint(constraint);
+    }
+
+    /// <summary>Unedited values follow the template, edited values are kept.</summary>
+    private void RefreshBaseMovement()
+    {
+        if (movement?.Customized != true)
+            movement = null;
+    }
+
+    private Task OnMovementChanged() => Task.CompletedTask;
+
+    private Task ResetMovement()
+    {
+        movement = null;
+        return Task.CompletedTask;
+    }
     
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -165,11 +207,18 @@
         base.OnInitialized();
 
         ItemModelsFileService.FileChanged += OnFileChanged;
+        TemplateItemFileService.FileChanged += OnTemplateChanged;
 
     }
     public void Dispose()
     {
         ItemModelsFileService.FileChanged -= OnFileChanged;
+        TemplateItemFileService.FileChanged -= OnTemplateChanged;
+    }
+    async void OnTemplateChanged()
+    {
+        RefreshBaseMovement();
+        await InvokeAsync(StateHasChanged);
     }
     async void OnFileChanged()
     {
@@ -178,6 +227,7 @@
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
+        RefreshBaseMovement();
         return Task.CompletedTask;
     }
 
@@ -191,13 +241,13 @@
 
         var itemFileService = new ItemFileService();
 
-        var meshExtractor = new TM_GenericMapping.Items.MeshExtractor();
+        var itemParser = new TM_GenericMapping.Items.MeshCompilation.ItemParser();
 
-        var meshBuilderSettings = new TM_GenericMapping.Items.MeshBuilder.MeshBuilderSettings
+        var itemCompilerSettings = new TM_GenericMapping.Items.MeshCompilation.ItemCompilerSettings
         {
             Author = parameterValues.GetString("author", "TM_MappingTools.MovingItemCreator"),
         };
-        var meshBuilder = new TM_GenericMapping.Items.MeshBuilder(meshBuilderSettings);
+        var itemCompiler = new TM_GenericMapping.Items.MeshCompilation.ItemCompiler(itemCompilerSettings);
 
         TM_GenericMapping.Items.MovingItemCreator.MergeOptions mergeOptions = TM_GenericMapping.Items.MovingItemCreator.MergeOptions.None;
         if (parameterValues.GetBool("useTemplateAnimations", true))
@@ -218,8 +268,8 @@
             MergeOptions = mergeOptions,
         };
         var movingItemCreator = new TM_GenericMapping.Items.MovingItemCreator(
-            meshExtractor,
-            meshBuilder,
+            itemParser,
+            itemCompiler,
             movingItemCreatorSettings);
         
         string namePrefix = parameterValues.GetString("namePrefix", string.Empty);
@@ -251,6 +301,12 @@
                 }
                 else
                 {
+                    if (movement is { Customized: true } &&
+                        TM_GenericMapping.Items.ItemExtensions.TryGetAllNPlugDyna_SKinematicConstraints(movingItemResult.Value, out var constraints))
+                    {
+                        foreach (var constraint in constraints)
+                            movement.ApplyTo(constraint);
+                    }
                     movingItemResult.Value.Name = namePrefix + item.Name + nameSuffix;
                     generatedItems.Add((FixFileName(file.Name, namePrefix, nameSuffix), movingItemResult.Value));
                     numSuccess++;

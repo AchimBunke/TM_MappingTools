@@ -609,6 +609,128 @@ code {
     transform-origin: center;
 }
 
+.cfg-col-role {
+    width: 10.5rem;
+    flex-shrink: 0;
+    font-size: 0.78em;
+}
+
+.cfg-col-actions {
+    width: 2.2rem;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.cfg-col-actions .btn {
+    padding: 0 0.3rem;
+    font-size: 0.8em;
+    line-height: 1.4;
+}
+
+.cfg-col-role .form-select {
+    font-size: 0.95em;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
+
+.cfg-tree-node {
+    cursor: pointer;
+    user-select: none;
+}
+
+.cfg-tree-badge {
+    margin-left: 0.4rem;
+    padding: 0 0.35rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--tm-border);
+    font-size: 0.9em;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.cfg-link-badge {
+    border-color: var(--link-color);
+    color: var(--link-color);
+    white-space: nowrap;
+}
+
+.cfg-col-links {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    font-size: 0.75em;
+}
+
+.cfg-col-links .cfg-tree-badge {
+    margin-left: 0;
+}
+
+.cfg-tree-detail {
+    margin-left: 0.4rem;
+    color: var(--tm-text-muted);
+    font-size: 0.85em;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.cfg-unlink-btn {
+    margin-left: 0.4rem;
+    padding: 0 0.35rem;
+    font-size: 0.8em;
+    line-height: 1.4;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* ── Output structure ─────────────────────────────────────────── */
+.out-model {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--tm-border);
+    font-size: 0.9em;
+}
+
+.out-model:last-child {
+    border-bottom: none;
+}
+
+.out-group {
+    margin: 0.2rem 0 0 0.9rem;
+}
+
+.out-role {
+    display: inline-block;
+    padding: 0 0.4rem;
+    margin-right: 0.35rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--tm-border);
+    font-size: 0.85em;
+}
+
+.out-role-Static { border-color: #7a8a99; color: #9db0c2; }
+.out-role-Dynamic { border-color: #d9822b; color: #f0a050; }
+.out-role-Trigger_Special { border-color: #b06ad9; color: #c88af0; }
+.out-role-Trigger_Waypoint { border-color: #3fae6a; color: #62cf8c; }
+
+.out-parts {
+    color: var(--tm-text-muted);
+    font-size: 0.85em;
+    margin-left: 0.2rem;
+}
+
+.mv-group {
+    padding: 0.5rem 0 0.75rem 0;
+    border-bottom: 1px solid var(--tm-border);
+}
+
+.mv-group:last-child {
+    border-bottom: none;
+}
+
+.mv-group-title {
+    font-size: 1rem;
+    margin: 0 0 0.4rem 0;
+}
+
 /* ── LOD distances editor ─────────────────────────────────────── */
 .lod-distances-editor {
     display: flex;

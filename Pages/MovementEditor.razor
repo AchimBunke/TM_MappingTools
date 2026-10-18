@@ -1,0 +1,168 @@
+@using GBX.NET.Engines.Meta
+@using static GBX.NET.Engines.Meta.NPlugDyna_SKinematicConstraint
+
+<div class="mv-editor">
+    <div class="mv-status">
+        @if (Config.Customized)
+        {
+            <span class="mv-badge mv-badge-custom">Customized</span>
+        }
+        else
+        {
+            <span class="mv-badge">@(SourceLabel)</span>
+        }
+        @if (Reset.HasDelegate && Config.Customized)
+        {
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => Reset.InvokeAsync()"
+                    title="Discard all changes and use the original values again">
+                <span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span> Reset
+            </button>
+        }
+    </div>
+
+    <div class="mv-section">
+        <h4 class="mv-title">Translation</h4>
+        <div class="mv-fields">
+            <label>Axis
+                <select class="form-select form-select-sm" @bind="Config.TransAxis" @bind:after="Touch">
+                    @foreach (var axis in Axes)
+                    {
+                        <option value="@axis">@axis</option>
+                    }
+                </select>
+            </label>
+            <label>Min (m)
+                <input type="number" step="any" class="form-control form-control-sm"
+                       @bind="Config.TransMin" @bind:after="Touch" />
+            </label>
+            <label>Max (m)
+                <input type="number" step="any" class="form-control form-control-sm"
+                       @bind="Config.TransMax" @bind:after="Touch" />
+            </label>
+        </div>
+        @RenderSteps(Config.Translation)
+    </div>
+
+    <div class="mv-section">
+        <h4 class="mv-title">Rotation</h4>
+        <div class="mv-fields">
+            <label>Axis
+                <select class="form-select form-select-sm" @bind="Config.RotAxis" @bind:after="Touch">
+                    @foreach (var axis in Axes)
+                    {
+                        <option value="@axis">@axis</option>
+                    }
+                </select>
+            </label>
+            <label>Min (°)
+                <input type="number" step="any" class="form-control form-control-sm"
+                       @bind="Config.AngleMinDeg" @bind:after="Touch" />
+            </label>
+            <label>Max (°)
+                <input type="number" step="any" class="form-control form-control-sm"
+                       @bind="Config.AngleMaxDeg" @bind:after="Touch" />
+            </label>
+        </div>
+        @RenderSteps(Config.Rotation)
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MovementConfig Config { get; set; } = default!;
+
+    /// <summary>Called after every change.</summary>
+    [Parameter] public EventCallback Changed { get; set; }
+
+    /// <summary>When set, a reset button is shown for customized values.</summary>
+    [Parameter] public EventCallback Reset { get; set; }
+
+    /// <summary>Shown while the values are not changed, says where they come from.</summary>
+    [Parameter] public string SourceLabel { get; set; } = "Original values";
+
+    private static readonly EAxis[] Axes = Enum.GetValues<EAxis>();
+    private static readonly AnimEase[] Eases = Enum.GetValues<AnimEase>();
+
+    private Task Touch()
+    {
+        Config.Customized = true;
+        return Changed.InvokeAsync();
+    }
+
+    private Task AddStep(AnimationConfig anim)
+    {
+        if (!anim.CanAddStep) return Task.CompletedTask;
+        anim.Steps.Add(new AnimationStep());
+        return Touch();
+    }
+
+    private Task RemoveStep(AnimationConfig anim, AnimationStep step)
+    {
+        anim.Steps.Remove(step);
+        return Touch();
+    }
+
+    private Task MoveStep(AnimationConfig anim, AnimationStep step, int delta)
+    {
+        var index = anim.Steps.IndexOf(step);
+        var target = index + delta;
+        if (index < 0 || target < 0 || target >= anim.Steps.Count) return Task.CompletedTask;
+        anim.Steps.RemoveAt(index);
+        anim.Steps.Insert(target, step);
+        return Touch();
+    }
+
+    private RenderFragment RenderSteps(AnimationConfig anim) => @<div class="mv-steps">
+        @if (anim.Steps.Count == 0)
+        {
+            <div class="mv-empty">No steps: this movement does not animate.</div>
+        }
+        else
+        {
+            <div class="mv-step mv-step-head">
+                <span class="mv-step-no">#</span>
+                <span class="mv-step-ease">Ease</span>
+                <span class="mv-step-duration">Duration (ms)</span>
+                <span class="mv-step-reverse" title="Play this step backwards">Rev</span>
+                <span class="mv-step-actions"></span>
+            </div>
+        }
+        @foreach (var step in anim.Steps)
+        {
+            var localStep = step;
+            var index = anim.Steps.IndexOf(step);
+            <div class="mv-step">
+                <span class="mv-step-no">@(index + 1)</span>
+                <select class="form-select form-select-sm mv-step-ease" @bind="localStep.Ease" @bind:after="Touch">
+                    @foreach (var ease in Eases)
+                    {
+                        <option value="@ease">@ease</option>
+                    }
+                </select>
+                <input type="number" min="0" step="100" class="form-control form-control-sm mv-step-duration"
+                       @bind="localStep.DurationMs" @bind:after="Touch" />
+                <input type="checkbox" class="mv-step-reverse" @bind="localStep.Reverse" @bind:after="Touch" />
+                <span class="mv-step-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Move up"
+                            disabled="@(index == 0)" @onclick="() => MoveStep(anim, localStep, -1)">
+                        <span class="bi bi-chevron-up" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Move down"
+                            disabled="@(index == anim.Steps.Count - 1)" @onclick="() => MoveStep(anim, localStep, 1)">
+                        <span class="bi bi-chevron-down" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" title="Remove step"
+                            @onclick="() => RemoveStep(anim, localStep)">
+                        <span class="bi bi-trash" aria-hidden="true"></span>
+                    </button>
+                </span>
+            </div>
+        }
+        <div class="mv-step-footer">
+            <button type="button" class="btn btn-sm btn-outline-secondary" disabled="@(!anim.CanAddStep)"
+                    @onclick="() => AddStep(anim)">
+                <span class="bi bi-plus-lg" aria-hidden="true"></span> Add step
+            </button>
+            <span class="text-muted small">@anim.Steps.Count / @AnimationConfig.MaxSteps steps · @anim.TotalMs ms per cycle</span>
+        </div>
+    </div>;
+}
