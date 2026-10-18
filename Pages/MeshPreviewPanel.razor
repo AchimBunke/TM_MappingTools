@@ -1,7 +1,7 @@
 @using System.Numerics
 @using GBX.NET
 @using TM_GenericMapping.Common
-@using TM_GenericMapping.Items
+@using TM_GenericMapping.Items.MeshCompilation
 @using TM_MappingTools.Model
 @implements IAsyncDisposable
 @inject IJSRuntime JS
@@ -19,7 +19,7 @@
         <div class="mesh-preview-placeholder">
             <span class="bi bi-bounding-box" aria-hidden="true"></span>
             <span class="mesh-preview-placeholder-label">
-                @(Item is null || Item.Meshes.Length == 0
+                @(Parts is null || Parts.Count == 0
                     ? "Load an item to preview it"
                     : "Initialising preview\u2026")
             </span>
@@ -95,7 +95,7 @@
 
     }
 
-    @if (_ready && Item is not null)
+    @if (_ready && Parts is not null)
     {
         <div class="mesh-preview-legend">
             <span class="legend-dot" style="--dot-color:#4488ff;"></span><span>Default</span>
@@ -112,11 +112,11 @@
         </div>
 
         <div class="mesh-preview-status">
-            @Item.Meshes.Length part(s)
-            @if (SelectedSubmeshIndex.HasValue && SelectedSubmeshIndex.Value < Item.Meshes.Length)
+            @Parts.Count part(s)
+            @if (SelectedSubmeshIndex.HasValue && SelectedSubmeshIndex.Value < Parts.Count)
             {
                 <span class="mesh-preview-selected-label">
-                    &nbsp;&middot;&nbsp;@Item.Meshes[SelectedSubmeshIndex.Value].Name
+                    &nbsp;&middot;&nbsp;@Parts[SelectedSubmeshIndex.Value].Name
                 </span>
             }
         </div>
@@ -126,8 +126,8 @@
 @code {
     // ── Parameters ────────────────────────────────────────────────────────────
 
-    /// <summary>Mesh to render. The component reloads the Three.js scene whenever this changes.</summary>
-    [Parameter] public NormalizedItem? Item { get; set; }
+    /// <summary>Placed mesh/shape parts to render (world transforms are baked on push). The scene reloads whenever the list instance changes.</summary>
+    [Parameter] public IReadOnlyList<ItemPartPlacement>? Parts { get; set; }
 
     /// <summary>Per-index configuration (enabled/visible/collidable/trigger/movable).</summary>
     [Parameter] public IReadOnlyDictionary<int, MeshConfig>? SubmeshConfigs { get; set; }
@@ -165,7 +165,7 @@
 
     // Track what we last pushed to JS. Use the submesh array reference
     // for change detection to avoid comparing the full struct.
-    private NormalizedMesh[]? _lastSubmeshArray;
+    private IReadOnlyList<ItemPartPlacement>? _lastParts;
     private IReadOnlyDictionary<int, MeshConfig>? _lastConfigs;
     private ItemConfig? _lastMeshConfig;
     private int? _lastSelectedIndex;
@@ -181,7 +181,7 @@
             await _module.InvokeVoidAsync("initMeshPreview", _canvas, _dotNetRef);
             _ready = true;
 
-            if (Item is not null && Item.Meshes.Length > 0)
+            if (Parts is not null && Parts.Count > 0)
                 await PushMeshAsync();
             else if (SubmeshConfigs is not null)
                 await PushConfigsAsync();
@@ -203,7 +203,7 @@
     {
         if (_module is null) return; // not yet initialised
 
-        bool meshChanged    = !ReferenceEquals(Item?.Meshes, _lastSubmeshArray);
+        bool meshChanged    = !ReferenceEquals(Parts, _lastParts);
         bool configsChanged = !ReferenceEquals(SubmeshConfigs, _lastConfigs) || !ReferenceEquals(ItemConfig, _lastMeshConfig);
         bool selChanged     = SelectedSubmeshIndex != _lastSelectedIndex;
 
@@ -223,14 +223,14 @@
 
     private async Task PushMeshAsync()
     {
-        if (_module is null || Item is null) return;
+        if (_module is null) return;
 
-        _lastSubmeshArray = Item.Meshes;
+        _lastParts = Parts;
         _lastConfigs = SubmeshConfigs;
         _lastMeshConfig = ItemConfig;
         _lastSelectedIndex = SelectedSubmeshIndex;
 
-        var submeshDtos = BuildSubmeshDtos(Item, SubmeshConfigs);
+        var submeshDtos = BuildSubmeshDtos(Parts, SubmeshConfigs);
         await _module.InvokeVoidAsync("updateMesh", _canvas, submeshDtos);
         await _module.InvokeVoidAsync("highlightSubmesh", _canvas, SelectedSubmeshIndex ?? -1);
     }
@@ -306,35 +306,46 @@
     // ── Data serialisation ────────────────────────────────────────────────────
 
     private static object[] BuildSubmeshDtos(
-        NormalizedItem item,
+        IReadOnlyList<ItemPartPlacement>? parts,
         IReadOnlyDictionary<int, MeshConfig>? configs)
     {
-        var result = new object[item.Meshes.Length];
-        for (int i = 0; i < item.Meshes.Length; i++)
+        if (parts is null) return [];
+
+        var result = new object[parts.Count];
+        for (int i = 0; i < parts.Count; i++)
         {
-            var s = item.Meshes[i];
-            var group = item.Groups[s.GroupIndex];
+            var p = parts[i];
             var cfg = configs?.GetValueOrDefault(i);
 
-            float[] positions = FlattenVec3(Transform(s.Positions, group.Position, group.Rotation));
-            float[]? normals  = s.Normals?.Length > 0 ? FlattenVec3(Transform(s.Normals, group.Position, group.Rotation)) : null;
+            float[] positions = FlattenVec3(Transform(p.Positions, p.WorldPosition, p.WorldRotation));
+            float[]? normals  = p.Normals.Length > 0 ? FlattenVec3(Transform(p.Normals, Vector3.Zero, p.WorldRotation)) : null;
             result[i] = new
             {
-                name       = s.Name,
-                type       = (int)s.Type,
+                name       = p.Name,
+                // 0 = mesh, 1-4 = shape roles (Dynamic, Static, Trigger_Special, Trigger_Waypoint) drawn as wireframe
+                type       = p.Kind == PartKind.Shape ? ShapeRoleToPreviewType(p.ShapeRole) : 0,
                 positions,
                 normals,
-                indices    = s.Indices,
+                indices    = p.Indices,
                 enabled    = cfg?.Enabled    ?? true,
                 visible    = cfg?.Visible    ?? true,
                 collidable = cfg?.Collidable ?? false,
-                trigger    = (cfg?.Trigger_Waypoint ?? false) || (cfg?.Trigger_Effect ?? false),
-                movable    = cfg?.Movable    ?? false,
-                lodMask    = (uint)((cfg?.HasLOD ?? false) ? (uint)cfg!.LODMask : 0xFFFFFFFF),
+                trigger    = cfg?.IsTrigger  ?? false,
+                movable    = cfg?.IsMovable  ?? false,
+                lodMask    = (cfg?.HasLOD ?? false) ? (uint)cfg!.LODMask : 0xFFFFFFFF,
             };
         }
         return result;
     }
+
+    private static int ShapeRoleToPreviewType(ShapeRole? role) => role switch
+    {
+        ShapeRole.Dynamic => 1,
+        ShapeRole.Static => 2,
+        ShapeRole.Trigger_Special => 3,
+        ShapeRole.Trigger_Waypoint => 4,
+        _ => 2,
+    };
 
     private static Dictionary<int, object> BuildConfigMap(IReadOnlyDictionary<int, MeshConfig>? configs)
     {
@@ -347,9 +358,9 @@
                 enabled    = v.Enabled,
                 visible    = v.Visible,
                 collidable = v.Collidable,
-                trigger    = v.Trigger_Waypoint || v.Trigger_Effect,
-                movable    = v.Movable,
-                lodMask    = (uint)((v.HasLOD) ? (uint)v.LODMask : 0xFFFFFFFF),
+                trigger    = v.IsTrigger,
+                movable    = v.IsMovable,
+                lodMask    = v.HasLOD ? (uint)v.LODMask : 0xFFFFFFFF,
             };
         }
         return map;
