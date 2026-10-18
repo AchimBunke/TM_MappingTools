@@ -1,9 +1,12 @@
 ﻿@page "/item-model-converter"
 @inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@implements IDisposable
+@using System.Numerics
 @using TM_MappingTools.Services;
 @using TM_GenericMapping.Items;
 @using TM_GenericMapping.Items.MeshCompilation;
 @using TM_GenericMapping.Messaging;
+@using static GBX.NET.Engines.GameData.CGameItemModel
 @inject TM_MappingTools.Services.ToolMessageService ToolMessageService
 
 
@@ -32,11 +35,11 @@
         </ToolIORow>
     </IORow>
     <Sidebar>
-        <ToolCard Title="Mesh Configuration" BodyClass="small">
+        <ToolCard Title="Part Configuration" BodyClass="small">
             <HeaderContent>
                 <div class="d-flex justify-content-end mb-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn"
-                            enable="@isItemLoaded" disabled="@(!isItemLoaded)" @onclick="() => _showPreview = !_showPreview"
+                            disabled="@(!isItemLoaded)" @onclick="() => _showPreview = !_showPreview"
                             title="@(_showPreview ? "Hide mesh preview" : "Show mesh preview")">
                         <span class="bi @(_showPreview ? "bi-eye-slash" : "bi-eye")" aria-hidden="true"></span>
                         @(_showPreview ? "Hide Preview" : "Show Preview")
@@ -44,10 +47,10 @@
                 </div>
             </HeaderContent>
             <ChildContent>
-                @if (isItemLoaded)
+                @if (isItemLoaded && Tree != null)
                 {
                     <div class="cfg-table-wrap">
-                        <ul class="cfg-table" style="min-width:450px;">
+                        <ul class="cfg-table" style="min-width:600px;">
                             <li class="cfg-table-head">
                                 <span class="cfg-col-name">Name</span>
                                 <span class="cfg-col-type">Type</span>
@@ -55,71 +58,22 @@
                                 <span class="cfg-col-check" title="Enabled">En</span>
                                 <span class="cfg-col-check" title="Visible">Vis</span>
                                 <span class="cfg-col-check" title="Collidable">Col</span>
-                                <span class="cfg-col-check" title="Effect Trigger">Eff</span>
-                                <span class="cfg-col-check" title="Waypoint Trigger">Way</span>
-                                <span class="cfg-col-check" title="Movable">Mov</span>
+                                <span class="cfg-col-role" title="What the part becomes in the converted item">Role</span>
+                                <span class="cfg-col-actions"></span>
                             </li>
-                            @foreach (var group in GroupedInstanceSettings)
-                            {
-                                <li class="cfg-table-group">Group: @group.Key.Type</li>
-                                @foreach (var typeGroup in KindInGroup(group.Key))
-                                {
-                                    @foreach (var (index, subMesh) in typeGroup)
-                                    {
-                                        var cfg = submeshConfigs.GetValueOrDefault(index) ?? new MeshConfig();
-                                        var localIndex = index;
-                                        <li class="cfg-table-row"
-                                            style="@SubmeshRowStyle(cfg.Enabled, localIndex == _selectedSubmeshIndex)" role="button"
-                                            @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
-                                            <span class="cfg-col-name text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
-                                            <span class="cfg-col-type">@subMesh.Type</span>
-                                            <span class="cfg-col-verts">@subMesh.Positions.Length</span>
-                                            <div class="cfg-col-check">
-                                                <input type="checkbox" checked="@cfg.Enabled"
-                                                       @onchange="e => { cfg.Enabled = (bool)e.Value!; ValidateConfiguration(); }"
-                                                       @onclick:stopPropagation />
-                                            </div>
-                                            <div class="cfg-col-check">
-                                                <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)"
-                                                       @onchange="e => { cfg.Visible = (bool)e.Value!; ValidateConfiguration(); }"
-                                                       @onclick:stopPropagation />
-                                            </div>
-                                            <div class="cfg-col-check">
-                                                <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)"
-                                                       @onchange="e => { cfg.Collidable = (bool)e.Value!; ValidateConfiguration(); }"
-                                                       @onclick:stopPropagation />
-                                            </div>
-                                            <div class="cfg-col-check">
-                                                <input type="checkbox" checked="@cfg.Trigger_Effect" disabled="@(!cfg.Enabled)"
-                                                       @onchange="e => { cfg.Trigger_Effect = (bool)e.Value!; ValidateConfiguration(); }"
-                                                       @onclick:stopPropagation />
-                                            </div>
-                                            <div class="cfg-col-check">
-                                                <input type="checkbox" checked="@cfg.Trigger_Waypoint" disabled="@(!cfg.Enabled)"
-                                                       @onchange="e => { cfg.Trigger_Waypoint = (bool)e.Value!; ValidateConfiguration(); }"
-                                                       @onclick:stopPropagation />
-                                            </div>
-                                            <div class="cfg-col-check">
-                                                <input type="checkbox" checked="@cfg.Movable" disabled="@(!cfg.Enabled)"
-                                                       @onchange="e => { cfg.Movable = (bool)e.Value!; ValidateConfiguration(); }"
-                                                       @onclick:stopPropagation />
-                                            </div>
-                                        </li>
-                                    }
-                                }
-                            }
+                            @RenderNode(Tree.Root, 0)
                         </ul>
                     </div>
                 }
                 else if (ItemFileService.Item != null)
                 {
-                    <div class="text-danger small">Failed to load mesh from item. See output for more details.</div>
+                    <div class="text-danger small">Failed to load item. See output for more details.</div>
                 }
             </ChildContent>
         </ToolCard>
         <ToolCard Title="LOD Configuration" BodyClass="small" Collapsible="true" InitiallyCollapsed="true">
             <ChildContent>
-                @if (isItemLoaded)
+                @if (isItemLoaded && Tree != null)
                 {
                     @* ── LOD Distances editor ─────────────────────────────── *@
                     <div class="lod-distances-editor">
@@ -129,206 +83,304 @@
                         @for (int i = 0; i < itemConfig.LODDistances.Count + 1; i++)
                         {
                             var localI = i;
-
                             <div class="lod-distance-row">
-                                <span class="lod-distance-label">LOD @(localI):&nbsp;&nbsp;&nbsp;@(localI == 0 ? "0" :
-                                                                                                    itemConfig.LODDistances[localI - 1])
-                        -
-                        @(localI < itemConfig.LODDistances.Count ? itemConfig.LODDistances[localI] : "∞")</span>
-                        <input type="number" class="form-control form-control-sm lod-distance-input"
-                               disabled="@(localI >= itemConfig.LODDistances.Count)" min="0" step="10"
-                               value="@(localI < itemConfig.LODDistances.Count ? itemConfig.LODDistances[localI] : 0)"
-                               @onchange="e => { if (float.TryParse(e.Value?.ToString(), out var v)) { if (localI < itemConfig.LODDistances.Count) itemConfig.LODDistances[localI] = v; } }" />
-                        <span style="font-size:0.8em; color:var(--tm-text-muted);"></span>
-                        @if (localI < itemConfig.LODDistances.Count)
-                        {
-                            <button class="tool-panel-collapse-btn" title="Remove this LOD distance"
-                                    @onclick="() => RemoveLodDistance(localI)">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none"
-                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M3 8 L13 8" />
-                                </svg>
-                            </button>
+                                <span class="lod-distance-label">
+                                    LOD @(localI):&nbsp;&nbsp;&nbsp;@(localI == 0 ? "0" : itemConfig.LODDistances[localI - 1])
+                                    - @(localI < itemConfig.LODDistances.Count ? itemConfig.LODDistances[localI] : "∞")
+                                </span>
+                                <input type="number" class="form-control form-control-sm lod-distance-input"
+                                       disabled="@(localI >= itemConfig.LODDistances.Count)" min="0" step="10"
+                                       value="@(localI < itemConfig.LODDistances.Count ? itemConfig.LODDistances[localI] : 0)"
+                                       @onchange="e => { if (float.TryParse(e.Value?.ToString(), out var v)) { if (localI < itemConfig.LODDistances.Count) itemConfig.LODDistances[localI] = v; } }" />
+                                @if (localI < itemConfig.LODDistances.Count)
+                                {
+                                    <button class="tool-panel-collapse-btn" title="Remove this LOD distance"
+                                            @onclick="() => RemoveLodDistance(localI)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none"
+                                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 8 L13 8" />
+                                        </svg>
+                                    </button>
+                                }
+                            </div>
                         }
+                        <button class="btn btn-outline-secondary btn-sm" style="align-self:flex-start; margin-top:0.1rem;"
+                                @onclick="AddLodDistance">
+                            + Add LOD Distance
+                        </button>
                     </div>
-                }
-                <button class="btn btn-outline-secondary btn-sm" style="align-self:flex-start; margin-top:0.1rem;"
-                        @onclick="AddLodDistance">
-                    + Add LOD Distance
-                </button>
-            </div>
-            @* ── LOD mask table ───────────────────────────────────── *@
 
-            <div class="cfg-table-wrap">
-                <ul class="cfg-table">
-                    <li class="cfg-table-head">
-                        <span class="cfg-col-name">Name</span>
-                        <span class="cfg-col-verts">Verts</span>
-                        <span class="cfg-col-check" title="Has LODs">LOD</span>
-                        <span class="cfg-col-check" title="Visible in all LODs">All</span>
-                        @for (int lod = 0; lod < itemConfig.LODDistances.Count + 1; lod++)
-                        {
-                            <span class="cfg-col-check" title="LOD @lod">L@(lod)</span>
-                        }
-                    </li>
-                    @foreach (var group in GroupedSubMeshes)
-                    {
-                        <li class="cfg-table-group">@group.Key</li>
-                        @foreach (var (index, subMesh) in group)
-                        {
-                            var cfg = submeshConfigs.GetValueOrDefault(index) ?? new MeshConfig();
-                            var localIndex = index;
-                            bool enabledLOD = cfg.Enabled && cfg.Visible && cfg.HasLOD;
-                            var isAllLods = LODUtils.IsVisibleInAllLods(cfg.LODMask, itemConfig.LODDistances.Count + 1);
-                            <li class="cfg-table-row"
-                                style="@SubmeshRowStyle(enabledLOD, localIndex == _selectedSubmeshIndex)" role="button"
-                                @onclick="@(() => _selectedSubmeshIndex = (_selectedSubmeshIndex == localIndex ? (int?)null : localIndex))">
-                                <span class="cfg-col-name text-truncate small" title="@subMesh.Name">@subMesh.Name</span>
-                                <span class="cfg-col-verts">@subMesh.Positions.Length</span>
-                                <div class="cfg-col-check">
-                                    <input type="checkbox" checked="@cfg.HasLOD"
-                                           @onchange="e => { submeshConfigs[localIndex].HasLOD = (bool)e.Value!; ValidateConfiguration(); }"
-                                           @onclick:stopPropagation />
-                                </div>
-                                <div class="cfg-col-check">
-                                    <input type="checkbox" checked="@isAllLods" disabled="@(!enabledLOD)"
-                                           @onchange="e => { submeshConfigs[localIndex].LODMask = (bool)e.Value! ? LODUtils.GetAllLodsMask(itemConfig.LODDistances.Count + 1) : 0; ValidateConfiguration(); }"
-                                           @onclick:stopPropagation />
-                                </div>
+                    @* ── LOD mask table ───────────────────────────────────── *@
+                    <div class="cfg-table-wrap">
+                        <ul class="cfg-table">
+                            <li class="cfg-table-head">
+                                <span class="cfg-col-name">Name</span>
+                                <span class="cfg-col-verts">Verts</span>
+                                <span class="cfg-col-check" title="Has LODs">LOD</span>
+                                <span class="cfg-col-check" title="Visible in all LODs">All</span>
                                 @for (int lod = 0; lod < itemConfig.LODDistances.Count + 1; lod++)
                                 {
-                                    var localLod = lod;
-                                    <div class="cfg-col-check">
-                                        <input type="checkbox" checked="@LODUtils.IsVisibleInLod(cfg.LODMask, localLod)"
-                                               disabled="@(!enabledLOD)"
-                                               @onchange="e => { submeshConfigs[localIndex].LODMask = ToggleLodBit(submeshConfigs[localIndex].LODMask, localLod, (bool)e.Value!); ValidateConfiguration(); }"
-                                               @onclick:stopPropagation />
-                                    </div>
+                                    <span class="cfg-col-check" title="LOD @lod">L@(lod)</span>
                                 }
                             </li>
-                        }
-                    }
-                </ul>
-            </div>
-        }
-            else if (ItemFileService.Item != null)
-        {
-            <div class="text-danger small">Failed to load mesh from item. See output for more details.</div>
-        }
-    </ChildContent>
-</ToolCard>
-</Sidebar>
-<Main>
-    @if (_showPreview)
-    {
-        <ToolCard Title="Mesh Preview" Description="Click a mesh part in the list or 3D view to select it.">
-            <MeshPreviewPanel Item="@(isItemLoaded ? loadedItem : null)" SubmeshConfigs="_previewConfigs"
-                              ItemConfig="itemConfig" SelectedSubmeshIndex="_selectedSubmeshIndex"
-                              SelectedSubmeshIndexChanged="OnPreviewSubmeshSelected" />
+                            @foreach (var node in LodNodes())
+                            {
+                                <li class="cfg-table-group">
+                                    @node.Label
+                                    @if (node.LinkIndex > 0)
+                                    {
+                                        <span class="cfg-tree-badge cfg-link-badge" style="--link-color:@LinkColor(node.LinkIndex)" title="@UsesTooltip(node)">
+                                            <span class="bi bi-link-45deg" aria-hidden="true"></span>×@node.UseCount
+                                        </span>
+                                    }
+                                </li>
+                                @foreach (var part in node.Parts.Where(p => p.Kind == PartKind.Mesh))
+                                {
+                                    var localPart = part;
+                                    var cfg = Cfg(part.RefId);
+                                    bool enabledLOD = cfg.Enabled && cfg.Visible && cfg.HasLOD;
+                                    var isAllLods = LODUtils.IsVisibleInAllLods(cfg.LODMask, itemConfig.LODDistances.Count + 1);
+                                    <li class="cfg-table-row"
+                                        style="@RowStyle(enabledLOD, localPart.PreviewIndex == _selectedSubmeshIndex, 0)" role="button"
+                                        @onclick="() => ToggleSelection(localPart.PreviewIndex)">
+                                        <span class="cfg-col-name text-truncate small" title="@part.Name">@part.Name</span>
+                                        @PartLinkBadges(node, part)
+                                        <span class="cfg-col-verts">@part.VertexCount</span>
+                                        <div class="cfg-col-check">
+                                            <input type="checkbox" checked="@cfg.HasLOD"
+                                                   @onchange="e => { cfg.HasLOD = (bool)e.Value!; ValidateConfiguration(); }"
+                                                   @onclick:stopPropagation />
+                                        </div>
+                                        <div class="cfg-col-check">
+                                            <input type="checkbox" checked="@isAllLods" disabled="@(!enabledLOD)"
+                                                   @onchange="e => { cfg.LODMask = (bool)e.Value! ? LODUtils.GetAllLodsMask(itemConfig.LODDistances.Count + 1) : 0; ValidateConfiguration(); }"
+                                                   @onclick:stopPropagation />
+                                        </div>
+                                        @for (int lod = 0; lod < itemConfig.LODDistances.Count + 1; lod++)
+                                        {
+                                            var localLod = lod;
+                                            <div class="cfg-col-check">
+                                                <input type="checkbox" checked="@LODUtils.IsVisibleInLod(cfg.LODMask, localLod)"
+                                                       disabled="@(!enabledLOD)"
+                                                       @onchange="e => { cfg.LODMask = ToggleLodBit(cfg.LODMask, localLod, (bool)e.Value!); ValidateConfiguration(); }"
+                                                       @onclick:stopPropagation />
+                                            </div>
+                                        }
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
+                else if (ItemFileService.Item != null)
+                {
+                    <div class="text-danger small">Failed to load item. See output for more details.</div>
+                }
+            </ChildContent>
         </ToolCard>
-    }
-    <ToolCard Title="Actions">
-        <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Model Converter"
-                       ExecutionTargetOverwrite="Generate Converted Items" Tooltip="Execute the tool with the loaded items."
-                       CanExecute="CanExecuteTool" ValidationIssues="_validationIssues" />
-    </ToolCard>
-    <ToolCard Title="Parameters">
-        <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
-                        ValuesChanged="OnParameterValuesChanged" />
-    </ToolCard>
-</Main>
-<HelpContent>
-    <h3>What happens when you click Execute</h3>
-    <p>The tool will convert any item into an item with the specified target type.</p>
-    <p>Item != Item in Trackmania, there are differences in how they are structured which matters on the effect it
-        has in-game. There are items that are editable in the editor MeshModeler, moving item, checkpoints, effect
-        gates, blender exported items, etc. each encodes their respective geometry, collisions and effects slightly
-        different.</p>
-        <p>This tool allows you to select item geometry, collision shapes, and effects and decide to what output type
-            they are converted to. This way you can e.g. convert blender exports to MeshModeler editable items, use
-            solid geometry as effect triggers to create custom gates without blender and more.</p>
-            <h3>Use Configuration</h3>
-            <p>When enabled, the tool will use the configuration you set in the input selection to determine which parts are
-                enabled, visible, collidable, trigger and movable. When disabled, the tool will try to figure out a useful
-                default configuration for the selected target type.</p>
-                <h3>Target Type</h3>
-                <p>The target type determines the item type to convert to. It decides what the item can do in-game. General items are items with mixed content containing static, moving, effect triggers or waypoint triggers.
-                    MeshModeler items are in-game editable with the MeshModeler tool. MeshModeler items cannot contain moving or effect trigger parts.
-                </p>
-                    <h3>Gate Gameplay Effect</h3>
-                    <p>When the target type is set to Custom Gate, you can select the gameplay effect of the gate.</p>
-                    <h3>Waypoint Type</h3>
-                    <p>When the target type is set to Crystal Waypoint, you can select the type of waypoint for the crystal item.
-                    </p>
-                    <h3>Input Selection</h3>
-                    <p>An item is deconstructed into its constituent parts, which are separated by material, layers, visual,
-                        collision shapes, and triggers.</p>
-                        <p>Configure for each part their role in the converted item. Each part can be converted into multiple different
-                            output categories, while some categories will be ignored depending on the selected target type.</p>
-                            <ul>
-                                <li>
-                                    <p><strong>Name</strong>: The material name.</p>
-                                </li>
-                                <li>
-                                    <p><strong>Verts</strong>: The number of vertices.</p>
-                                </li>
-                                <li>
-                                    <p><strong>Enabled</strong>: Is it converted or ignored entirely.</p>
-                                </li>
-                                <li>
-                                    <p><strong>Visible</strong>: Is it part of the visible geometry.</p>
-                                </li>
-                                <li>
-                                    <p><strong>Collidable</strong>: Is it part of the collision shape.</p>
-                                </li>
-                                <li>
-                                    <p><strong>Trigger</strong>: Is it part of the trigger shape.</p>
-                                </li>
-                                <li>
-                                    <p><strong>Movable</strong>: Is it part of the movable collision shape.</p>
-                                </li>
-                            </ul>
-                            <h3>LOD Configuration</h3>
-                            <p>Edit an item's LOD distances and assign parts to different LOD levels.</p>
-                            <p>A LOD (Level of Detail) defines the distance at which different versions of the item's geometry are
-                                displayed. <strong>Distance</strong> doesnt mean physical distance from the camera but depends on FOV and
-                                size on screen (i think).</p>
-                                <p>If you disabled LOD for a part, it will always be rendered regardless of the distance. If its enabled, it
-                                    will be rendered based on the specified LOD distances and the LODs it is assigned for. The last LOD is
-                                    reserved for every distance greater than the last specified.</p>
-                                    <p>Note that removing a LOD level will affect all parts assigned to that and following levels because distance
-                                        assignments will shift.</p>
-                                        <p>Inside the preview you can enable/disable LODs to see how they affect the rendering of the item.</p>
-                                        <p>Not all output types support LOD configuration!</p>
-                                        <h3>Practical workflows</h3>
-                                        <h7>Example 1: Convert a Blender export static item to an in-game editable item</h7>
-                                        <p>A static item exported from Blender has no moving parts and no trigger and is usually a Solid2Model which can
-                                            not be edited in the in-game MeshModeler.</p>
-                                            <p> To convert them to an in-game editable item, load the item, select the target type <strong>Crystal</strong>
-                                                (or <strong>Crystal Waypoint</strong> for waypoints) and enable <strong>Use Configuration</strong>. Select
-                                                all meshes which should be converted into geometry layers. If the item contains collision shapes which are
-                                                not matched by mesh parts (e.g. invisible collision shapes or boxes around an item for simple collisions)
-                                                also enable the static shape part, otherwise disable it as it is just redundant data because it could encode
-                                                the same geometry as the mesh.</p>
-                                                <h7>Example 2: Convert a MeshModeler item into a Custom Gate</h7>
-                                                <p>The MeshModeler allows for the creation of custom gate items so you can create a template item and convert it
-                                                    to a Gate here.</p>
-                                                    <p>Create a new item in the in-game editor and construct a layer which represents your trigger shape (it doesn't
-                                                        matter if it's a trigger layer or not). Load the created item and select <strong>Trigger</strong> for the
-                                                        part you want to be recognized as the trigger shape. Disable <strong>Collidable</strong>. If it should
-                                                        contain a visible, non-collidable material keep <strong>Visible</strong> enabled. Select
-                                                        <strong>CustomGate</strong> as the target type and select your desired <strong>Gate Gameplay
-                                                        Effect</strong>.
-                                                    </p>
-                                                    <p>Execute and test your created gate item. If you want different effects you can use the <strong>Gate Variant
-                                                        Creator</strong> to create all gameplay variants.</p>
+    </Sidebar>
+    <Main>
+        @if (_showPreview)
+        {
+            <ToolCard Title="Mesh Preview" Description="Click a mesh part in the list or 3D view to select it.">
+                <MeshPreviewPanel Parts="@(isItemLoaded ? Tree?.PreviewParts : null)" SubmeshConfigs="_previewConfigs"
+                                  ItemConfig="itemConfig" SelectedSubmeshIndex="_selectedSubmeshIndex"
+                                  SelectedSubmeshIndexChanged="OnPreviewSubmeshSelected" />
+            </ToolCard>
+        }
+        <ToolCard Title="Output Structure" BodyClass="small" Collapsible="true"
+                  Description="What the converted item will contain. Parts of the same model that get the same role end up in one group.">
+            <ChildContent>
+                @if (!isItemLoaded)
+                {
+                    <div class="text-muted">Load an item to see the result.</div>
+                }
+                else if (_outputSummary == null)
+                {
+                    <div class="text-muted">Use Configuration is off: the structure of the item is kept as it is.</div>
+                }
+                else
+                {
+                    @foreach (var model in _outputSummary)
+                    {
+                        <div class="out-model">
+                            <div>
+                                <strong>@model.ModelName</strong>
+                                @if (model.Uses > 1)
+                                {
+                                    <span class="cfg-tree-badge" title="This model is placed @model.Uses times, every use gets the same result.">×@model.Uses</span>
+                                }
+                                @if (!string.IsNullOrEmpty(model.Detail))
+                                {
+                                    <span class="text-muted"> @model.Detail</span>
+                                }
+                                @if (model.RemovedParts > 0)
+                                {
+                                    <span class="text-muted"> · @model.RemovedParts part(s) removed</span>
+                                }
+                            </div>
+                            @if (model.Groups.Count == 0)
+                            {
+                                <div class="text-muted out-group">Nothing enabled — this model disappears.</div>
+                            }
+                            @foreach (var group in model.Groups)
+                            {
+                                <div class="out-group">
+                                    <span class="out-role out-role-@group.Type">@ConversionPlanner.RoleLabel(group.Type)</span>
+                                    <span class="text-muted">@group.Origin@(string.IsNullOrEmpty(group.Detail) ? "" : " · " + group.Detail)</span>
+                                    <div class="out-parts">@string.Join(", ", group.Parts)</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </ChildContent>
+        </ToolCard>
+        @if (_movingGroups.Count > 0)
+        {
+            <ToolCard Title="Movement" Collapsible="true" InitiallyCollapsed="true"
+                      Description="The values start with the movement found in the item aaaand are only changed once you edit them.">
+                @foreach (var modelKey in _movingGroups)
+                {
+                    var key = modelKey;
+                    var movement = GetMovement(key);
+                    <div class="mv-group">
+                        <h3 class="mv-group-title">
+                            @Tree!.NameOf(key)
+                            @if (Tree.UsesOf(key).Count > 1)
+                            {
+                                <span class="cfg-tree-badge" title="This model is placed several times, every use moves the same way.">×@Tree.UsesOf(key).Count</span>
+                            }
+                        </h3>
+                        <MovementEditor Config="movement" Changed="OnMovementChanged" Reset="() => ResetMovement(key)"
+                                        SourceLabel="Movement of the item" />
+                    </div>
+                }
+            </ToolCard>
+        }
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Item Model Converter"
+                           ExecutionTargetOverwrite="Generate Converted Items" Tooltip="Execute the tool with the loaded items."
+                           CanExecute="CanExecuteTool" ValidationIssues="_validationIssues" />
+        </ToolCard>
+        <ToolCard Title="Parameters">
+            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+                            ValuesChanged="OnParameterValuesChanged" />
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>The tool converts an item into an item of the selected target type.</p>
+        <p>Items in Trackmania differ in how they are structured, which decides what they can do in-game. There are
+            items that are editable in the MeshModeler, moving items, checkpoints, effect gates, Blender exported items,
+            etc. Each encodes its geometry, collisions and effects slightly differently.</p>
+        <p>This tool lets you choose, for every part of the item, whether it is used and what it becomes (static,
+            movable, effect trigger or waypoint trigger). This way you can e.g. convert Blender exports to MeshModeler
+            editable items, use solid geometry as effect triggers to create custom gates without Blender and more.</p>
 
-                                                        <h3>Note</h3>
-                                                        <p>It is possible to create configurations that will create invalid items which will crash the editor when
-                                                            placed.</p>
-                                                            <p><strong>If you encounter such issues and you are sure it should work please reach out to me.</strong></p>
-                                                        </HelpContent>
-                                                    </ToolPageLayout>
+        <h3>Use Configuration</h3>
+        <p>When enabled, the tool uses the part configuration of this page. When disabled, the item is converted
+            with the settings found in the item itself, only the target type is changed.</p>
+
+        <h3>Target Type</h3>
+        <p><strong>General</strong> items can contain static, moving, effect trigger and waypoint trigger parts.
+            <strong>MeshModeler</strong> items are editable in the in-game MeshModeler and cannot contain moving
+            or effect trigger parts.</p>
+
+        <h3>Gate Gameplay Effect</h3>
+        <p>The gameplay effect for effect trigger parts that do not have an effect yet. Effects of existing gates are
+            kept, use the Gate Variant Creator to change them.</p>
+
+        <h3>Waypoint Type</h3>
+        <p>When not <strong>None</strong>, all waypoint trigger parts use this waypoint type. If None, existing
+            waypoint types are kept and new waypoint triggers become checkpoints.</p>
+
+        <h3>Part Configuration</h3>
+        <p>An item is a tree of models. Models can contain meshes, collision/trigger shapes and lights, and can place
+            other models. Models are named by their type (e.g. <strong>Static 1</strong>, <strong>Moving</strong>,
+            <strong>Effect trigger</strong>) with their position next to the name. Click a model to collapse or
+            expand it. Variant lists are shown as they are and are passed through unchanged.</p>
+        <ul>
+            <li><p><strong>Name</strong>: The material name for meshes, the kind of shape otherwise.</p></li>
+            <li><p><strong>Type</strong>: Mesh, collision/trigger Shape or Light.</p></li>
+            <li><p><strong>Verts</strong>: The number of vertices.</p></li>
+            <li><p><strong>En</strong>: Is it converted or ignored entirely.</p></li>
+            <li><p><strong>Vis</strong>: Is it part of the visible geometry.</p></li>
+            <li><p><strong>Col</strong>: Is it part of the collision shape.</p></li>
+            <li><p><strong>Role</strong>: Static, Movable (moving collision), Effect (effect trigger shape) or
+                Waypoint (waypoint trigger shape). Movable, Effect and Waypoint can also be set to
+                <em>"as &lt;model&gt;"</em>: the part then uses the settings (movement, effect, waypoint type) of the
+                group of that model instead of getting a new one. The part itself stays where it is, so it only moves
+                together with the other model if both are placed at the same position.</p></li>
+            <li><p><strong>Copy button</strong>: Duplicates the part so you can keep the original role and also use
+                the copy with a different role (e.g. keep a mesh static and add a movable copy). Copies can be
+                removed again with the trash button.</p></li>
+        </ul>
+
+        <h3>Linked models</h3>
+        <p>If a model is placed multiple times it is <em>linked</em>: it has a colored chain badge
+            (<strong>×N</strong>) and its parts a bar in the same color. All uses share the same parts, so changing a
+            part (enabled, role, copy, ...) changes <strong>every</strong> use. Use the <strong>unlink</strong>
+            button on a use to turn it into an independent copy that can be edited on its own.</p>
+
+        <h3>Groups and Output Structure</h3>
+        <p>In the converted item parts with the same role from the same model form one <strong>group</strong>
+            (one static object, one moving object, one trigger, ...). A group never contains parts from different
+            models: if two static parts of different models both become Movable they result in two moving objects,
+            each at the position of its model. New moving groups start with the default movement (see Movement below), or choose
+            <em>"Movable (as &lt;model&gt;)"</em> to take over the movement of an existing moving model.</p>
+        <p>The <strong>Output Structure</strong> card shows exactly which groups the item will contain after Execute.</p>
+
+        <h3>Movement</h3>
+        <p>Every moving group gets its own movement editor. It starts with the movement found in the item (or the
+            default movement for new groups) and only changes what you edit.</p>
+        <ul>
+            <li><p><strong>Translation / Rotation</strong>: The axis and the range (meters / degrees) of the movement.</p></li>
+            <li><p><strong>Steps</strong>: Each animation consists of at most 4 steps that run one after another.
+                Each step has an ease (how the movement progresses), a duration in milliseconds and can be played
+                in reverse.</p></li>
+            <li><p><strong>Reset</strong>: Discards your changes and uses the original movement again.</p></li>
+        </ul>
+
+        <h3>LOD Configuration</h3>
+        <p>Edit an item's LOD distances and assign meshes to different LOD levels.</p>
+        <p>A LOD (Level of Detail) defines the distance at which different versions of the item's geometry are
+            displayed. <strong>Distance</strong> doesn't mean physical distance from the camera but depends on FOV and
+            size on screen (I think).</p>
+        <p>If LOD is disabled for a mesh, it is always rendered regardless of the distance. If enabled, it is rendered
+            based on the LOD levels it is assigned to. The last LOD is reserved for every distance greater than the
+            last specified.</p>
+        <p>Note that removing a LOD level affects all meshes assigned to that and following levels because the level
+            assignments shift.</p>
+        <p>Inside the preview you can enable/disable LODs to see how they affect the rendering of the item.</p>
+        <p>Not all output types support LOD configuration!</p>
+
+        <h3>Practical workflows</h3>
+        <h7>Example 1: Convert a Blender export static item to an in-game editable item</h7>
+        <p>A static item exported from Blender has no moving parts and no triggers and is usually a Solid2Model which
+            cannot be edited in the in-game MeshModeler.</p>
+        <p>To convert it, load the item, select the target type <strong>MeshModeler</strong> and enable
+            <strong>Use Configuration</strong>. Keep all meshes which should become geometry layers enabled. If the
+            item contains collision shapes which are not matched by mesh parts (e.g. invisible collision shapes or
+            boxes around an item for simple collisions) also keep the static shape enabled, otherwise disable it as it
+            is redundant data.</p>
+        <h7>Example 2: Convert a MeshModeler item into a Custom Gate</h7>
+        <p>The MeshModeler allows for the creation of custom gate items so you can create a template item and convert
+            it to a gate here.</p>
+        <p>Create a new item in the in-game editor and construct a layer which represents your trigger shape. Load the
+            created item and set the <strong>Role</strong> of that part to <strong>Effect</strong>. Disable
+            <strong>Col</strong>. If it should contain a visible, non-collidable material keep <strong>Vis</strong>
+            enabled. Select <strong>General</strong> as target type and select your desired <strong>Gate Gameplay
+            Effect</strong>.</p>
+        <p>Execute and test your created gate item. If you want different effects you can use the
+            <strong>Gate Variant Creator</strong> to create all gameplay variants.</p>
+
+        <h3>Note</h3>
+        <p>It is possible to create configurations that will create invalid items which will crash the editor when
+            placed.</p>
+        <p><strong>If you encounter such issues and you are sure it should work please reach out to me.</strong></p>
+    </HelpContent>
+</ToolPageLayout>
 
 
 @code {
@@ -337,20 +389,31 @@
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
     [SessionStored] private NormalizedItem loadedItem = new();
     [SessionStored] private bool isItemLoaded = false;
-    [SessionStored] private Dictionary<int, MeshConfig> submeshConfigs = new();
-    [SessionStored] private Dictionary<int, GroupConfig> groupConfigs = new();
+    [SessionStored] private Dictionary<Guid, MeshConfig> partConfigs = new();
     [SessionStored] private ItemConfig itemConfig = new();
+    [SessionStored] private Dictionary<int, MovementConfig> movementConfigs = new();
 
+    private IReadOnlyList<int> _movingGroups = Array.Empty<int>();
     private IReadOnlyList<ValidationIssue> _validationIssues = Array.Empty<ValidationIssue>();
     private bool _showPreview = false;
     private int? _selectedSubmeshIndex;
     private IReadOnlyDictionary<int, MeshConfig>? _previewConfigs;
+    private readonly HashSet<string> _collapsedNodes = new();
 
+    private ItemPartTree? _tree;
+    private ItemPartTree? Tree => isItemLoaded ? (_tree ??= ItemPartTree.Build(loadedItem)) : null;
+    private Dictionary<ModelType, List<(int Key, string Name)>>? _shareTargets;
+    private IReadOnlyList<OutputModelSummary>? _outputSummary;
 
+    private static readonly ModelType[] ShareableRoles = [ModelType.Dynamic, ModelType.Trigger_Special, ModelType.Trigger_Waypoint];
 
-    private enum TargetMeshType { General, MeshModeler}
+    private void InvalidateTree()
+    {
+        _tree = null;
+        _shareTargets = null;
+    }
 
-
+    private enum TargetMeshType { General, MeshModeler }
 
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -358,7 +421,7 @@
         {
             Key = "useConfiguration",
             Label = "Use Configuration",
-            Tooltip = "Whether to use the configuration from the input selection for the item.",
+            Tooltip = "Whether to use the part configuration from this page. If disabled the settings found in the item are used.",
             Kind = ToolParameterKind.Bool,
             DefaultValue = true,
         },
@@ -370,29 +433,29 @@
             Kind = ToolParameterKind.Enum,
             DefaultValue = "General",
             Options = new[]
-    {
+            {
                 new ToolParameterOption { Value = "General", Label = "General" },
                 new ToolParameterOption { Value = "MeshModeler", Label = "MeshModeler" }
-    },
+            },
         },
         new()
         {
             Key = "gateGameplayEffect",
             Label = "Gate Gameplay Effect",
-            Tooltip = "The gameplay effect of the custom gate.",
+            Tooltip = "The gameplay effect of effect trigger parts that have no effect yet.",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "Turbo",
             Options = Enum.GetValues<LegacyGameplayId>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
-            EnabledWhen = (p)=> Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.General
+            EnabledWhen = (p) => Enum.Parse<TargetMeshType>(p.GetString("targetType")) == TargetMeshType.General
         },
         new()
         {
             Key = "waypointType",
             Label = "Waypoint Type",
-            Tooltip = "The type of waypoint for the crystal item.",
+            Tooltip = "The type of waypoint for waypoint trigger parts. None keeps existing types (new waypoint triggers become checkpoints).",
             Kind = ToolParameterKind.Enum,
             DefaultValue = "None",
-            Options = Enum.GetValues<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
+            Options = Enum.GetValues<EWaypointType>().Select(v => new ToolParameterOption { Value = v.ToString(), Label = v.ToString() }).ToArray(),
         },
     };
 
@@ -403,46 +466,106 @@
         base.OnInitialized();
 
         ItemFileService.FileChanged += OnFileChanged;
-
+        ValidateConfiguration();
     }
+
     public void Dispose()
     {
         ItemFileService.FileChanged -= OnFileChanged;
     }
+
     async void OnFileChanged()
     {
+        InvalidateTree();
+        movementConfigs = new();
+        _selectedSubmeshIndex = null;
+        _exportItems = null;
         if (ItemFileService.Item != null)
         {
-            _selectedSubmeshIndex = null;
-            isItemLoaded = TryLoadMeshFromItem(out loadedItem);
+            isItemLoaded = TryLoadItem(out loadedItem);
             if (isItemLoaded)
             {
-                LoadDefaultConfigurationFromMesh();
+                LoadDefaultConfiguration();
+            }
+            else
+            {
+                partConfigs = new();
+                _previewConfigs = null;
             }
         }
         else
         {
             isItemLoaded = false;
-            submeshConfigs = new();
-            _selectedSubmeshIndex = null;
+            partConfigs = new();
             _previewConfigs = null;
         }
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string SubmeshRowStyle(bool enabled, bool selected)
+    private static string RowStyle(bool enabled, bool selected, int indentPx, int linkIndex = 0)
     {
         var s = enabled ? "" : "opacity:0.45;";
-        if (selected) s += "background:var(--tm-accent-soft,#1a2f4a);border-left:3px solid var(--tm-accent);padding-left:0.25rem;";
+        if (indentPx > 0) s += $"padding-left:{indentPx}px;";
+        if (linkIndex > 0) s += $"border-left:3px solid {LinkColor(linkIndex)};";
+        if (selected) s += "background:var(--tm-accent-soft,#1a2f4a);border-left:3px solid var(--tm-accent);";
         return s;
+    }
+
+    /// <summary>Same linked model = same color.</summary>
+    private static string LinkColor(int linkIndex) => $"hsl({linkIndex * 67 % 360} 70% 55%)";
+
+    private string UsesTooltip(ItemTreeNode node)
+    {
+        var uses = Tree!.UsesOf(node.ModelKey);
+        var where = string.Join("; ", uses.Select(u => ItemPartTree.FormatVector(u.WorldPosition)));
+        return $"Linked model: placed {uses.Count} times ({where}). Changes to its parts apply to every use.";
+    }
+
+    private void ToggleSelection(int previewIndex)
+    {
+        if (previewIndex < 0) return;
+        _selectedSubmeshIndex = _selectedSubmeshIndex == previewIndex ? null : previewIndex;
     }
 
     private void OnPreviewSubmeshSelected(int? index) => _selectedSubmeshIndex = index;
 
+    private void ToggleNode(string key)
+    {
+        if (!_collapsedNodes.Add(key))
+            _collapsedNodes.Remove(key);
+    }
+
+    private MeshConfig Cfg(Guid refId)
+    {
+        if (!partConfigs.TryGetValue(refId, out var cfg))
+        {
+            cfg = new MeshConfig();
+            partConfigs[refId] = cfg;
+        }
+        return cfg;
+    }
+
+    /// <summary>Distinct (by model) nodes that contain meshes, in tree order.</summary>
+    private IEnumerable<ItemTreeNode> LodNodes()
+    {
+        var seen = new HashSet<int>();
+        foreach (var node in Tree!.Nodes())
+        {
+            if (node.Parts.Any(p => p.Kind == PartKind.Mesh) && seen.Add(node.ModelKey))
+                yield return node;
+        }
+    }
+
     private void BuildPreviewConfigs()
     {
-        _previewConfigs = submeshConfigs.ToDictionary(entry => entry.Key, entry => entry.Value);
+        if (Tree == null)
+        {
+            _previewConfigs = null;
+            return;
+        }
+        _previewConfigs = Tree.PreviewParts.ToDictionary(p => p.PreviewIndex, p => Cfg(p.RefId));
     }
+
     private Task OnParameterValuesChanged(ToolParameterValues values)
     {
         parameterValues = values;
@@ -450,112 +573,294 @@
         return Task.CompletedTask;
     }
 
-    private bool TryLoadMeshFromItem(out NormalizedItem item)
+    private bool TryLoadItem(out NormalizedItem item)
     {
-        var extractor = new ItemParser();
-        var result = extractor.Parse(ItemFileService.Item!);
+        var parser = new ItemParser();
+        var result = parser.Parse(ItemFileService.Item!);
 
         if (result.IsFailure)
         {
-            item = default(NormalizedItem)!;
+            ToolMessageService.AddError("Failed to read item structure.", result, "Item Model Converter");
+            item = default!;
             return false;
         }
+
+        var validation = NormalizedItemValidator.Validate(result.Value);
+        if (validation.IsFailure)
+        {
+            ToolMessageService.AddError("Item structure is invalid.", validation, "Item Model Converter");
+            item = default!;
+            return false;
+        }
+
         item = result.Value;
         return true;
     }
-    private void LoadDefaultConfigurationFromMesh()
+
+    private void LoadDefaultConfiguration()
     {
         if (!isItemLoaded) return;
-        submeshConfigs = new Dictionary<int, MeshConfig>();
-        submeshConfigs = new Dictionary<int, MeshConfig>()
-        itemConfig = new ItemConfig();
-        itemConfig.LODDistances = loadedItem.ModelPool.FirstOrDefault(m => m.Value.LODDistances.Length > 0).Value?.LODDistances.ToList() ?? [];
 
-        for (int i = 0; i < loadedItem.ModelPool.Count; i++)
+        partConfigs = new Dictionary<Guid, MeshConfig>();
+        itemConfig = new ItemConfig
         {
-            var model = loadedItem.
-            var gcfg = new GroupConfig();
-            gcfg.Type = 
-            MeshConfig cfg = new MeshConfig();
-            var submesh = loadedItem.Meshes[i];
-            var group = loadedItem.Groups[submesh.GroupIndex];
-            switch (group.GroupType)
+            LODDistances = loadedItem.ModelPool.Values.FirstOrDefault(m => m.LODDistances.Length > 0)?.LODDistances.ToList() ?? [],
+        };
+
+        var defaults = BuildSettings.DefaultFromItem(loadedItem);
+        foreach (var model in loadedItem.ModelPool.Values)
+        {
+            foreach (var mesh in model.Meshes)
             {
-                case GroupType.StaticObject:
-                    break;
-                case GroupType.DynaObject:
-                    cfg.Movable = true;
-                    break;
-                case GroupType.Trigger_Special:
-                    cfg.Trigger_Effect = true;
-                    break;
-                case GroupType.Trigger_Waypoint:
-                    cfg.Trigger_Waypoint = true;
-                    break;
-                default:
-                    cfg.Enabled = false;
-                    break;
+                if (!defaults.Instances.TryGetValue(mesh.Id, out var inst)) continue;
+                partConfigs[mesh.Id] = new MeshConfig
+                {
+                    Enabled = inst.Enabled,
+                    Visible = inst.Visible,
+                    Collidable = inst.Collidable,
+                    Role = defaults.Clusters[inst.ClusterKey].Type,
+                    HasLOD = mesh.Properties.HasFlag(MeshProperties.LOD),
+                    LODMask = mesh.LODMask,
+                };
             }
-            if (submesh.Properties.HasFlag(MeshProperties.Enabled))
-                cfg.Enabled = true;
-            if (submesh.Properties.HasFlag(MeshProperties.Visible))
-                cfg.Visible = true;
-            if (submesh.Properties.HasFlag(MeshProperties.Collidable))
-                cfg.Collidable = true;
-            if (submesh.Properties.HasFlag(MeshProperties.LOD))
-                cfg.HasLOD = true;
-            cfg.LODMask = submesh.LODMask;
-            submeshConfigs[i] = cfg;
+            foreach (var shape in model.Shapes)
+            {
+                if (!defaults.Instances.TryGetValue(shape.Id, out var inst)) continue;
+                partConfigs[shape.Id] = new MeshConfig
+                {
+                    Enabled = inst.Enabled,
+                    Visible = inst.Visible,
+                    Collidable = inst.Collidable,
+                    Role = defaults.Clusters[inst.ClusterKey].Type,
+                };
+            }
+            foreach (var light in model.Lights)
+            {
+                if (!defaults.Instances.TryGetValue(light.Id, out var inst)) continue;
+                partConfigs[light.Id] = new MeshConfig
+                {
+                    Enabled = inst.Enabled,
+                    Role = defaults.Clusters[inst.ClusterKey].Type,
+                };
+            }
         }
+        ValidateConfiguration();
+    }
+
+    private static bool IsRoleSelectable(ModelType type)
+        => type is ModelType.Static or ModelType.Dynamic or ModelType.Trigger_Special or ModelType.Trigger_Waypoint;
+
+    private static string RoleValue(MeshConfig cfg)
+        => cfg.ShareWithModel is int key && cfg.Role != ModelType.Static ? $"{cfg.Role}:{key}" : cfg.Role.ToString();
+
+    /// <summary>Other leaf models (by original type) whose group a part can take its settings from.</summary>
+    private IReadOnlyList<(int Key, string Name)> ShareTargetsFor(ModelType role, int ownModelKey)
+    {
+        _shareTargets ??= BuildShareTargets();
+        return _shareTargets.TryGetValue(role, out var list) ? list.Where(t => t.Key != ownModelKey).ToList() : [];
+    }
+
+    private Dictionary<ModelType, List<(int Key, string Name)>> BuildShareTargets()
+    {
+        var result = new Dictionary<ModelType, List<(int Key, string Name)>>();
+        var seen = new HashSet<int>();
+        foreach (var node in Tree!.Nodes())
+        {
+            if (!node.IsLeaf || !node.Parts.Any(p => p.Kind != PartKind.Light) || !seen.Add(node.ModelKey))
+                continue;
+            if (!result.TryGetValue(node.ModelType, out var list))
+                result[node.ModelType] = list = [];
+            list.Add((node.ModelKey, Tree.NameOf(node.ModelKey)));
+        }
+        return result;
+    }
+
+    private void OnRoleChanged(MeshConfig cfg, object? value)
+    {
+        var text = value?.ToString() ?? "";
+        int? share = null;
+        var separator = text.IndexOf(':');
+        if (separator >= 0)
+        {
+            if (int.TryParse(text[(separator + 1)..], out var key))
+                share = key;
+            text = text[..separator];
+        }
+        if (Enum.TryParse<ModelType>(text, out var role) && IsRoleSelectable(role))
+        {
+            cfg.Role = role;
+            cfg.ShareWithModel = share;
+        }
+        ValidateConfiguration();
+    }
+
+    private (List<MeshRef>? Meshes, List<ShapeRef>? Shapes, int Index)? FindRef(Guid refId)
+    {
+        foreach (var model in loadedItem.ModelPool.Values)
+        {
+            var i = model.Meshes.FindIndex(m => m.Id == refId);
+            if (i >= 0) return (model.Meshes, null, i);
+            i = model.Shapes.FindIndex(s => s.Id == refId);
+            if (i >= 0) return (null, model.Shapes, i);
+        }
+        return null;
+    }
+
+    private static MeshRef CopyMeshRef(MeshRef src) => new()
+    {
+        MeshKey = src.MeshKey,
+        LODMask = src.LODMask,
+        SmoothingGroup = src.SmoothingGroup,
+        PreLightGenerator = src.PreLightGenerator,
+        Properties = src.Properties,
+    };
+
+    /// <summary>Adds a copy of the part (same geometry) to its model, so it can get a different role.</summary>
+    private void DuplicatePart(Guid refId)
+    {
+        if (FindRef(refId) is not { } found) return;
+        var cfg = Cfg(refId).Clone();
+        cfg.IsCopy = true;
+        if (found.Meshes != null)
+        {
+            var copy = CopyMeshRef(found.Meshes[found.Index]);
+            found.Meshes.Insert(found.Index + 1, copy);
+            partConfigs[copy.Id] = cfg;
+        }
+        else if (found.Shapes != null)
+        {
+            var src = found.Shapes[found.Index];
+            var copy = new ShapeRef { ShapeKey = src.ShapeKey, Role = src.Role };
+            found.Shapes.Insert(found.Index + 1, copy);
+            partConfigs[copy.Id] = cfg;
+        }
+        InvalidateTree();
+        ValidateConfiguration();
+    }
+
+    private void RemoveCopy(Guid refId)
+    {
+        if (FindRef(refId) is not { } found || !Cfg(refId).IsCopy) return;
+        found.Meshes?.RemoveAt(found.Index);
+        found.Shapes?.RemoveAt(found.Index);
+        partConfigs.Remove(refId);
+        _selectedSubmeshIndex = null;
+        InvalidateTree();
+        ValidateConfiguration();
+    }
+
+    /// <summary>Gives one use of a shared model its own copy of the model so it can be configured independently.</summary>
+    private void UnlinkNode(ItemTreeNode node)
+    {
+        if (node.Entity == null || !node.IsLeaf || !loadedItem.ModelPool.TryGetValue(node.ModelKey, out var source))
+            return;
+
+        var clone = new NormalizedModel
+        {
+            Type = source.Type,
+            LODDistances = (float[])source.LODDistances.Clone(),
+            WaypointType = source.WaypointType,
+            WaypointNoRespawn = source.WaypointNoRespawn,
+            TriggerGameplayId = source.TriggerGameplayId,
+            GameplayMainDir = source.GameplayMainDir,
+        };
+        foreach (var mesh in source.Meshes)
+        {
+            var copy = CopyMeshRef(mesh);
+            clone.Meshes.Add(copy);
+            partConfigs[copy.Id] = Cfg(mesh.Id).Clone();
+        }
+        foreach (var shape in source.Shapes)
+        {
+            var copy = new ShapeRef { ShapeKey = shape.ShapeKey, Role = shape.Role };
+            clone.Shapes.Add(copy);
+            partConfigs[copy.Id] = Cfg(shape.Id).Clone();
+        }
+        foreach (var light in source.Lights)
+        {
+            var copy = new LightRef { LightKey = light.LightKey, Position = light.Position, Rotation = light.Rotation };
+            clone.Lights.Add(copy);
+            partConfigs[copy.Id] = Cfg(light.Id).Clone();
+        }
+
+        var newKey = loadedItem.ModelPool.Keys.Max() + 1;
+        loadedItem.ModelPool[newKey] = clone;
+        node.Entity.ModelKey = newKey;
+
+        _selectedSubmeshIndex = null;
+        InvalidateTree();
         ValidateConfiguration();
     }
 
     private void ValidateConfiguration()
     {
         var issues = new List<ValidationIssue>();
-        TargetMeshType targetType = Enum.Parse<TargetMeshType>(parameterValues.GetString("targetType"));
-        if (!isItemLoaded)
+        if (!isItemLoaded || Tree == null)
         {
+            _previewConfigs = null;
+            _outputSummary = null;
+            _movingGroups = Array.Empty<int>();
             _validationIssues = issues;
             return;
         }
         BuildPreviewConfigs();
         if (!parameterValues.GetBool("useConfiguration"))
         {
+            _outputSummary = null;
+            _movingGroups = Array.Empty<int>();
             _validationIssues = issues;
             return;
         }
 
+        var plan = CreatePlan();
+        _outputSummary = ConversionPlanner.Summarize(plan, Tree);
+        _movingGroups = Tree.Nodes()
+            .Select(n => n.ModelKey)
+            .Distinct()
+            .Where(plan.MovingClusterByModel.ContainsKey)
+            .ToList();
 
-        var enabledConfigs = submeshConfigs.Where(kv => kv.Value.Enabled).ToList();
+        TargetMeshType targetType = Enum.Parse<TargetMeshType>(parameterValues.GetString("targetType"));
 
-        if (enabledConfigs.Count == 0)
+        var enabledParts = Tree.PreviewParts
+            .DistinctBy(p => p.RefId)
+            .Select(p => (Part: p, Cfg: Cfg(p.RefId)))
+            .Where(x => x.Cfg.Enabled)
+            .ToList();
+
+        if (enabledParts.Count == 0)
         {
-            issues.Add(new ValidationIssue(ValidationSeverity.Error, "No submeshes are enabled — the output item will be empty."));
+            issues.Add(new ValidationIssue(ValidationSeverity.Error, "No parts are enabled — the output item will be empty."));
             _validationIssues = issues;
             return;
         }
 
-
-        bool hasVisible = enabledConfigs.Any(kv => kv.Value.Visible);
-        bool hasMovable = enabledConfigs.Any(kv => kv.Value.Movable && kv.Value.Collidable);
-        bool hasTrigger = enabledConfigs.Any(kv => kv.Value.Trigger_Waypoint);
-        bool hasCollidable = enabledConfigs.Any(kv => kv.Value.Collidable);
         if (itemConfig.LODDistances.Count >= 4)
-        {
             issues.Add(new ValidationIssue(ValidationSeverity.Error, "No more than 4 LOD levels are supported — the item will crash the game when placed."));
+
+        if (!enabledParts.Any(x => x.Cfg.Visible && !x.Cfg.IsTrigger))
+            issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No visible parts selected — the item will be invisible in-game."));
+
+        // Movable parts need at least one collidable part per model.
+        var checkedModels = new HashSet<int>();
+        foreach (var node in Tree.Nodes())
+        {
+            if (!checkedModels.Add(node.ModelKey)) continue;
+            var movable = node.Parts
+                .Where(p => p.Kind != PartKind.Light)
+                .Select(p => Cfg(p.RefId))
+                .Where(c => c.Enabled && c.IsMovable)
+                .ToList();
+            if (movable.Count > 0 && !movable.Any(c => c.Collidable))
+                issues.Add(new ValidationIssue(ValidationSeverity.Error, $"Movable parts of '{node.Label}' need at least one collidable part."));
         }
 
-        if (!hasVisible)
-            issues.Add(new ValidationIssue(ValidationSeverity.Warning, "No visible meshes selected — the item will be invisible in-game."));
-        switch (targetType)
+        if (targetType == TargetMeshType.MeshModeler)
         {
-            case TargetMeshType.MeshModeler:
-                if (submeshConfigs.Any(g => g.Value.Trigger_Effect))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains Effects — Effect trigger will not function in a MeshModeler item."));
-                if (submeshConfigs.Any(g => g.Value.Movable))
-                    issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains movable parts — Movable parts will not move in a MeshModeler item."));
-                break;
+            if (enabledParts.Any(x => x.Cfg.Role == ModelType.Trigger_Special))
+                issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains Effects — Effect triggers will not function in a MeshModeler item."));
+            if (enabledParts.Any(x => x.Cfg.IsMovable))
+                issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Item contains movable parts — Movable parts will not move in a MeshModeler item."));
         }
 
         _validationIssues = issues;
@@ -565,53 +870,40 @@
     {
         return isItemLoaded;
     }
+
     private async Task<ExecuteActionResult> ExecuteToolAsync()
     {
-        var settings = new MeshCompilerSettings()
+        var compilerSettings = new ItemCompilerSettings()
         {
             Author = ItemFileService.Item!.Ident.Author,
         };
-        var meshBuilder = new ItemCompiler(settings);
-
+        var compiler = new ItemCompiler(compilerSettings);
 
         string targetTypeString = parameterValues.GetString("targetType");
+        TargetMeshType targetType = Enum.Parse<TargetMeshType>(targetTypeString);
         var compileOptions = new CompileOptions()
         {
             Optimization = ItemCompilerOptimization.PreferNadeoImporterStructure,
-            Target = ItemModel.Prefab,  
+            Target = targetType == TargetMeshType.MeshModeler ? ItemModel.MeshModeler : ItemModel.Prefab,
         };
-        BuildSettings buildOptions;
-        TargetMeshType targetType = Enum.Parse<TargetMeshType>(targetTypeString);
+
+        BuildSettings buildSettings;
         if (!parameterValues.GetBool("useConfiguration"))
         {
-            buildOptions = BuildSettings.DefaultFromItem(loadedItem);
+            buildSettings = BuildSettings.DefaultFromItem(loadedItem);
         }
         else
         {
-            var waypointType =
-                Enum.Parse<GBX.NET.Engines.GameData.CGameItemModel.EWaypointType>(parameterValues.GetString("waypointType"));
-            var effect = Enum.Parse<LegacyGameplayId>(parameterValues.GetString("gateGameplayEffect"));
-            buildOptions = CreateBuildOptionsFromConfiguration(targetType, effect, waypointType);
-            switch (targetType)
-            {
-                case TargetMeshType.MeshModeler:
-                    compileOptions = compileOptions with {Target = ItemModel.MeshModeler};
-                    break;
-                case TargetMeshType.General:
-                    compileOptions = compileOptions with {Target = ItemModel.Prefab};
-                    break;
-            }
+            buildSettings = CreatePlan().Settings;
         }
-        ToolResult<GBX.NET.Engines.GameData.CGameItemModel> builtItemResult = meshBuilder.Compile(loadedItem, buildOptions, compileOptions);
 
+        var builtItemResult = compiler.Compile(loadedItem, buildSettings, compileOptions);
         if (builtItemResult.IsFailure)
         {
             ToolMessageService.AddError($"Failed to build item model: {targetTypeString}", builtItemResult, "Item Model Converter");
-
             return new ExecuteActionResult(ExecuteActionResultStatus.Failure, $"Failed to build item model: {targetTypeString}");
         }
 
-        
         using var s = new MemoryStream();
         builtItemResult.Value.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
         var bytes = s.ToArray();
@@ -620,134 +912,35 @@
         return new ExecuteActionResult(ExecuteActionResultStatus.Success, Message: $"Item model converted to {targetTypeString}.");
     }
 
-    MeshBuilder.BuildSettings CreateBuildOptionsFromConfiguration(TargetMeshType targetType,
-        LegacyGameplayId? legacyGameplayId,
-        GBX.NET.Engines.GameData.CGameItemModel.EWaypointType? waypointType)
+    private ConversionPlan CreatePlan()
     {
-        var settings = new MeshBuilder.BuildSettings();
-        float[] lodDistances = itemConfig.LODDistances.Select(ld => ld / 2f).ToArray();
-        MeshBuilder.GroupSetting GetOrCreateMovableGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
+        Enum.TryParse<EWaypointType>(parameterValues.GetString("waypointType"), out var waypointType);
+        Enum.TryParse<LegacyGameplayId>(parameterValues.GetString("gateGameplayEffect"), out var effect);
+        return ConversionPlanner.Create(loadedItem, partConfigs, itemConfig.LODDistances, effect,
+            waypointType == EWaypointType.None ? null : waypointType, movementConfigs);
+    }
+
+    private MovementConfig GetMovement(int modelKey)
+    {
+        if (!movementConfigs.TryGetValue(modelKey, out var movement))
         {
-            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.DynaObject && gs.Position == position && gs.Rotation == rotation))
-                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.DynaObject && gs.Position == position && gs.Rotation == rotation);
-            var loadedItemMovingGroup = loadedItem.Groups.FirstOrDefault(g => g.GroupType == GroupType.DynaObject && g.Position == position && g.Rotation == rotation);
-            var group = new MeshBuilder.GroupSetting()
-            {
-                Type = GroupType.DynaObject,
-                GroupId = settings.GroupSettings.Count,
-                KinematicConstraint = loadedItemMovingGroup?.KinematicConstraint,
-                DynaObjectModelParams = loadedItemMovingGroup?.DynaObjectModelParams,
-                RelativeMovingParentGroup = loadedItemMovingGroup?.RelativeMovingParentIndex,
-                LODDistances = lodDistances,
-                Position = position,
-                Rotation = rotation,
-            };
-            settings.GroupSettings.Add(group);
-            return group;
+            movement = ConversionPlanner.BaseMovement(Tree!, modelKey);
+            movementConfigs[modelKey] = movement;
         }
-        MeshBuilder.GroupSetting GetOrCreateTriggerEffectGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
-        {
-            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.Trigger_Special && gs.Position == position && gs.Rotation == rotation))
-                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.Trigger_Special && gs.Position == position && gs.Rotation == rotation);
-            var group = new MeshBuilder.GroupSetting()
-            {
-                Type = GroupType.Trigger_Special,
-                GroupId = settings.GroupSettings.Count,
-                TriggerGameplayId = legacyGameplayId,
-                LODDistances = lodDistances,
-                Position = position,
-                Rotation = rotation,
-            };
-            settings.GroupSettings.Add(group);
-            return group;
-        }
-        MeshBuilder.GroupSetting GetOrCreateTriggerWaypointGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
-        {
-            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.Trigger_Waypoint && gs.Position == position && gs.Rotation == rotation))
-                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.Trigger_Waypoint && gs.Position == position && gs.Rotation == rotation);
-            var group = new MeshBuilder.GroupSetting()
-            {
-                Type = GroupType.Trigger_Waypoint,
-                GroupId = settings.GroupSettings.Count,
-                WaypointType = (GBX.NET.Engines.Plug.NPlugTrigger_SWaypoint.EGameItemWaypointType?)waypointType,
-                LODDistances = lodDistances,
-                Position = position,
-                Rotation = rotation,
-            };
-            settings.GroupSettings.Add(group);
-            return group;
-        }
-        MeshBuilder.GroupSetting GetOrCreateStaticGroup(System.Numerics.Vector3 position, System.Numerics.Quaternion rotation)
-        {
-            if (settings.GroupSettings.Any(gs => gs.Type == GroupType.StaticObject && gs.Position == position && gs.Rotation == rotation))
-                return settings.GroupSettings.FirstOrDefault(gs => gs.Type == GroupType.StaticObject && gs.Position == position && gs.Rotation == rotation);
-            var group = new MeshBuilder.GroupSetting()
-            {
-                Type = GroupType.StaticObject,
-                GroupId = settings.GroupSettings.Count,
-                LODDistances = lodDistances,
-                Position = position,
-                Rotation = rotation,
-            };
-            settings.GroupSettings.Add(group);
-            return group;
-        }
-        foreach (var (index, cfg) in submeshConfigs)
-        {
-            if (!cfg.Enabled)
-                continue;
-            var originalGroup = loadedItem.Groups[loadedItem.Meshes[index].GroupIndex];
-            var originalPosition = originalGroup.Position;
-            var originalRotation = originalGroup.Rotation;
-            var meshSetting = new MeshBuilder.MeshInstanceSetting()
-            {
-                MeshIndex = index,
-                Visible = cfg.Visible,
-                Collidable = cfg.Collidable,
-                LODMask = cfg.HasLOD ? cfg.LODMask : null
-            };
-            if (cfg.Movable)
-            {
-                var movableGroup = GetOrCreateMovableGroup(originalPosition, originalRotation);
-                var movableSetting = meshSetting with
-                {
-                    Movable = true,
-                    GroupId = movableGroup.GroupId
-                };
-                settings.MeshSettings.Add(movableSetting);
-            }
-            if (cfg.Trigger_Effect)
-            {
-                var effectGroup = GetOrCreateTriggerEffectGroup(originalPosition, originalRotation);
-                var effectSetting = meshSetting with
-                {
-                    Trigger = true,
-                    GroupId = effectGroup.GroupId
-                };
-                settings.MeshSettings.Add(effectSetting);
-            }
-            if (cfg.Trigger_Waypoint)
-            {
-                var waypointGroup = GetOrCreateTriggerWaypointGroup(originalPosition, originalRotation);
-                var effectSetting = meshSetting with
-                {
-                    Trigger = true,
-                    GroupId = waypointGroup.GroupId
-                };
-                settings.MeshSettings.Add(effectSetting);
-            }
-            if ((cfg.Collidable || cfg.Visible) && !cfg.Movable)
-            {
-                var staticGroup = GetOrCreateStaticGroup(originalPosition, originalRotation);
-                var staticSetting = meshSetting with
-                {
-                    GroupId = staticGroup.GroupId
-                };
-                settings.MeshSettings.Add(staticSetting);
-            }
-        }
-        settings.TargetModel = MeshBuilder.ItemModel.General;
-        return settings;
+        return movement;
+    }
+
+    private Task OnMovementChanged()
+    {
+        ValidateConfiguration();
+        return Task.CompletedTask;
+    }
+
+    private Task ResetMovement(int modelKey)
+    {
+        movementConfigs.Remove(modelKey);
+        ValidateConfiguration();
+        return Task.CompletedTask;
     }
 
     private void AddLodDistance()
@@ -756,14 +949,14 @@
         itemConfig.LODDistances.Add(last + 100f);
         ValidateConfiguration();
     }
+
     private void RemoveLodDistance(int idx)
     {
         if (idx >= 0 && idx < itemConfig.LODDistances.Count)
         {
             itemConfig.LODDistances.RemoveAt(idx);
-            foreach (var kv in submeshConfigs)
+            foreach (var cfg in partConfigs.Values)
             {
-                var cfg = kv.Value;
                 if (cfg.HasLOD)
                     cfg.LODMask = RemoveLodDistance(cfg.LODMask, idx, itemConfig.LODDistances.Count);
             }
@@ -804,12 +997,145 @@
 
         return newMask;
     }
+
     private static int ToggleLodBit(int mask, int lod, bool on)
         => on ? mask | (1 << lod) : mask & ~(1 << lod);
 
-    private string SubmeshTypeToString(MeshType type)
-    {
-        return type.ToString();
-    }
+    private RenderFragment PartLinkBadges(ItemTreeNode node, ItemPartPlacement part) => @<text>
+        @if (node.LinkIndex > 0 || part.GeometryLinkIndex > 0)
+        {
+            <span class="cfg-col-links">
+                @if (node.LinkIndex > 0)
+                {
+                    <span class="cfg-tree-badge cfg-link-badge" style="--link-color:@LinkColor(node.LinkIndex)" title="@UsesTooltip(node)">
+                        <span class="bi bi-link-45deg" aria-hidden="true"></span>model ×@node.UseCount
+                    </span>
+                }
+                @if (part.GeometryLinkIndex > 0)
+                {
+                    <span class="cfg-tree-badge cfg-link-badge" style="--link-color:@LinkColor(part.GeometryLinkIndex + 3)" title="@part.GeometryLinkTooltip">
+                        <span class="bi bi-link-45deg" aria-hidden="true"></span>@(part.Kind == PartKind.Mesh ? "mesh" : "shape") ×@part.GeometryUseCount
+                    </span>
+                }
+            </span>
+        }
+    </text>;
 
+    private RenderFragment RenderNode(ItemTreeNode node, int depth)
+    {
+        var collapsed = _collapsedNodes.Contains(node.Key);
+        var hasContent = node.Parts.Count > 0 || node.Children.Count > 0;
+        var indent = depth * 14;
+
+        return @<text>
+            <li class="cfg-table-group cfg-tree-node" style="padding-left:@(indent)px" role="button"
+                @onclick="() => ToggleNode(node.Key)">
+                @if (hasContent)
+                {
+                    <span class="bi @(collapsed ? "bi-chevron-right" : "bi-chevron-down")" aria-hidden="true"></span>
+                }
+                @node.Label
+                @if (!string.IsNullOrEmpty(node.Detail))
+                {
+                    <span class="cfg-tree-detail">@node.Detail</span>
+                }
+                @if (node.LinkIndex > 0)
+                {
+                    <span class="cfg-tree-badge cfg-link-badge" style="--link-color:@LinkColor(node.LinkIndex)" title="@UsesTooltip(node)">
+                        <span class="bi bi-link-45deg" aria-hidden="true"></span>×@node.UseCount
+                    </span>
+                    @if (node.Entity != null && node.IsLeaf)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-secondary cfg-unlink-btn"
+                                title="Make this use independent (it gets its own copy of the model)"
+                                @onclick="() => UnlinkNode(node)" @onclick:stopPropagation>
+                            <span class="bi bi-scissors" aria-hidden="true"></span> Unlink
+                        </button>
+                    }
+                }
+            </li>
+            @if (!collapsed)
+            {
+                @foreach (var part in node.Parts)
+                {
+                    var localPart = part;
+                    var cfg = Cfg(part.RefId);
+                    var isLight = part.Kind == PartKind.Light;
+                    var roleValue = RoleValue(cfg);
+                    <li class="cfg-table-row"
+                        style="@RowStyle(cfg.Enabled, !isLight && part.PreviewIndex == _selectedSubmeshIndex, indent + 12, node.LinkIndex)"
+                        role="button"
+                        @onclick="() => ToggleSelection(localPart.PreviewIndex)">
+                        <span class="cfg-col-name text-truncate small" title="@part.Tooltip">@part.Name@(cfg.IsCopy ? " (copy)" : "")</span>
+                        @PartLinkBadges(node, part)
+                        <span class="cfg-col-type">@part.Kind</span>
+                        <span class="cfg-col-verts">@(isLight ? "" : part.VertexCount.ToString())</span>
+                        <div class="cfg-col-check">
+                            <input type="checkbox" checked="@cfg.Enabled"
+                                   @onchange="e => { cfg.Enabled = (bool)e.Value!; ValidateConfiguration(); }"
+                                   @onclick:stopPropagation />
+                        </div>
+                        @if (isLight)
+                        {
+                            <div class="cfg-col-check"></div>
+                            <div class="cfg-col-check"></div>
+                            <div class="cfg-col-role"></div>
+                            <div class="cfg-col-actions"></div>
+                        }
+                        else
+                        {
+                            <div class="cfg-col-check">
+                                <input type="checkbox" checked="@cfg.Visible" disabled="@(!cfg.Enabled)"
+                                       @onchange="e => { cfg.Visible = (bool)e.Value!; ValidateConfiguration(); }"
+                                       @onclick:stopPropagation />
+                            </div>
+                            <div class="cfg-col-check">
+                                <input type="checkbox" checked="@cfg.Collidable" disabled="@(!cfg.Enabled)"
+                                       @onchange="e => { cfg.Collidable = (bool)e.Value!; ValidateConfiguration(); }"
+                                       @onclick:stopPropagation />
+                            </div>
+                            <div class="cfg-col-role">
+                                <select class="form-select form-select-sm" disabled="@(!cfg.Enabled)"
+                                        @onchange="e => OnRoleChanged(cfg, e.Value)"
+                                        @onclick:stopPropagation>
+                                    <option value="@ModelType.Static" selected="@(roleValue == nameof(ModelType.Static))">Static</option>
+                                    @foreach (var role in ShareableRoles)
+                                    {
+                                        var roleLabel = ConversionPlanner.RoleLabel(role);
+                                        <option value="@role" selected="@(roleValue == role.ToString())">@roleLabel</option>
+                                        @foreach (var target in ShareTargetsFor(role, node.ModelKey))
+                                        {
+                                            var optionValue = $"{role}:{target.Key}";
+                                            <option value="@optionValue" selected="@(roleValue == optionValue)">@roleLabel (as @target.Name)</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="cfg-col-actions">
+                                @if (cfg.IsCopy)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Remove this copy"
+                                            @onclick="() => RemoveCopy(localPart.RefId)" @onclick:stopPropagation>
+                                        <span class="bi bi-trash" aria-hidden="true"></span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            title="Duplicate this part, so it can be used with a different role while the original keeps its role"
+                                            @onclick="() => DuplicatePart(localPart.RefId)" @onclick:stopPropagation>
+                                        <span class="bi bi-files" aria-hidden="true"></span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+                @foreach (var child in node.Children)
+                {
+                    @RenderNode(child, depth + 1)
+                }
+            }
+        </text>;
+    }
 }
