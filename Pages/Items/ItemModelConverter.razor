@@ -476,6 +476,22 @@
 
     async void OnFileChanged()
     {
+        try
+        {
+            ReloadItem();
+        }
+        catch (Exception ex)
+        {
+            isItemLoaded = false;
+            partConfigs = new();
+            _previewConfigs = null;
+            ToolMessageService.AddException(ex, "Failed to read the item.", "Item Model Converter");
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ReloadItem()
+    {
         InvalidateTree();
         movementConfigs = new();
         _selectedSubmeshIndex = null;
@@ -499,7 +515,6 @@
             partConfigs = new();
             _previewConfigs = null;
         }
-        await InvokeAsync(StateHasChanged);
     }
 
     private static string RowStyle(bool enabled, bool selected, int indentPx, int linkIndex = 0)

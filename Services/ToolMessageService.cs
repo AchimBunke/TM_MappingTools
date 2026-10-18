@@ -55,6 +55,41 @@ public class ToolMessageService
         AddError(message, source, technicalDetails: ex.ToString());
     }
 
+    private string? _lastUnhandledKey;
+    private DateTimeOffset _lastUnhandledTime;
+    private bool _reportingUnhandled;
+
+    /// <summary>
+    /// Reports an exception nobody else handled (event handlers, rendering, background tasks).
+    /// Identical exceptions reported in quick succession are collapsed, and a failure while
+    /// reporting never recurses.
+    /// </summary>
+    public void ReportUnhandled(Exception ex, string? userMessage = null, string? source = null)
+    {
+        if (_reportingUnhandled) return;
+
+        var key = ex.GetType().FullName + "|" + ex.Message + "|" + userMessage;
+        var now = DateTimeOffset.Now;
+        if (key == _lastUnhandledKey && now - _lastUnhandledTime < TimeSpan.FromSeconds(2))
+            return;
+        _lastUnhandledKey = key;
+        _lastUnhandledTime = now;
+
+        _reportingUnhandled = true;
+        try
+        {
+            AddException(ex, userMessage ?? $"Unexpected error: {ex.Message}", source);
+        }
+        catch
+        {
+            // the output itself failed, nothing left to report to
+        }
+        finally
+        {
+            _reportingUnhandled = false;
+        }
+    }
+
     public void AddError(string text, IToolResult errorResult, string? source = null)
     {
         var innerMessages = AccumulateInnerMessages(errorResult);

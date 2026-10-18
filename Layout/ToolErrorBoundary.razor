@@ -1,0 +1,43 @@
+@inherits ErrorBoundaryBase
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else
+{
+    <div class="alert alert-danger m-3" role="alert">
+        <strong>This page ran into an error.</strong>
+        The details are in the output panel.
+        <button type="button" class="btn btn-link p-0 ms-2 align-baseline" @onclick="Recover">Try again</button>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    protected override Task OnErrorAsync(Exception exception)
+    {
+        ToolMessageService.ReportUnhandled(exception);
+        return Task.CompletedTask;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (CurrentException is not null)
+        {
+            InvokeAsync(Recover);
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}
