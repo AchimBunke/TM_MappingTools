@@ -21,7 +21,21 @@ ConfigureServices(builder.Services, builder.HostEnvironment.BaseAddress);
 
 GbxExtensions.Setup();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+// last line of defense: exceptions nobody handled (async void handlers, background tasks) end up in the output
+var messages = host.Services.GetRequiredService<ToolMessageService>();
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+{
+    if (e.ExceptionObject is Exception ex) messages.ReportUnhandled(ex);
+};
+TaskScheduler.UnobservedTaskException += (_, e) =>
+{
+    messages.ReportUnhandled(e.Exception.GetBaseException());
+    e.SetObserved();
+};
+
+await host.RunAsync();
 
 static void ConfigureServices(IServiceCollection services, string baseAddress)
 {
@@ -31,6 +45,7 @@ static void ConfigureServices(IServiceCollection services, string baseAddress)
     services.AddSingleton<ItemFileService>();
 
     services.AddSingleton<ToolMessageService>();
+    services.AddSingleton<ILoggerProvider, ToolMessageLoggerProvider>();
     services.AddSingleton<ToolRegistryService>();
     services.AddSingleton<GlobalClipHistoryService>();
     services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
