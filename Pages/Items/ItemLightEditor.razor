@@ -1,0 +1,362 @@
+@page "/item-light-editor"
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using TM_MappingTools.Services;
+@using TM_MappingTools.Model;
+@using GBX.NET.Engines.Plug;
+
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
+<PageTitle>Item Light Editor</PageTitle>
+
+<ToolPageLayout IconClass="bi-lightbulb" Title="Item Light Editor !(Experimental)!"
+                Description="Edit all light properties of the lights inside an item. ! (Experimental) This tool allows editing all available properties of lights but doesn't guarantee the item will work. Items might crash the game!"
+                HelpDescription="How lights are converted, edited and exported.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Source Item" Description="Load a .Item.Gbx whose lights you want to edit.">
+                    <FileLoader FileService="ItemFileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop the item here you want to edit lights for" Accept=".Item.Gbx"
+                                AllowMultiple="false" MessageSource="Item Light Editor" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body" Description="Export the modified item. Changes are applied live.">
+                    <ExportPanel EmptyMessage="Load an item to export it." Items="ExportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+
+    <Main>
+        @if (!HasItem)
+        {
+            <ToolCard Title="Lights">
+                <p class="text-muted mb-0">Load an item to edit its lights.</p>
+            </ToolCard>
+        }
+        else
+        {
+            <ToolCard Title="Lights" Description="Select a light to edit. All changes are written directly into the loaded item.">
+                @if (_userLightCount > 0)
+                {
+                    <div class="alert alert-warning py-2 d-flex align-items-center justify-content-between gap-2">
+                        <span>This item contains @_userLightCount unconverted light user model(s) from the item editor.</span>
+                        <button type="button" class="btn btn-sm btn-primary" @onclick="ConvertUserLights">Convert User Lights</button>
+                    </div>
+                }
+                @if (_entries.Count == 0)
+                {
+                    <p class="text-muted">This item has no lights.</p>
+                }
+                else
+                {
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        @for (int i = 0; i < _entries.Count; i++)
+                        {
+                            int index = i;
+                            var entry = _entries[i];
+                            <button type="button" class="btn btn-sm @(index == selectedLightIndex ? "btn-primary" : "btn-outline-secondary")"
+                                    @onclick="() => SelectLight(index)">
+                                #@(index + 1) @LightKinds.GetLabel(entry.Kind)@(string.IsNullOrEmpty(entry.Light.U01) ? "" : " - " + entry.Light.U01)@(string.IsNullOrEmpty(entry.ModelName) ? "" : " (" + entry.ModelName + ")")
+                            </button>
+                        }
+                    </div>
+                }
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <select class="form-select form-select-sm w-auto" @bind="_newLightKind">
+                        @foreach (var kind in LightKinds.Creatable)
+                        {
+                            <option value="@kind">@LightKinds.GetLabel(kind)</option>
+                        }
+                    </select>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@(_models.Count == 0)" @onclick="AddLight">Add Light</button>
+                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>Only Point and Spot light are confirmed to be working until now!</span></div>
+                    @if (_models.Count > 1)
+                    {
+                        <select class="form-select form-select-sm w-auto" @bind="_targetModelIndex">
+                            @for (int i = 0; i < _models.Count; i++)
+                            {
+                                <option value="@i">@_models[i].Name</option>
+                            }
+                        </select>
+                    }
+                </div>
+            </ToolCard>
+
+            @if (Selected is { } selected)
+            {
+                <ToolCard Title="@($"Light #{selectedLightIndex + 1}")">
+                    <HeaderContent>
+                        <div class="d-flex justify-content-end gap-2 mb-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@(!selected.IsEditable)" @onclick="DuplicateLight">Duplicate</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="DeleteLight">Delete</button>
+                        </div>
+                    </HeaderContent>
+                    <ChildContent>
+                        @if (!selected.IsEditable)
+                        {
+                            <p class="text-muted mb-0">This light references an external light resource and cannot be edited.</p>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <label class="form-label mb-0">Light Type</label>
+                                <select class="form-select form-select-sm w-auto" value="@selected.Kind" @onchange="OnKindChanged">
+                                    @foreach (var kind in KindOptions(selected.Kind))
+                                    {
+                                        <option value="@kind">@LightKinds.GetLabel(kind)</option>
+                                    }
+                                </select>
+                            </div>
+                            <ParameterInput @key="_rev" Definitions="_generalDefs" Values="_values" ValuesChanged="OnValuesChanged" />
+                        }
+                    </ChildContent>
+                </ToolCard>
+
+                @if (selected.IsEditable)
+                {
+                    <ToolCard Title="Transform" Collapsible="true" InitiallyCollapsed="false">
+                        <ParameterInput @key="_rev" Definitions="_transformDefs" Values="_values" ValuesChanged="OnValuesChanged" />
+                    </ToolCard>
+                    <ToolCard Title="Light Properties (CPlugLight)" Collapsible="true" InitiallyCollapsed="false">
+                        <ParameterInput @key="_rev" Definitions="_plugDefs" Values="_values" ValuesChanged="OnValuesChanged" />
+                    </ToolCard>
+                    <ToolCard Title="Common Parameters (GxLight)" Collapsible="true" InitiallyCollapsed="false">
+                        <ParameterInput @key="_rev" Definitions="_commonDefs" Values="_values" ValuesChanged="OnValuesChanged" />
+                    </ToolCard>
+                    @if (_typeDefs.Count > 0)
+                    {
+                        <ToolCard Title="@($"{LightKinds.GetLabel(selected.Kind)} Parameters")" Collapsible="true" InitiallyCollapsed="false">
+                            <ParameterInput @key="_rev" Definitions="_typeDefs" Values="_values" ValuesChanged="OnValuesChanged" />
+                        </ToolCard>
+                    }
+                    <ToolCard Title="Unknown Fields" Description="Fields with unknown meaning. Edit with care." Collapsible="true" InitiallyCollapsed="true">
+                        <ParameterInput @key="_rev" Definitions="_advancedDefs" Values="_values" ValuesChanged="OnValuesChanged" />
+                    </ToolCard>
+                }
+            }
+        }
+    </Main>
+    <HelpContent>
+        <h3>Workflow</h3>
+        <p>Load an item. Lights defined in the item editor (light user models) are first converted to real lights using <strong>Convert User Lights</strong>. Select a light to edit its parameters. Changes are applied immediately to the loaded item; just export when done.</p>
+        <h3>Light Type</h3>
+        <p>Switching the type creates a new light of that type and keeps all parameters that exist in both types. Parameters that do not exist in the new type are lost.</p>
+        <h3>Unknown Fields</h3>
+        <p>Fields whose meaning is not known are grouped in a collapsed card. Wrong values can make the item unusable in game.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    [SessionStored] private ItemFileService ItemFileService = default!;
+    [SessionStored] private int selectedLightIndex;
+
+    private List<LightEntry> _entries = [];
+    private IReadOnlyList<(string Name, CPlugSolid2Model Model)> _models = [];
+    private int _userLightCount;
+    private LightKind _newLightKind = LightKind.Point;
+    private int _targetModelIndex;
+    private int _rev;
+
+    private ToolParameterValues _values = new();
+    private IReadOnlyList<ToolParameterDefinition> _generalDefs = [];
+    private IReadOnlyList<ToolParameterDefinition> _transformDefs = [];
+    private IReadOnlyList<ToolParameterDefinition> _plugDefs = [];
+    private IReadOnlyList<ToolParameterDefinition> _commonDefs = [];
+    private IReadOnlyList<ToolParameterDefinition> _typeDefs = [];
+    private IReadOnlyList<ToolParameterDefinition> _advancedDefs = [];
+
+    private IReadOnlyList<ExportableItem>? _exportCache;
+    private object? _exportCacheItem;
+    private string? _exportCacheName;
+
+    private const string Source = "Item Light Editor";
+
+    bool HasItem => ItemFileService.Item is not null;
+    LightEntry? Selected => selectedLightIndex >= 0 && selectedLightIndex < _entries.Count ? _entries[selectedLightIndex] : null;
+
+    private IReadOnlyList<ExportableItem>? ExportItems
+    {
+        get
+        {
+            var item = ItemFileService.Item;
+            if (item == null) return null;
+            if (!ReferenceEquals(item, _exportCacheItem) || _exportCacheName != ItemFileService.FileName)
+            {
+                _exportCacheItem = item;
+                _exportCacheName = ItemFileService.FileName;
+                _exportCache = [new ExportableItem { FileName = ItemFileService.FileName, GetBytes = SerializeItem }];
+            }
+            return _exportCache;
+        }
+    }
+
+    private byte[] SerializeItem()
+    {
+        using var s = new MemoryStream();
+        ItemFileService.Item!.Save(s, new GBX.NET.GbxWriteSettings { CloseStream = false });
+        return s.ToArray();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ItemFileService.FileChanged += OnFileChanged;
+        Refresh();
+    }
+
+    public void Dispose()
+    {
+        ItemFileService.FileChanged -= OnFileChanged;
+    }
+
+    async void OnFileChanged()
+    {
+        selectedLightIndex = 0;
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private IEnumerable<LightKind> KindOptions(LightKind current)
+        => LightKinds.Creatable.Contains(current) ? LightKinds.Creatable : LightKinds.Creatable.Prepend(current);
+
+    private void Refresh()
+    {
+        var item = ItemFileService.Item;
+        if (item == null)
+        {
+            _entries = [];
+            _models = [];
+            _userLightCount = 0;
+        }
+        else
+        {
+            _models = ItemLightAccess.GetModels(item);
+            _entries = ItemLightAccess.GetEntries(item);
+            _userLightCount = ItemLightAccess.CountUserLights(item);
+        }
+        if (_targetModelIndex >= _models.Count) _targetModelIndex = 0;
+        if (selectedLightIndex >= _entries.Count) selectedLightIndex = Math.Max(0, _entries.Count - 1);
+        ReloadValues();
+    }
+
+    private void ReloadValues()
+    {
+        _rev++;
+        var entry = Selected;
+        if (entry == null || !entry.IsEditable)
+        {
+            _values = new();
+            _generalDefs = _transformDefs = _plugDefs = _commonDefs = _typeDefs = _advancedDefs = [];
+            return;
+        }
+
+        var ctx = new LightContext(entry.Light);
+        _values = LightParameterCatalog.Load(ctx);
+
+        var light = LightParameterCatalog.Definitions(ctx, LightSection.Light);
+        _generalDefs = light.Where(d => d.Key == "light.name").ToList();
+        _transformDefs = LightParameterCatalog.Definitions(ctx, LightSection.Transform);
+        _plugDefs = LightParameterCatalog.Definitions(ctx, LightSection.Plug);
+        _commonDefs = LightParameterCatalog.Definitions(ctx, LightSection.Common);
+        _typeDefs = LightParameterCatalog.Definitions(ctx, LightSection.TypeSpecific);
+        _advancedDefs = light.Where(d => d.Key != "light.name")
+            .Concat(LightParameterCatalog.Definitions(ctx, LightSection.Advanced))
+            .ToList();
+    }
+
+    private void SelectLight(int index)
+    {
+        selectedLightIndex = index;
+        ReloadValues();
+    }
+
+    private Task OnValuesChanged(ToolParameterValues values)
+    {
+        _values = values;
+        var entry = Selected;
+        if (entry is { IsEditable: true })
+            LightParameterCatalog.Apply(new LightContext(entry.Light), values);
+        return Task.CompletedTask;
+    }
+
+    private void OnKindChanged(ChangeEventArgs e)
+    {
+        var entry = Selected;
+        if (entry == null || !Enum.TryParse<LightKind>(e.Value?.ToString(), out var kind) || kind == entry.Kind) return;
+        try
+        {
+            var dropped = ItemLightAccess.GetDroppedParameters(entry.Light, kind);
+            ItemLightAccess.SwitchKind(entry.Light, kind);
+            if (dropped.Count > 0)
+                ToolMessageService.AddWarning($"Switched to {LightKinds.GetLabel(kind)}. Dropped {dropped.Count} parameter(s) not available for this type.", Source, technicalDetails: string.Join(", ", dropped));
+            else
+                ToolMessageService.AddInfo($"Switched to {LightKinds.GetLabel(kind)}.", Source);
+        }
+        catch (Exception ex)
+        {
+            ToolMessageService.AddException(ex, "Failed to switch light type.", Source);
+        }
+        ReloadValues();
+    }
+
+    private void ConvertUserLights()
+    {
+        try
+        {
+            ItemLightAccess.ConvertUserLights(ItemFileService.Item!);
+            ToolMessageService.AddSuccess("Converted light user models to lights.", Source);
+        }
+        catch (Exception ex)
+        {
+            ToolMessageService.AddException(ex, "Failed to convert light user models.", Source);
+        }
+        Refresh();
+    }
+
+    private void AddLight()
+    {
+        if (_targetModelIndex >= _models.Count) return;
+        try
+        {
+            var model = _models[_targetModelIndex].Model;
+            ItemLightAccess.AddLight(model, _newLightKind);
+            Refresh();
+            selectedLightIndex = _entries.FindLastIndex(x => ReferenceEquals(x.Model, model));
+            ReloadValues();
+            ToolMessageService.AddSuccess($"Added {LightKinds.GetLabel(_newLightKind)} light.", Source);
+        }
+        catch (Exception ex)
+        {
+            ToolMessageService.AddException(ex, "Failed to add light.", Source);
+        }
+    }
+
+    private void DuplicateLight()
+    {
+        var entry = Selected;
+        if (entry == null) return;
+        try
+        {
+            ItemLightAccess.Duplicate(entry.Model, entry.Light);
+            Refresh();
+            selectedLightIndex = _entries.FindLastIndex(x => ReferenceEquals(x.Model, entry.Model));
+            ReloadValues();
+        }
+        catch (Exception ex)
+        {
+            ToolMessageService.AddException(ex, "Failed to duplicate light.", Source);
+        }
+    }
+
+    private void DeleteLight()
+    {
+        var entry = Selected;
+        if (entry == null) return;
+        ItemLightAccess.Delete(entry.Model, entry.Index);
+        Refresh();
+    }
+}
