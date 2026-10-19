@@ -186,6 +186,61 @@ public sealed class ToolParameterValues
         return fallback;
     }
 
+    /// <summary>Reads a color stored as "#rrggbb" (or "#aarrggbb"). Returns the fallback if missing or invalid.</summary>
+    public System.Drawing.Color GetColor(string key, System.Drawing.Color fallback = default)
+    {
+        if (!values.TryGetValue(key, out var value) || value == null)
+        {
+            return fallback;
+        }
+
+        if (value is System.Drawing.Color colorValue)
+        {
+            return colorValue;
+        }
+
+        return TryParseColor(Convert.ToString(value, CultureInfo.InvariantCulture), out var parsed) ? parsed : fallback;
+    }
+
+    /// <summary>Color as a Vector3 with each component in 0-1.</summary>
+    public Vector3 GetColorVector3(string key, Vector3 fallback = default)
+    {
+        var c = GetColor(key, System.Drawing.Color.FromArgb(ToByte(fallback.X), ToByte(fallback.Y), ToByte(fallback.Z)));
+        return Contains(key) ? new Vector3(c.R / 255f, c.G / 255f, c.B / 255f) : fallback;
+    }
+
+    /// <summary>Color as a Vector4 (RGBA) with each component in 0-1.</summary>
+    public Vector4 GetColorVector4(string key, Vector4 fallback = default)
+    {
+        var c = GetColor(key, System.Drawing.Color.FromArgb(ToByte(fallback.W), ToByte(fallback.X), ToByte(fallback.Y), ToByte(fallback.Z)));
+        return Contains(key) ? new Vector4(c.R / 255f, c.G / 255f, c.B / 255f, fallback.W) : fallback;
+    }
+
+    /// <summary>Color as a GBX.NET Vec3 with each component in 0-1.</summary>
+    public GBX.NET.Vec3 GetColorVec3(string key, GBX.NET.Vec3 fallback = default)
+    {
+        var v = GetColorVector3(key, new Vector3(fallback.X, fallback.Y, fallback.Z));
+        return new GBX.NET.Vec3(v.X, v.Y, v.Z);
+    }
+
+    private static int ToByte(float f) => (int)Math.Round(Math.Clamp(f, 0f, 1f) * 255f);
+
+    public static bool TryParseColor(string? text, out System.Drawing.Color color)
+    {
+        color = default;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+
+        var hex = text.Trim().TrimStart('#');
+        if (!uint.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb)) return false;
+
+        if (hex.Length == 6) color = System.Drawing.Color.FromArgb((int)(0xFF000000u | argb));
+        else if (hex.Length == 8) color = System.Drawing.Color.FromArgb((int)argb);
+        else return false;
+        return true;
+    }
+
+    public static string ColorToHex(System.Drawing.Color color) => $"#{color.R:x2}{color.G:x2}{color.B:x2}";
+
     public T GetEnum<T>(string key, T fallback)
         where T : struct
     {

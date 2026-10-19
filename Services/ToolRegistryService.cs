@@ -104,6 +104,13 @@ public class ToolRegistryService
             Title: "Item Placement Editor",
             Description: "Edit placement parameters for items.",
             SourceAliases: new[] { "item placement editor", "edit placement parameter" }),
+        new(
+            Category: "Item",
+            Href: "item-light-editor",
+            IconClass: "bi-lightbulb",
+            Title: "Item Light Editor",
+            Description: "Edit all light properties of the lights inside an item.",
+            SourceAliases: new[] { "item light editor", "edit item lights" }),
     };
 
     public string GetIconForSource(string? source)
