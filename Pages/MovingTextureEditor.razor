@@ -1,0 +1,140 @@
+<div class="mt-editor">
+    <div class="mt-status">
+        @if (Config.Customized)
+        {
+            <span class="mt-badge mt-badge-custom">Customized</span>
+        }
+        else
+        {
+            <span class="mt-badge">@(SourceLabel)</span>
+        }
+        @if (Reset.HasDelegate && Config.Customized)
+        {
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => Reset.InvokeAsync()"
+                    title="Discard all changes and use the original values again">
+                <span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span> Reset
+            </button>
+        }
+    </div>
+
+    <label class="mt-check">
+        <input type="checkbox" @bind="Config.Enabled" @bind:after="Touch" /> Enable moving texture
+    </label>
+
+    <div class="mt-hint">
+        <span class="bi bi-info-circle" aria-hidden="true"></span>
+        Only works for materials that support moving textures (like the classic Trackmania 2020 moving items).
+    </div>
+
+    @if (Config.Enabled)
+    {
+        <div class="mt-fields">
+            <label>Sub textures
+                <input type="number" min="0" class="form-control form-control-sm"
+                       @bind="Config.SubTextures" @bind:after="Touch" />
+            </label>
+            <label>Per line
+                <input type="number" min="0" class="form-control form-control-sm"
+                       @bind="Config.SubTexturesPerLine" @bind:after="Touch" />
+            </label>
+            <label>Per column
+                <input type="number" min="0" class="form-control form-control-sm"
+                       @bind="Config.SubTexturesPerColumn" @bind:after="Touch" />
+            </label>
+        </div>
+        <label class="mt-check" title="Count the texture indices from top to bottom instead of bottom to top">
+            <input type="checkbox" @bind="Config.TopToBottom" @bind:after="Touch" /> Top to bottom
+        </label>
+
+        <div class="mt-steps">
+            @if (Config.Steps.Count == 0)
+            {
+                <div class="mt-empty">No steps: the texture does not animate.</div>
+            }
+            else
+            {
+                <div class="mt-step mt-step-head">
+                    <span class="mt-step-no">#</span>
+                    <span class="mt-step-field">Texture id</span>
+                    <span class="mt-step-field">Duration (ms)</span>
+                    <span class="mt-step-actions"></span>
+                </div>
+            }
+            @foreach (var step in Config.Steps)
+            {
+                var localStep = step;
+                var index = Config.Steps.IndexOf(step);
+                <div class="mt-step">
+                    <span class="mt-step-no">@(index + 1)</span>
+                    <input type="number" min="0" class="form-control form-control-sm mt-step-field"
+                           @bind="localStep.TextureId" @bind:after="Touch" />
+                    <input type="number" min="0" step="100" class="form-control form-control-sm mt-step-field"
+                           @bind="localStep.DurationMs" @bind:after="Touch" />
+                    <span class="mt-step-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Move up"
+                                disabled="@(index == 0)" @onclick="() => MoveStep(localStep, -1)">
+                            <span class="bi bi-chevron-up" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Move down"
+                                disabled="@(index == Config.Steps.Count - 1)" @onclick="() => MoveStep(localStep, 1)">
+                            <span class="bi bi-chevron-down" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" title="Remove step"
+                                @onclick="() => RemoveStep(localStep)">
+                            <span class="bi bi-trash" aria-hidden="true"></span>
+                        </button>
+                    </span>
+                </div>
+            }
+            <div class="mt-step-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" disabled="@(!Config.CanAddStep)" @onclick="AddStep">
+                    <span class="bi bi-plus-lg" aria-hidden="true"></span> Add step
+                </button>
+                <span class="text-muted small">@Config.Steps.Count / @MovingTextureConfig.MaxSteps steps · @TotalMs ms per cycle</span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MovingTextureConfig Config { get; set; } = default!;
+
+    /// <summary>Called after every change.</summary>
+    [Parameter] public EventCallback Changed { get; set; }
+
+    /// <summary>When set, a reset button is shown for customized values.</summary>
+    [Parameter] public EventCallback Reset { get; set; }
+
+    [Parameter] public string SourceLabel { get; set; } = "Original values";
+
+    private int TotalMs => Config.Steps.Sum(s => Math.Max(0, s.DurationMs));
+
+    private Task Touch()
+    {
+        Config.Customized = true;
+        return Changed.InvokeAsync();
+    }
+
+    private Task AddStep()
+    {
+        if (!Config.CanAddStep) return Task.CompletedTask;
+        Config.Steps.Add(new TextureAnimStep());
+        return Touch();
+    }
+
+    private Task RemoveStep(TextureAnimStep step)
+    {
+        Config.Steps.Remove(step);
+        return Touch();
+    }
+
+    private Task MoveStep(TextureAnimStep step, int delta)
+    {
+        var index = Config.Steps.IndexOf(step);
+        var target = index + delta;
+        if (index < 0 || target < 0 || target >= Config.Steps.Count) return Task.CompletedTask;
+        Config.Steps.RemoveAt(index);
+        Config.Steps.Insert(target, step);
+        return Touch();
+    }
+}

@@ -51,13 +51,18 @@
                            CanExecute="CanExecuteTool" />
         </ToolCard>
         <ToolCard Title="Parameters">
-            <ParameterInput Definitions="parameterDefinitions" Values="parameterValues"
+            <ParameterInput Definitions="ParameterDefinitions" Values="parameterValues"
                             ValuesChanged="OnParameterValuesChanged" />
         </ToolCard>
         <ToolCard Title="Movement" Collapsible="true" InitiallyCollapsed="true"
                   Description="Change how the moving parts move. The values start with the animation template and apply to every moving part of every generated item once you edit them.">
             <MovementEditor Config="Movement" Changed="OnMovementChanged" Reset="ResetMovement"
                             SourceLabel="@MovementSourceLabel" />
+        </ToolCard>
+        <ToolCard Title="Moving Texture" Collapsible="true" InitiallyCollapsed="true"
+                  Description="Animate a texture atlas on the moving parts. The values start with the animation template and apply to every moving part of every generated item once you edit them.">
+            <MovingTextureEditor Config="MovingTexture" Changed="OnMovingTextureChanged" Reset="ResetMovingTexture"
+                                 SourceLabel="@MovementSourceLabel" />
         </ToolCard>
     </Main>
     <HelpContent>
@@ -84,6 +89,38 @@
         <p>The postfix appended to the name of the source item for the generated moving item. This is useful to
             easily distinguish the generated moving items from the source items.
         </p>
+        <h3>Item Name Prefix</h3>
+        <p>The prefix prepended to the name of the source item for the generated moving item.</p>
+        <h3>Use Template Animations</h3>
+        <p>Copy the movement and moving texture of the animation template to the generated items. If no template is
+            loaded (or this is off) a default movement is used.
+        </p>
+        <h3>Use Template Icon</h3>
+        <p>Use the icon of the template item for the generated items. Otherwise the icon of the source item is kept.</p>
+        <h3>Use Template Placement</h3>
+        <p>Use the placement settings of the template item.
+            Otherwise the placement of the source item is kept.
+        </p>
+        <h3>Override Dynamic Model Params</h3>
+        <p>Enables the dynamic model parameters below. They are written to the dynamic model that is moved by the
+            kinematic constraint. While this is off the values of the item/template stay untouched.
+        </p>
+        <h3>Is Kinematic</h3>
+        <p>Whether the dynamic model is moved by its kinematic constraint.</p>
+        <h3>Cast Static Shadow</h3>
+        <p>Whether the moving model casts a static shadow.</p>
+        <h3>Period / Period Max</h3>
+        <p>Period of the movement in seconds. Period Max is the upper bound of the period; set it equal to Period for a fixed value.</p>
+        <h3>Phase / Phase Max</h3>
+        <p>Start offset of the movement between 0 and 1. Phase Max is the upper bound; <code>-1</code> means not set.</p>
+        <h3>Texture Id</h3>
+        <p>The texture id of the dynamic model.</p>
+        <h3>Moving Texture</h3>
+        <p><em>Sub textures</em> is the number of textures in the atlas, <em>per line</em> / <em>per column</em> describe its
+            layout. <em>Top to bottom</em> counts the texture ids from top to bottom instead of bottom to top.
+            Every step shows a texture id for its duration in milliseconds (max. 12 steps). Texture ids outside the
+            range use the last texture.
+        </p>
         <h3>Practical workflow</h3>
         <p>If you want to copy a specific animation to all moving items, load the item containing those into the 'Animation Template' input.
         </p>
@@ -91,6 +128,16 @@
             template and only overwrites them once you change something. Every animation (translation and
             rotation) has at most 4 steps with an ease, a duration in milliseconds and an optional reverse. The result
             is applied to every moving part of every generated item. <strong>Reset</strong> goes back to the template.
+        </p>
+        <p>To animate a texture, open the <strong>Moving Texture</strong> card and tick <em>Enable moving texture</em>.
+            Describe the texture atlas (number of sub textures, sub textures per line and per column, and whether they are
+            counted from top to bottom) and add up to 12 steps, each showing a texture id for a duration in milliseconds.
+            Like the movement it starts with the template and is applied to every moving part of every generated item.
+            <strong>Note:</strong> this only works for materials that support moving textures (like the classic
+            Trackmania 2020 moving items).
+        </p>
+        <p>In the parameters section, <strong>Override Dynamic Model Params</strong> lets you set the instance parameters of the
+            dynamic model that is moved. See the property descriptions above.
         </p>
         <p>Then either drag and drop all items you want to convert to moving, or select them from disk in the
             'Items to Convert' section.
@@ -114,7 +161,9 @@
     [SessionStored] private FileService ItemModelsFileService = default!;
     [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
     [SessionStored] private MovementConfig? movement;
+    [SessionStored] private MovingTextureConfig? movingTexture;
 
+    /// <summary>Set to false to hide and ignore the dynamic model instance parameters.</summary>
     private bool UseTemplateMovement => TemplateItemFileService.Item != null && parameterValues.GetBool("useTemplateAnimations", true);
     private string MovementSourceLabel => UseTemplateMovement ? "Movement of the template" : "Default movement";
 
@@ -126,7 +175,20 @@
         NPlugDyna_SKinematicConstraint? constraint = null;
         if (UseTemplateMovement)
             TM_GenericMapping.Items.ItemExtensions.TryGetNPlugDyna_SKinematicConstraint(TemplateItemFileService.Item!, out constraint);
-        constraint ??= TM_GenericMapping.Templating.GbxTemplateLibrary.CreateKinematicConstraintTemplate().Value;
+
+        if(constraint is null)
+        {
+            constraint = TM_GenericMapping.Templating.GbxTemplateLibrary.CreateKinematicConstraintTemplate().Value;
+            constraint.AngleMaxDeg = 0;
+            constraint.AngleMinDeg = 0;
+            constraint.RotAnimFunc!.SubFuncs = [];
+
+            constraint.TransMin = 0;
+            constraint.TransMax = 0;
+            constraint.TransAnimFunc!.SubFuncs = [];
+        }
+
+
         return MovementConfig.FromConstraint(constraint);
     }
 
@@ -135,6 +197,26 @@
     {
         if (movement?.Customized != true)
             movement = null;
+        if (movingTexture?.Customized != true)
+            movingTexture = null;
+    }
+
+    private MovingTextureConfig MovingTexture => movingTexture ??= CreateBaseMovingTexture();
+
+    private MovingTextureConfig CreateBaseMovingTexture()
+    {
+        if (UseTemplateMovement &&
+            TM_GenericMapping.Items.ItemExtensions.TryGetNPlugDyna_SKinematicConstraint(TemplateItemFileService.Item!, out var constraint))
+            return MovingTextureConfig.FromConstraint(constraint);
+        return new MovingTextureConfig();
+    }
+
+    private Task OnMovingTextureChanged() => Task.CompletedTask;
+
+    private Task ResetMovingTexture()
+    {
+        movingTexture = null;
+        return Task.CompletedTask;
     }
 
     private Task OnMovementChanged() => Task.CompletedTask;
@@ -199,6 +281,75 @@
             DefaultValue = false,
         }
     };
+
+    private static readonly List<ToolParameterDefinition> instanceParamDefinitions = new()
+    {
+        new()
+        {
+            Key = "dynaIsKinematic",
+            Label = "Is Moving",
+            Tooltip = "Whether the dynamic model is kinematic (moving) or static.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "dynaCastStaticShadow",
+            Label = "Cast Static Shadow",
+            Tooltip = "Whether the moving item casts a static shadow.",
+            Kind = ToolParameterKind.Bool,
+            DefaultValue = true,
+        },
+        new()
+        {
+            Key = "dynaPeriodSc",
+            Label = "Period (s)",
+            GroupKey = "dynaPeriod",
+            GroupLabel = "Period",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = 1d,
+            VisibleWhenKey ="-",
+        },
+        new()
+        {
+            Key = "dynaPeriodScMax",
+            Label = "Period Max (s)",
+            GroupKey = "dynaPeriod",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = -1d,
+            VisibleWhenKey ="-",
+        },
+        new()
+        {
+            Key = "dynaPhase01",
+            Label = "Phase (0-1)",
+            GroupKey = "dynaPhase",
+            GroupLabel = "Phase",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = -1d,
+            VisibleWhenKey ="-",
+        },
+        new()
+        {
+            Key = "dynaPhase01Max",
+            Label = "Phase Max (0-1)",
+            GroupKey = "dynaPhase",
+            Kind = ToolParameterKind.Float,
+            DefaultValue = -1d,
+            VisibleWhenKey ="-",
+        },
+        new()
+        {
+            Key = "dynaTextureId",
+            Label = "Texture Id",
+            Kind = ToolParameterKind.Int,
+            DefaultValue = 0,
+            VisibleWhenKey ="-",
+        },
+    };
+
+    private IReadOnlyList<ToolParameterDefinition> ParameterDefinitions =>
+        parameterDefinitions.Concat(instanceParamDefinitions).ToList();
 
     [SessionStored] private ToolParameterValues parameterValues = new();
 
@@ -266,6 +417,8 @@
         {
             MovingItemAnimationTemplate = sourceAnimationItem,
             MergeOptions = mergeOptions,
+            RotationAnimationCount = movement is {Customized: true} ? movement.Rotation.Steps.Count : mergeOptions.HasFlag(TM_GenericMapping.Items.MovingItemCreator.MergeOptions.UseTemplateAnimations) ? null : 0,
+            TranslationAnimationCount = movement is {Customized: true} ? movement.Translation.Steps.Count : mergeOptions.HasFlag(TM_GenericMapping.Items.MovingItemCreator.MergeOptions.UseTemplateAnimations) ? null : 0,
         };
         var movingItemCreator = new TM_GenericMapping.Items.MovingItemCreator(
             itemParser,
@@ -307,6 +460,22 @@
                         foreach (var constraint in constraints)
                             movement.ApplyTo(constraint);
                     }
+                    if (movingTexture is { Customized: true } &&
+                        TM_GenericMapping.Items.ItemExtensions.TryGetAllNPlugDyna_SKinematicConstraints(movingItemResult.Value, out var textureConstraints))
+                    {
+                        foreach (var constraint in textureConstraints)
+                            movingTexture.ApplyTo(constraint);
+                    }
+
+                    MovingItemInstanceParams.Apply(movingItemResult.Value, new MovingItemInstanceParams.Values(
+                        IsKinematic: parameterValues.GetBool("dynaIsKinematic", true),
+                        CastStaticShadow: parameterValues.GetBool("dynaCastStaticShadow", true),
+                        PeriodSc: parameterValues.GetFloat("dynaPeriodSc", 1),
+                        PeriodScMax: parameterValues.GetFloat("dynaPeriodScMax", 1),
+                        Phase01: parameterValues.GetFloat("dynaPhase01", -1),
+                        Phase01Max: parameterValues.GetFloat("dynaPhase01Max", -1),
+                        TextureId: parameterValues.GetInt("dynaTextureId", 0)));
+                    
                     movingItemResult.Value.Name = namePrefix + item.Name + nameSuffix;
                     generatedItems.Add((FixFileName(file.Name, namePrefix, nameSuffix), movingItemResult.Value));
                     numSuccess++;
