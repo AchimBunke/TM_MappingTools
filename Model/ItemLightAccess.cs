@@ -68,7 +68,7 @@ public static class ItemLightAccess
     }
 
     public static int CountUserLights(CGameItemModel item)
-        => GetModels(item).Sum(m => m.Model.LightUserModels?.Length ?? 0);
+        => GetModels(item).Sum(m => m.Model.LightUserModels?.Count ?? 0);
 
     public static void ConvertUserLights(CGameItemModel item)
         => new ItemLightConverter().ConvertLightUserModels(item);

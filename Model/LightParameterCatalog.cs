@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using GBX.NET;
 using GBX.NET.Engines.Graphic;
 using GBX.NET.Engines.Plug;
@@ -224,41 +224,28 @@ public static class LightParameterCatalog
         amb.Float("shadeMaxY", "Shade Max Y", "Maximum Y shade.", n => n.ShadeMaxY, (n, v) => n.ShadeMaxY = v);
     }
 
-    // ------------------------------------------------------------------ Chunk-only (unnamed) fields
+    // ------------------------------------------------------------------ Less common fields
 
     private static void BuildAdvanced(List<LightBinding> list)
     {
-        var plug4 = new Binder<CPlugLight.Chunk0901D004>(list, LightSection.Advanced, c => c.Plug?.GetChunk<CPlugLight.Chunk0901D004>(), "plugC4.");
-        plug4.Int("u01", "CPlugLight U01", "Unknown chunk 0x0901D004 value.", n => n.U01, (n, v) => n.U01 = v);
-        plug4.Int("u02", "CPlugLight U02", "Unknown chunk 0x0901D004 value.", n => n.U02, (n, v) => n.U02 = v);
-        plug4.Int("u03", "CPlugLight U03", "Unknown chunk 0x0901D004 value.", n => n.U03, (n, v) => n.U03 = v);
-        plug4.Int("u04", "CPlugLight U04", "Unknown chunk 0x0901D004 value.", n => n.U04, (n, v) => n.U04 = v);
-        plug4.Int("u05", "CPlugLight U05", "Unknown chunk 0x0901D004 value.", n => n.U05, (n, v) => n.U05 = v);
+        var plug = new Binder<CPlugLight>(list, LightSection.Advanced, c => c.Plug, "plugAdv.");
+        plug.Bool("sceneLightAlwaysActive", "Scene Light Always Active", "Scene light is always active.", n => n.SceneLightAlwaysActive, (n, v) => n.SceneLightAlwaysActive = v);
 
-        var ball9 = new Binder<GxLightBall.Chunk04002009>(list, LightSection.Advanced, c => (c.Gx as GxLightBall)?.GetChunk<GxLightBall.Chunk04002009>(), "ballC9.");
-        ball9.Float("u01", "Ball Chunk 0x09 U01", "Unknown. Seems to be equal to the light distance.", n => n.U01, (n, v) => n.U01 = v);
+        var ball = new Binder<GxLightBall>(list, LightSection.Advanced, c => c.Gx as GxLightBall, "ballAdv.");
+        ball.Float("radiusIndex", "Radius Index", "Radius index.", n => n.RadiusIndex, (n, v) => n.RadiusIndex = v);
+        ball.Float("attHdrRadiusCoef", "Att HDR Radius Coef", "HDR attenuation radius coefficient. Default is 0.015625 (1/64).", n => n.AttHdrRadiusCoef, (n, v) => n.AttHdrRadiusCoef = v);
 
-        var ballA = new Binder<GxLightBall.Chunk0400200A>(list, LightSection.Advanced, c => (c.Gx as GxLightBall)?.GetChunk<GxLightBall.Chunk0400200A>(), "ballCA.");
-        ballA.Float("u01", "Ball Chunk 0x0A U01", "Unknown. Default is 0.015625 (1/64).", n => n.U01, (n, v) => n.U01 = v);
+        var spot = new Binder<GxLightSpot>(list, LightSection.Advanced, c => c.Gx as GxLightSpot, "spotAdv.");
+        spot.Int("subLightCountX", "Sub Light Count X", "Sub-light count X.", n => n.SubLightCountX, (n, v) => n.SubLightCountX = (byte)Math.Clamp(v, 0, 255));
+        spot.Int("subLightCountY", "Sub Light Count Y", "Sub-light count Y.", n => n.SubLightCountY, (n, v) => n.SubLightCountY = (byte)Math.Clamp(v, 0, 255));
+        spot.Bool("customAngleFlare", "Custom Angle Flare", "Use a custom flare angle.", n => n.CustomAngleFlare, (n, v) => n.CustomAngleFlare = v);
+        spot.Bool("customAngleShadow", "Custom Angle Shadow", "Use a custom shadow angle.", n => n.CustomAngleShadow, (n, v) => n.CustomAngleShadow = v);
+        spot.Int("legacyValue", "Legacy Value", "Discarded by the native v0 reader; purpose unknown.", n => n.LegacyValue, (n, v) => n.LegacyValue = v);
 
-        var spotB3 = new Binder<GxLightSpot.Chunk0400B003>(list, LightSection.Advanced, c => (c.Gx as GxLightSpot)?.GetChunk<GxLightSpot.Chunk0400B003>(), "spotCB3.");
-        spotB3.Int("u01", "Spot Chunk U01", "Unknown byte (sub-light count X?).", n => n.U01, (n, v) => n.U01 = (byte)Math.Clamp(v, 0, 255));
-        spotB3.Int("u02", "Spot Chunk U02", "Unknown byte (sub-light count Y?).", n => n.U02, (n, v) => n.U02 = (byte)Math.Clamp(v, 0, 255));
-        spotB3.Int("u03", "Spot Chunk U03", "Unknown int.", n => n.U03, (n, v) => n.U03 = v);
-
-        var fr4 = new Binder<GxLightFrustum.Chunk0400A004>(list, LightSection.Advanced, c => (c.Gx as GxLightFrustum)?.GetChunk<GxLightFrustum.Chunk0400A004>(), "frC4.");
-        fr4.Int("u01", "Frustum U01", "Unknown int.", n => n.U01, (n, v) => n.U01 = v);
-        fr4.Int("u02", "Frustum U02", "Unknown int.", n => n.U02, (n, v) => n.U02 = v);
-        fr4.Int("u03", "Frustum U03", "Unknown int.", n => n.U03, (n, v) => n.U03 = v);
-        fr4.Float("u04", "Frustum U04", "Unknown float.", n => n.U04, (n, v) => n.U04 = v);
-        fr4.Float("u05", "Frustum U05", "Unknown float.", n => n.U05, (n, v) => n.U05 = v);
-        fr4.Float("u06", "Frustum U06", "Unknown float.", n => n.U06, (n, v) => n.U06 = v);
-        fr4.Float("u07", "Frustum U07", "Unknown float.", n => n.U07, (n, v) => n.U07 = v);
-        fr4.Int("u08", "Frustum U08", "Unknown int.", n => n.U08, (n, v) => n.U08 = v);
-
-        var fr6 = new Binder<GxLightFrustum.Chunk0400A006>(list, LightSection.Advanced, c => (c.Gx as GxLightFrustum)?.GetChunk<GxLightFrustum.Chunk0400A006>(), "frC6.");
-        fr6.Bool("u01", "Frustum Box Enabled", "Unknown flag (box aligned data follows). The box itself is preserved but not editable.", n => n.U01, (n, v) => n.U01 = v);
-        fr6.Int("u03", "Frustum U03 (flags)", "Unknown uint.", n => unchecked((int)n.U03), (n, v) => n.U03 = unchecked((uint)v));
+        var fr = new Binder<GxLightFrustum>(list, LightSection.Advanced, c => c.Gx as GxLightFrustum, "frAdv.");
+        fr.Int("flags", "Frustum Flags", "Packed face, attenuation, apply-mode, technique and shadow-group bits.", n => unchecked((int)n.Flags), (n, v) => n.Flags = unchecked((uint)v));
+        fr.Int("legacyBlendSource", "Legacy Blend Source", "Legacy blend source.", n => unchecked((int)n.LegacyBlendSource), (n, v) => n.LegacyBlendSource = unchecked((uint)v));
+        fr.Int("legacyBlendDestination", "Legacy Blend Destination", "Legacy blend destination.", n => unchecked((int)n.LegacyBlendDestination), (n, v) => n.LegacyBlendDestination = unchecked((uint)v));
     }
 
     // ------------------------------------------------------------------ Helper
