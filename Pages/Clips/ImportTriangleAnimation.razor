@@ -129,7 +129,7 @@
                                     </ToolPageLayout>
 
 @code {
-    
+
     [SessionStored] private FileService FileService = default!;
     private readonly List<ToolParameterDefinition> parameterDefinitions = new()
     {
@@ -256,8 +256,14 @@
             Rotation = parameterValues.GetQuaternion("transformRotation", Quaternion.Identity),
         };
 
-   
-        scene.Animate(clip.MediaClip, sceneAnimationSettings, builder);
+        try
+        {
+            scene.Animate(clip.MediaClip, sceneAnimationSettings, builder);
+        }
+        catch (Exception ex)
+        {
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Failed to import triangle animation.", ex.Message);
+        }
 
         
 

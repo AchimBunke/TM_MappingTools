@@ -77,6 +77,13 @@ public class ToolRegistryService
             Description: "Create variants of gate items for every effect.",
             SourceAliases: new[] { "gate variant standalone", "variant creator standalone" }),
         new(
+            Category: "Item",
+            Href: "variant-item-creator",
+            IconClass: "bi-layers",
+            Title: "Variant Item Creator",
+            Description: "Combine multiple items into one item with variants.",
+            SourceAliases: new[] { "variant item", "item variants", "variant item creator" }),
+        new(
             Category: "Clip",
             Href: "project-3D-triangles",
             IconClass: "bi-back",
