@@ -145,6 +145,7 @@ else
         var raw = Convert.ToString(args.Value, CultureInfo.InvariantCulture);
         if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
             return Task.CompletedTask;
+        euler[index] = parsed;
         return SaveQuaternionValueAsync(euler);
     }
     private async Task SaveVectorValueAsync(double[] components)

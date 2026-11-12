@@ -1,0 +1,375 @@
+@page "/item-attachment-editor"
+@implements IDisposable
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using System.Numerics
+@using TM_GenericMapping.Items
+@using TM_GenericMapping.Messaging
+@using TM_MappingTools.Services
+
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
+<PageTitle>Item Attachment Editor</PageTitle>
+
+<ToolPageLayout IconClass="bi-link-45deg" Title="Item Attachment Editor"
+                Description="Read and write all attachment definitions of an item: single attachments and groups of locations with their position, rotation and definitions."
+                HelpDescription="How attachments are structured and written.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Source Item" Description="Load a .Item.Gbx. Existing attachments are read from it.">
+                    <FileLoader FileService="ItemFileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop the item here you want to edit attachments for" Accept=".Item.Gbx"
+                                AllowMultiple="false" MessageSource="Item Attachment Editor" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body" Description="Export the modified item.">
+                    <ExportPanel EmptyMessage="Click 'Apply to Item' to generate export content." Items="_exportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+
+    <Main>
+        @if (ItemFileService.Item is null)
+        {
+            <ToolCard Title="Attachments">
+                <p class="text-muted mb-0">Load an item to edit its attachments.</p>
+            </ToolCard>
+        }
+        else
+        {
+            <datalist id="attachment-tag-keys">
+                @foreach (var key in TagKeys)
+                {
+                    <option value="@key"></option>
+                }
+            </datalist>
+            @foreach (var key in TagKeys)
+            {
+                <datalist id="@ValueListId(key)">
+                    @foreach (var value in ValueOptions(key))
+                    {
+                        <option value="@value"></option>
+                    }
+                </datalist>
+            }
+
+            <ToolCard Title="Actions">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" disabled="@(!_hasPrefab)" @onclick="Apply">Apply to Item</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="ReadFromItem">Read from Item</button>
+                </div>
+            </ToolCard>
+
+            @if (!_hasPrefab)
+            {
+                <div class="alert alert-warning d-flex align-items-center py-2" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>This item has no prefab entity model. Attachments can only be read from and written to prefab items.</span>
+                </div>
+            }
+
+            <ToolCard Title="Attachments" Description="@($"{_entries.Count} attachment entr{(_entries.Count == 1 ? "y" : "ies")}.")">
+                <HeaderContent>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => AddEntry(false)">Add Single</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => AddEntry(true)">Add Group</button>
+                    </div>
+                </HeaderContent>
+                <ChildContent>
+                    @if (_entries.Count == 0)
+                    {
+                        <p class="text-muted mb-0">This item has no attachments.</p>
+                    }
+                </ChildContent>
+            </ToolCard>
+
+            @for (int i = 0; i < _entries.Count; i++)
+            {
+                int index = i;
+                var entry = _entries[i];
+                <ToolCard @key="entry" Title="@($"Entry #{index + 1} - {(entry.IsGroup ? "Group" : "Single")} ({entry.Locations.Count} location{(entry.Locations.Count == 1 ? "" : "s")})")"
+                          Collapsible="true" InitiallyCollapsed="false">
+                    <HeaderContent>
+                        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => _entries.Remove(entry)">Delete</button>
+                    </HeaderContent>
+                    <ChildContent>
+                        <h6 class="mb-2">Definitions</h6>
+                        <div class="d-flex flex-column gap-2 mb-2">
+                            @for (int d = 0; d < entry.Definitions.Count; d++)
+                            {
+                                int defIndex = d;
+                                var def = entry.Definitions[d];
+                                <div @key="def" class="p-2" style="border: 1px solid var(--tm-border); border-radius: var(--tm-radius-sm); background: var(--tm-surface-soft);">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-sm p-0 border-0" style="width: 1.25rem;" aria-label="Toggle definition"
+                                                @onclick="() => Toggle(def)">@(IsCollapsed(def) ? "▸" : "▾")</button>
+                                        <strong class="small">Definition #@(defIndex + 1)</strong>
+                                        <span class="small text-muted">@DefinitionSummary(def)</span>
+                                        @if (entry.IsGroup)
+                                        {
+                                            <button type="button" class="btn btn-sm param-dict-delete ms-auto" style="color: var(--tm-danger);"
+                                                    disabled="@(entry.Definitions.Count <= 1)"
+                                                    title="@(DefinitionInUse(entry, def) ? "Remove definition (its locations switch to another definition)" : "Remove definition")"
+                                                    aria-label="Remove definition"
+                                                    @onclick="() => RemoveDefinition(entry, def)">×</button>
+                                        }
+                                    </div>
+                                    @if (!IsCollapsed(def))
+                                    {
+                                    <div class="d-flex align-items-center gap-2 my-2">
+                                        <label class="mb-0 small">Layout</label>
+                                        <input type="number" step="1" class="form-control form-control-sm" style="width: 5rem;" @bind="def.ILayout" />
+                                    </div>
+                                    <div class="d-flex flex-column gap-2">
+                                        @for (int o = 0; o < def.Options.Count; o++)
+                                        {
+                                            int optionIndex = o;
+                                            var option = def.Options[o];
+                                            <div class="d-flex flex-column gap-1 ps-2" style="border-left: 2px solid var(--tm-border);">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="small text-muted">Option @(optionIndex + 1) (required tags)</span>
+                                                    <button type="button" class="btn btn-sm param-dict-delete ms-auto" style="color: var(--tm-danger);"
+                                                            title="Remove option" aria-label="Remove option"
+                                                            @onclick="() => def.Options.Remove(option)">×</button>
+                                                </div>
+                                                @foreach (var tag in option.Tags)
+                                                {
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input type="text" class="form-control form-control-sm" list="attachment-tag-keys" placeholder="Key" @bind="tag.Key" />
+                                                        <input type="text" class="form-control form-control-sm" list="@ValueListId(tag.Key)" placeholder="Value" @bind="tag.Value" />
+                                                        <button type="button" class="btn btn-sm param-dict-delete" style="color: var(--tm-danger);"
+                                                                title="Remove tag" aria-label="Remove tag"
+                                                                @onclick="() => option.Tags.Remove(tag)">×</button>
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                            @onclick="() => option.Tags.Add(ItemAttachmentAccess.NewTag())">Add Tag</button>
+                                                </div>
+                                            </div>
+                                        }
+                                        <div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                    @onclick="() => def.Options.Add(new AttachmentOptionModel { Tags = [ItemAttachmentAccess.NewTag()] })">Add Option</button>
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        @if (entry.IsGroup)
+                        {
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        @onclick="() => entry.Definitions.Add(ItemAttachmentAccess.NewDefinition())">Add Definition</button>
+                            </div>
+                        }
+
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <button type="button" class="btn btn-sm p-0 border-0" style="width: 1.25rem;" aria-label="Toggle locations"
+                                    @onclick="() => Toggle(entry)">@(IsCollapsed(entry) ? "▸" : "▾")</button>
+                            <h6 class="mb-0">Locations (@entry.Locations.Count)</h6>
+                        </div>
+                        @if (!IsCollapsed(entry))
+                        {
+                        <div class="d-flex flex-column gap-1">
+                            @for (int l = 0; l < entry.Locations.Count; l++)
+                            {
+                                int locIndex = l;
+                                var loc = entry.Locations[l];
+                                <div @key="loc" class="px-2 py-1" style="border: 1px solid var(--tm-border); border-radius: var(--tm-radius-sm); background: var(--tm-surface-soft);">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <strong class="small">#@(locIndex + 1)</strong>
+                                        <span class="small">Pos</span>
+                                        <ParameterValueInput Kind="ToolParameterKind.Vector3" Value="@loc.Position"
+                                                             ValueChanged="@(v => { if (v is Vector3 p) loc.Position = p; })" />
+                                        <span class="small">Rot</span>
+                                        <ParameterValueInput Kind="ToolParameterKind.Quaternion" Value="@loc.Rotation"
+                                                             ValueChanged="@(v => { if (v is Quaternion q) loc.Rotation = q; })" />
+                                        @if (entry.IsGroup)
+                                        {
+                                            <span class="small">Definition</span>
+                                            <select class="form-select form-select-sm w-auto" value="@entry.Definitions.IndexOf(loc.Definition)"
+                                                    @onchange="e => SetDefinition(entry, loc, e)">
+                                                @for (int d = 0; d < entry.Definitions.Count; d++)
+                                                {
+                                                    <option value="@d">#@(d + 1)</option>
+                                                }
+                                            </select>
+                                            <button type="button" class="btn btn-sm param-dict-delete ms-auto" style="color: var(--tm-danger);"
+                                                    title="Remove location" aria-label="Remove location"
+                                                    @onclick="() => entry.Locations.Remove(loc)">×</button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        }
+                        @if (entry.IsGroup)
+                        {
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        disabled="@(entry.Definitions.Count == 0)"
+                                        @onclick="() => AddLocation(entry)">Add Location</button>
+                            </div>
+                        }
+                    </ChildContent>
+                </ToolCard>
+            }
+        }
+    </Main>
+    <HelpContent>
+        <h3>Workflow</h3>
+        <p>Load an item. Existing attachments are read automatically. Edit them and click <strong>Apply to Item</strong>, then export.</p>
+        <h3>Entries</h3>
+        <p>A <strong>Single</strong> entry has one definition and one location. A <strong>Group</strong> entry has any number of locations that each reference one of the group's definitions.</p>
+        <h3>Locations</h3>
+        <p>Position and rotation (Euler angles in degrees) are relative to the item.</p>
+        <h3>Definitions</h3>
+        <p>A definition has a layout index and a list of options. Each option is a set of key/value tags another item must provide to be attached here, e.g. <code>Type = Podium</code> and <code>Slot = 01</code>.</p>
+        <h3>Applying</h3>
+        <p>Applying replaces all attachments of the item with the entries listed here. Podium items are attachments as well; use the Podium Creator for a simpler podium workflow.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    [SessionStored] private ItemFileService ItemFileService = default!;
+    [SessionStored] private List<AttachmentEntryModel> _entries = [];
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
+
+    private bool _hasPrefab;
+
+    private const string Source = "Item Attachment Editor";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ItemFileService.FileChanged += OnFileChanged;
+        _hasPrefab = ItemFileService.Item is { } item && ItemAttachmentAccess.FindPrefab(item) is not null;
+    }
+
+    public void Dispose()
+    {
+        ItemFileService.FileChanged -= OnFileChanged;
+    }
+
+    async void OnFileChanged()
+    {
+        _exportItems = null;
+        ReadEntries();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ReadEntries()
+    {
+        var item = ItemFileService.Item;
+        _hasPrefab = item is not null && ItemAttachmentAccess.FindPrefab(item) is not null;
+        try
+        {
+            _entries = item is null ? [] : ItemAttachmentAccess.Read(item);
+        }
+        catch (Exception ex)
+        {
+            _entries = [];
+            ToolMessageService.AddException(ex, "Failed to read attachments.", Source);
+        }
+    }
+
+    private void ReadFromItem()
+    {
+        ReadEntries();
+        ToolMessageService.AddInfo($"Read {_entries.Count} attachment entr{(_entries.Count == 1 ? "y" : "ies")} from the item.", Source);
+    }
+
+    private void AddEntry(bool isGroup) => _entries.Add(ItemAttachmentAccess.NewEntry(isGroup));
+
+    private readonly HashSet<object> _collapsed = new(ReferenceEqualityComparer.Instance);
+
+    private bool IsCollapsed(object key) => _collapsed.Contains(key);
+
+    private void Toggle(object key)
+    {
+        if (!_collapsed.Remove(key))
+            _collapsed.Add(key);
+    }
+
+    private static bool DefinitionInUse(AttachmentEntryModel entry, AttachmentDefinitionModel def)
+        => entry.Locations.Any(l => ReferenceEquals(l.Definition, def));
+
+    private static void RemoveDefinition(AttachmentEntryModel entry, AttachmentDefinitionModel def)
+    {
+        if (entry.Definitions.Count <= 1)
+            return;
+        entry.Definitions.Remove(def);
+        var fallback = entry.Definitions[0];
+        foreach (var location in entry.Locations.Where(l => ReferenceEquals(l.Definition, def)))
+            location.Definition = fallback;
+    }
+
+    private static string DefinitionSummary(AttachmentDefinitionModel def)
+        => string.Join(" | ", def.Options.Select(o => string.Join(", ", o.Tags.Where(t => !string.IsNullOrWhiteSpace(t.Key)).Select(t => $"{t.Key}={t.Value}"))));
+
+    private static readonly string[] TagKeys = ["Type", "Size", "Placement", "Variant", "MatModifier", "PilotSlot", "Slot"];
+
+    private static string ValueListId(string key) => $"attachment-values-{key}";
+
+    private static readonly Dictionary<string, string[]> ValueOptionsByKey = new()
+    {
+        ["Type"] = Enum.GetValues<ItemPlacementUtils.PlacementType>().Select(v => ItemPlacementUtils.GetPlacementTypeTag(v).Value).ToArray(),
+        ["Size"] = Enum.GetValues<ItemPlacementUtils.PlacementSize>().Select(v => ItemPlacementUtils.GetPlacementSizeTag(v).Value).ToArray(),
+        ["Placement"] = Enum.GetValues<ItemPlacementUtils.PlacementLayout>().Select(v => ItemPlacementUtils.GetPlacementLayoutTag(v).Value).ToArray(),
+        ["Variant"] = Enum.GetValues<ItemPlacementUtils.PlacementVariant>().Select(v => ItemPlacementUtils.GetPlacementVariantTag(v).Value).ToArray(),
+        ["MatModifier"] = Enum.GetValues<ItemPlacementUtils.PlacementMatModifier>().Select(v => ItemPlacementUtils.GetPlacementMatModifierTag(v).Value).ToArray(),
+        ["Slot"] = ["01", "02", "03"],
+        ["PilotSlot"] = ["01", "02", "03"],
+    };
+
+    private static string[] ValueOptions(string key)
+        => ValueOptionsByKey.TryGetValue(key, out var values) ? values : [];
+
+    private static void AddLocation(AttachmentEntryModel entry)
+        => entry.Locations.Add(new AttachmentLocationModel { Definition = entry.Definitions[0] });
+
+    private static void SetDefinition(AttachmentEntryModel entry, AttachmentLocationModel location, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var index) && index >= 0 && index < entry.Definitions.Count)
+            location.Definition = entry.Definitions[index];
+    }
+
+    private void Apply()
+    {
+        var item = ItemFileService.Item;
+        if (item is null)
+            return;
+
+        try
+        {
+            var errors = ItemAttachmentAccess.ValidateEntries(_entries);
+            if (errors.Count > 0)
+            {
+                foreach (var error in errors)
+                    ToolMessageService.AddError(error, Source);
+                return;
+            }
+
+            var result = ItemAttachmentAccess.Write(item, _entries);
+            if (result.IsFailure)
+            {
+                ToolMessageService.AddError("Failed to write attachments.", result, Source);
+                return;
+            }
+
+            using var stream = new MemoryStream();
+            item.Save(stream, new GBX.NET.GbxWriteSettings { CloseStream = false });
+            var bytes = stream.ToArray();
+            _exportItems = [new ExportableItem { FileName = ItemFileService.FileName, GetBytes = () => bytes }];
+            ToolMessageService.AddSuccess($"Applied {_entries.Count} attachment entr{(_entries.Count == 1 ? "y" : "ies")}.", Source);
+        }
+        catch (Exception ex)
+        {
+            ToolMessageService.AddException(ex, "Failed to apply attachments.", Source);
+        }
+    }
+}

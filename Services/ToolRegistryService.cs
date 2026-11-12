@@ -111,6 +111,20 @@ public class ToolRegistryService
             Title: "Item Light Editor",
             Description: "Edit all light properties of the lights inside an item.",
             SourceAliases: new[] { "item light editor", "edit item lights" }),
+        new(
+            Category: "Item",
+            Href: "item-podium-creator",
+            IconClass: "bi-trophy",
+            Title: "Item Podium Creator",
+            Description: "Read and write the podium slots of an item.",
+            SourceAliases: new[] { "item podium creator", "item podium", "podium" }),
+        new(
+            Category: "Item",
+            Href: "item-attachment-editor",
+            IconClass: "bi-link-45deg",
+            Title: "Item Attachment Editor",
+            Description: "Edit the attachment locations and definitions of an item.",
+            SourceAliases: new[] { "item attachment editor", "attachment editor", "attachments" }),
     };
 
     public string GetIconForSource(string? source)
