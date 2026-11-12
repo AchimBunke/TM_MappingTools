@@ -42,6 +42,9 @@ public static class ErrorCodeToMessage
         [ErrorCodes.ItemCompiler.MissingDynaCollisionShape] = "A movable part requires a collidable surface but has none.",
         [ErrorCodes.ItemCompiler.UnsupportedSurfaceType] = "A surface type of the item is not supported by the selected target.",
 
+        [ErrorCodes.ItemAttachmentCreator.UnsupportedEntityModel] = "Item has no prefab entity model that attachments can be added to.",
+        [ErrorCodes.ItemAttachmentCreator.InvalidAttachmentLocations] = "At least one attachment location is required.",
+
         [ErrorCodes.MeshExtractor.MissingTriggerShape] = "Item has a trigger without a valid trigger shape.",
         [ErrorCodes.MeshExtractor.MissingDynaModel] = "Item has a movable part without a model.",
         [ErrorCodes.MeshExtractor.UnsupportedPrefabEntity] = "Item contains a prefab entity that is not supported.",

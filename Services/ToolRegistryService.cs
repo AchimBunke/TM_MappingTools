@@ -77,6 +77,13 @@ public class ToolRegistryService
             Description: "Create variants of gate items for every effect.",
             SourceAliases: new[] { "gate variant standalone", "variant creator standalone" }),
         new(
+            Category: "Item",
+            Href: "variant-item-creator",
+            IconClass: "bi-layers",
+            Title: "Variant Item Creator",
+            Description: "Combine multiple items into one item with variants.",
+            SourceAliases: new[] { "variant item", "item variants", "variant item creator" }),
+        new(
             Category: "Clip",
             Href: "project-3D-triangles",
             IconClass: "bi-back",
@@ -111,6 +118,20 @@ public class ToolRegistryService
             Title: "Item Light Editor",
             Description: "Edit all light properties of the lights inside an item.",
             SourceAliases: new[] { "item light editor", "edit item lights" }),
+        new(
+            Category: "Item",
+            Href: "item-podium-creator",
+            IconClass: "bi-trophy",
+            Title: "Item Podium Creator",
+            Description: "Read and write the podium slots of an item.",
+            SourceAliases: new[] { "item podium creator", "item podium", "podium" }),
+        new(
+            Category: "Item",
+            Href: "item-attachment-editor",
+            IconClass: "bi-link-45deg",
+            Title: "Item Attachment Editor",
+            Description: "Edit the attachment locations and definitions of an item.",
+            SourceAliases: new[] { "item attachment editor", "attachment editor", "attachments" }),
     };
 
     public string GetIconForSource(string? source)

@@ -1,0 +1,208 @@
+@page "/item-podium-creator"
+@implements IDisposable
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using System.Numerics
+@using TM_GenericMapping.Messaging
+@using TM_MappingTools.Services
+
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
+<PageTitle>Item Podium Creator</PageTitle>
+
+<ToolPageLayout IconClass="bi-trophy" Title="Item Podium Creator"
+                Description="Read and write the podium slots of an item. Each slot places a player or car of a given finishing position."
+                HelpDescription="How podium slots work and how they are written.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Source Item" Description="Load a .Item.Gbx. Existing podium slots are read from it.">
+                    <FileLoader FileService="ItemFileService" NoFileMessage="No files loaded."
+                                DropHintMessage="Drop the item here you want to edit podium slots for" Accept=".Item.Gbx"
+                                AllowMultiple="false" MessageSource="Podium Creator" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body" Description="Export the modified item.">
+                    <ExportPanel EmptyMessage="Click 'Apply to Item' to generate export content." Items="_exportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+
+    <Main>
+        @if (ItemFileService.Item is null)
+        {
+            <ToolCard Title="Podium Slots">
+                <p class="text-muted mb-0">Load an item to edit its podium slots.</p>
+            </ToolCard>
+        }
+        else
+        {
+            <ToolCard Title="Actions">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" @onclick="Apply">Apply to Item</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="ReadFromItem">Read from Item</button>
+                </div>
+            </ToolCard>
+
+            @foreach (var warning in ItemAttachmentAccess.ValidatePodium(_slots))
+            {
+                <div class="alert alert-warning d-flex align-items-center py-2" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>@warning</span>
+                </div>
+            }
+
+            <ToolCard Title="Podium Slots" Description="@($"{_slots.Count} slot(s). Any number of slots can be defined.")">
+                <HeaderContent>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AddDefaultSlots">Add Default Podium</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AddSlot">Add Slot</button>
+                    </div>
+                </HeaderContent>
+                <ChildContent>
+                    @if (_slots.Count == 0)
+                    {
+                        <p class="text-muted">No podium slots. Applying removes any podium from the item.</p>
+                    }
+                    <div class="d-flex flex-column gap-2">
+                        @for (int i = 0; i < _slots.Count; i++)
+                        {
+                            var slot = _slots[i];
+                            <div class="d-flex flex-wrap align-items-center gap-2 p-2" style="border: 1px solid var(--tm-border); border-radius: var(--tm-radius-sm); background: var(--tm-surface-soft);">
+                                <select class="form-select form-select-sm w-auto" value="@(slot.Car ? "Car" : "Player")"
+                                        @onchange="e => SetCar(slot, e)">
+                                    <option value="Player">Player</option>
+                                    <option value="Car">Car</option>
+                                </select>
+                                <label class="mb-0 small">Place</label>
+                                <input type="number" min="1" step="1" class="form-control form-control-sm" style="width: 5rem;"
+                                       @bind="slot.PlayerPosition" />
+                                <span class="small">Pos</span>
+                                <ParameterValueInput Kind="ToolParameterKind.Vector3" Value="@slot.Position"
+                                                     ValueChanged="@(v => { if (v is Vector3 p) slot.Position = p; })" />
+                                <span class="small">Rot</span>
+                                <ParameterValueInput Kind="ToolParameterKind.Quaternion" Value="@slot.Rotation"
+                                                     ValueChanged="@(v => { if (v is Quaternion q) slot.Rotation = q; })" />
+                                <button type="button" class="btn btn-sm param-dict-delete ms-auto" style="color: var(--tm-danger);"
+                                        title="Remove slot" aria-label="Remove slot" @onclick="() => _slots.Remove(slot)">×</button>
+                            </div>
+                        }
+                    </div>
+                </ChildContent>
+            </ToolCard>
+        }
+    </Main>
+    <HelpContent>
+        <h3>Workflow</h3>
+        <p>Load an item. Existing podium slots are read automatically. Edit the slots and click <strong>Apply to Item</strong>, then export.</p>
+        <h3>Slots</h3>
+        <p>A <strong>Player</strong> slot positions the driver of the given finishing position, a <strong>Car</strong> slot positions the car. Position and rotation are relative to the item.</p>
+        <p>A complete podium defines player and car positions 1, 2 and 3. A warning is shown when one of them is missing, but any number of slots can be written.</p>
+        <h3>Applying</h3>
+        <p>Applying replaces all existing podium slots of the item with the slots listed here. Applying with no slots removes the podium.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    [SessionStored] private ItemFileService ItemFileService = default!;
+    [SessionStored] private List<PodiumSlotModel> _slots = [];
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
+
+    private const string Source = "Podium Creator";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ItemFileService.FileChanged += OnFileChanged;
+    }
+
+    public void Dispose()
+    {
+        ItemFileService.FileChanged -= OnFileChanged;
+    }
+
+    async void OnFileChanged()
+    {
+        _exportItems = null;
+        ReadSlots();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ReadSlots()
+    {
+        var item = ItemFileService.Item;
+        try
+        {
+            _slots = item is null ? [] : ItemAttachmentAccess.ReadPodium(item);
+        }
+        catch (Exception ex)
+        {
+            _slots = [];
+            ToolMessageService.AddException(ex, "Failed to read podium slots.", Source);
+        }
+    }
+
+    private void ReadFromItem()
+    {
+        ReadSlots();
+        ToolMessageService.AddInfo($"Read {_slots.Count} podium slot(s) from the item.", Source);
+    }
+
+    private static void SetCar(PodiumSlotModel slot, ChangeEventArgs e)
+        => slot.Car = e.Value?.ToString() == "Car";
+
+    private void AddSlot()
+    {
+        _slots.Add(new PodiumSlotModel { PlayerPosition = _slots.Count + 1 });
+    }
+
+    private void AddDefaultSlots()
+    {
+        foreach (var car in new[] { false, true })
+        {
+            for (int position = 1; position <= 3; position++)
+            {
+                if (_slots.Any(s => s.Car == car && s.PlayerPosition == position))
+                    continue;
+                _slots.Add(new PodiumSlotModel { Car = car, PlayerPosition = position });
+            }
+        }
+    }
+
+    private void Apply()
+    {
+        var item = ItemFileService.Item;
+        if (item is null)
+            return;
+
+        try
+        {
+            if (_slots.Any(s => s.PlayerPosition < 1))
+            {
+                ToolMessageService.AddError("Podium positions must be 1 or higher.", Source);
+                return;
+            }
+
+            var result = ItemAttachmentAccess.WritePodium(item, _slots);
+            if (result.IsFailure)
+            {
+                ToolMessageService.AddError("Failed to write podium slots.", result, Source);
+                return;
+            }
+
+            foreach (var warning in ItemAttachmentAccess.ValidatePodium(_slots))
+                ToolMessageService.AddWarning(warning, Source);
+
+            using var stream = new MemoryStream();
+            item.Save(stream, new GBX.NET.GbxWriteSettings { CloseStream = false });
+            var bytes = stream.ToArray();
+            _exportItems = [new ExportableItem { FileName = ItemFileService.FileName, GetBytes = () => bytes }];
+            ToolMessageService.AddSuccess($"Applied {_slots.Count} podium slot(s).", Source);
+        }
+        catch (Exception ex)
+        {
+            ToolMessageService.AddException(ex, "Failed to apply podium slots.", Source);
+        }
+    }
+}

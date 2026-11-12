@@ -1,0 +1,345 @@
+@page "/variant-item-creator"
+@implements IDisposable
+@inherits TM_MappingTools.Pages.SessionStorageComponentBase
+@using GBX.NET
+@using GBX.NET.Engines.GameData
+@using Microsoft.AspNetCore.Components.Forms
+@using TM_MappingTools.Services
+@using TM_MappingTools.Utils
+@using TM_GenericMapping.Items
+@using TM_GenericMapping.Messaging
+@inject TM_MappingTools.Services.ToolMessageService ToolMessageService
+
+<PageTitle>Variant Item Creator</PageTitle>
+
+<ToolPageLayout IconClass="bi-layers" Title="Variant Item Creator"
+                Description="Combine multiple items into one item with variants."
+                HelpDescription="How the variants are combined and what the options mean.">
+    <IORow>
+        <ToolIORow>
+            <InputContent>
+                <ToolCard Title="Source Items" Description="Load every .Item.Gbx that should become a variant.">
+                    <FileLoader FileService="FileService" NoFileMessage="No items loaded."
+                                DropHintMessage="Drop all items that should become variants here"
+                                Accept=".Item.Gbx" AllowMultiple="true" MessageSource="Variant Item Creator" />
+                </ToolCard>
+            </InputContent>
+            <ExportContent>
+                <ToolCard Title="Export" Class="tool-export-panel" BodyClass="tool-export-panel-body"
+                          Description="Export the created variant item.">
+                    <ExportPanel EmptyMessage="Run Execute to generate export content."
+                                 DownloadAllFileName="VariantItem.zip" Items="_exportItems" />
+                </ToolCard>
+            </ExportContent>
+        </ToolIORow>
+    </IORow>
+    <Sidebar>
+        <ToolCard Title="Input Selection" BodyClass="small text-muted">
+            <div>Items loaded: @_entries.Count</div>
+        </ToolCard>
+    </Sidebar>
+    <Main>
+        <ToolCard Title="Actions">
+            <ExecuteAction Execute="ExecuteToolAsync" UseSelectedTracks="false" MessageSource="Variant Item Creator"
+                           ExecutionTargetOverwrite="Create Variant Item"
+                           Tooltip="Combine the loaded items into one variant item." CanExecute="CanExecuteTool" />
+        </ToolCard>
+        <ToolCard Title="Output">
+            <div class="mb-0">
+                <label class="form-label small" for="variantOutputName">Output file name</label>
+                <input id="variantOutputName" class="form-control form-control-sm" @bind="_outputName"
+                       @bind:event="oninput" placeholder="@DefaultOutputName()" />
+            </div>
+        </ToolCard>
+        <ToolCard Title="Variants" Description="Variants are created in the listed order.">
+            <datalist id="variant-tag-keys">
+                @foreach (var key in TagKeys)
+                {
+                    <option value="@key"></option>
+                }
+            </datalist>
+            @foreach (var key in TagKeys)
+            {
+                <datalist id="@ValueListId(key)">
+                    @foreach (var value in ValueOptions(key))
+                    {
+                        <option value="@value"></option>
+                    }
+                </datalist>
+            }
+            @if (_entries.Count == 0)
+            {
+                <div class="text-muted small">Load items to configure their variant options.</div>
+            }
+            else
+            {
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => SetAllCollapsed(true)">Collapse all</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => SetAllCollapsed(false)">Expand all</button>
+                </div>
+            }
+            @for (int i = 0; i < _entries.Count; i++)
+            {
+                var index = i;
+                var entry = _entries[index];
+                <div @key="entry" class="border rounded p-2 mb-2">
+                    <div class="d-flex align-items-center justify-content-between gap-2 @(entry.Collapsed ? null : "mb-2")">
+                        <div class="d-flex align-items-center gap-2 text-break">
+                            <button type="button" class="btn btn-sm p-0 border-0" style="width: 1.25rem;" aria-label="Toggle variant"
+                                    @onclick="() => entry.Collapsed = !entry.Collapsed">@(entry.Collapsed ? "▸" : "▾")</button>
+                            <strong>@(index + 1). @entry.FileName</strong>
+                            @if (entry.Collapsed)
+                            {
+                                <span class="small text-muted">@TagSummary(entry)</span>
+                            }
+                        </div>
+                        <div class="btn-group btn-group-sm flex-shrink-0">
+                            <button type="button" class="btn btn-outline-secondary" title="Duplicate (use this item again)"
+                                    @onclick="() => Duplicate(index)">
+                                <span class="bi bi-copy" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" title="Move up"
+                                    disabled="@(index == 0)" @onclick="() => Move(index, -1)">
+                                <span class="bi bi-arrow-up" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" title="Move down"
+                                    disabled="@(index == _entries.Count - 1)" @onclick="() => Move(index, 1)">
+                                <span class="bi bi-arrow-down" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Remove this duplicate"
+                                    disabled="@(!IsDuplicate(entry))" @onclick="() => _entries.Remove(entry)">
+                                <span class="bi bi-trash" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                    @if (!entry.Collapsed)
+                    {
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="@($"hidden-{index}")"
+                               @bind="entry.HiddenInManualCycle" />
+                        <label class="form-check-label small" for="@($"hidden-{index}")"
+                               title="If enabled, this variant is skipped when cycling variants manually in the editor.">
+                            Hidden in manual cycle
+                        </label>
+                    </div>
+                    <div class="small text-muted mb-1">Tags</div>
+                    @foreach (var tag in entry.Tags.ToList())
+                    {
+                        <div class="d-flex gap-2 mb-1">
+                            <input class="form-control form-control-sm" list="variant-tag-keys" placeholder="Key"
+                                   @bind="tag.Key" />
+                            <input class="form-control form-control-sm" list="@ValueListId(tag.Key)" placeholder="Value"
+                                   @bind="tag.Value" />
+                            <button type="button" class="btn btn-outline-danger btn-sm" title="Remove tag"
+                                    @onclick="() => entry.Tags.Remove(tag)">
+                                <span class="bi bi-x-lg" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    }
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            @onclick="() => entry.Tags.Add(new TagRow())">
+                        <span class="bi bi-plus-lg" aria-hidden="true"></span> Add tag
+                    </button>
+                    }
+                </div>
+            }
+        </ToolCard>
+    </Main>
+    <HelpContent>
+        <h3>What happens when you click Execute</h3>
+        <p>All loaded items are merged into a single item that contains each of them as a variant. Placement,
+            name, icon and description are taken from the first item in the list.</p>
+        <h3>Options per variant</h3>
+        <ul>
+            <li><p><strong>Tags:</strong> Key/value pairs attached to the variant (for example <code>Color</code> =
+                <code>Red</code>). Rows with an empty key are ignored.</p></li>
+            <li><p><strong>Hidden in manual cycle:</strong> The variant is skipped when cycling through variants
+                manually while placing the item.</p></li>
+        </ul>
+        <h3>Practical Workflow</h3>
+        <p>Load all items, reorder them if necessary, adjust the options of every variant and click Execute.</p>
+    </HelpContent>
+</ToolPageLayout>
+
+@code {
+    [SessionStored] private FileService FileService = default!;
+    [SessionStored] private IReadOnlyList<ExportableItem>? _exportItems;
+
+    private static readonly string[] TagKeys = ["Type", "Size", "Placement", "Variant", "MatModifier"];
+
+    private static string ValueListId(string key) => $"variant-values-{key}";
+
+    private static readonly Dictionary<string, string[]> ValueOptionsByKey = new()
+    {
+        ["Type"] = Enum.GetValues<ItemPlacementUtils.PlacementType>().Select(v => ItemPlacementUtils.GetPlacementTypeTag(v).Value).ToArray(),
+        ["Size"] = Enum.GetValues<ItemPlacementUtils.PlacementSize>().Select(v => ItemPlacementUtils.GetPlacementSizeTag(v).Value).ToArray(),
+        ["Placement"] = Enum.GetValues<ItemPlacementUtils.PlacementLayout>().Select(v => ItemPlacementUtils.GetPlacementLayoutTag(v).Value).ToArray(),
+        ["Variant"] = Enum.GetValues<ItemPlacementUtils.PlacementVariant>().Select(v => ItemPlacementUtils.GetPlacementVariantTag(v).Value).ToArray(),
+        ["MatModifier"] = Enum.GetValues<ItemPlacementUtils.PlacementMatModifier>().Select(v => ItemPlacementUtils.GetPlacementMatModifierTag(v).Value).ToArray(),
+    };
+
+    private static string[] ValueOptions(string key)
+        => ValueOptionsByKey.TryGetValue(key, out var values) ? values : [];
+
+    private string _outputName = string.Empty;
+    private readonly List<VariantEntry> _entries = new();
+
+    class TagRow
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+
+    class VariantEntry
+    {
+        public required string FileName { get; init; }
+        public required IBrowserFile File { get; set; }
+        public bool HiddenInManualCycle { get; set; }
+        public bool Collapsed { get; set; }
+        public List<TagRow> Tags { get; } = new();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        FileService.FileChanged += OnFileChanged;
+        SyncEntries();
+    }
+
+    public void Dispose()
+    {
+        FileService.FileChanged -= OnFileChanged;
+    }
+
+    async void OnFileChanged()
+    {
+        SyncEntries();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SyncEntries()
+    {
+        var files = FileService.Files;
+        _entries.RemoveAll(e => !files.Any(f => f.Name == e.FileName));
+        foreach (var file in files)
+        {
+            var existing = _entries.FirstOrDefault(e => e.FileName == file.Name);
+            if (existing == null)
+                _entries.Add(new VariantEntry { FileName = file.Name, File = file });
+            else if (!ReferenceEquals(existing.File, file))
+            {
+                foreach (var e in _entries.Where(e => e.FileName == file.Name))
+                    e.File = file;
+            }
+        }
+    }
+
+    private bool IsDuplicate(VariantEntry entry)
+        => _entries.Count(e => e.FileName == entry.FileName) > 1;
+
+    private void Duplicate(int index)
+    {
+        var source = _entries[index];
+        var copy = new VariantEntry
+        {
+            FileName = source.FileName,
+            File = source.File,
+            HiddenInManualCycle = source.HiddenInManualCycle,
+            Collapsed = source.Collapsed,
+        };
+        copy.Tags.AddRange(source.Tags.Select(t => new TagRow { Key = t.Key, Value = t.Value }));
+        _entries.Insert(index + 1, copy);
+    }
+
+    private void SetAllCollapsed(bool collapsed)
+    {
+        foreach (var entry in _entries)
+            entry.Collapsed = collapsed;
+    }
+
+    private static string TagSummary(VariantEntry entry)
+        => string.Join(", ", entry.Tags.Where(t => !string.IsNullOrWhiteSpace(t.Key)).Select(t => $"{t.Key}={t.Value}"));
+
+    private void Move(int index, int delta)
+    {
+        var target = index + delta;
+        if (target < 0 || target >= _entries.Count)
+            return;
+        (_entries[index], _entries[target]) = (_entries[target], _entries[index]);
+    }
+
+    private bool CanExecuteTool() => _entries.Count > 0;
+
+    private string DefaultOutputName()
+    {
+        if (_entries.Count == 0)
+            return "Variants.Item.Gbx";
+        const string suffix = ".Item.Gbx";
+        var first = _entries[0].FileName;
+        var baseName = first.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) ? first[..^suffix.Length] : first;
+        return baseName + "_Variants" + suffix;
+    }
+
+    private async Task<ExecuteActionResult> ExecuteToolAsync()
+    {
+        var inputs = new List<ItemVariantInput>();
+        var parsedItems = new Dictionary<IBrowserFile, CGameItemModel>();
+        foreach (var entry in _entries)
+        {
+            try
+            {
+                if (!parsedItems.TryGetValue(entry.File, out var item))
+                {
+                    await using var stream = entry.File.OpenReadStream(maxAllowedSize: FileHelper.MaxAllowedFileSize);
+                    using var ms = new MemoryStream();
+                    await stream.CopyToAsync(ms);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    item = Gbx.Parse<CGameItemModel>(ms).Node;
+                    parsedItems[entry.File] = item;
+                }
+
+                var tags = new Dictionary<string, string>();
+                foreach (var tag in entry.Tags)
+                {
+                    if (!string.IsNullOrWhiteSpace(tag.Key))
+                        tags[tag.Key.Trim()] = tag.Value;
+                }
+                inputs.Add(new ItemVariantInput(item, tags, entry.HiddenInManualCycle));
+            }
+            catch (Exception ex)
+            {
+                return new ExecuteActionResult(ExecuteActionResultStatus.Failure,
+                    $"Failed to load '{entry.FileName}'.", ex.Message);
+            }
+        }
+
+        var builder = new VariantItemBuilder();
+        var result = builder.CreateVariantItem(inputs.ToArray());
+        if (result.IsFailure)
+        {
+            ToolMessageService.AddError("Failed to create variant item", result, "Variant Item Creator");
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "An error occurred while creating the variant item.");
+        }
+
+        byte[] bytes;
+        try
+        {
+            using var output = new MemoryStream();
+            result.Value.Save(output, new GbxWriteSettings { CloseStream = false });
+            bytes = output.ToArray();
+        }
+        catch (Exception ex)
+        {
+            return new ExecuteActionResult(ExecuteActionResultStatus.Failure, "Failed to save the variant item.", ex.Message);
+        }
+
+        var name = string.IsNullOrWhiteSpace(_outputName) ? DefaultOutputName() : _outputName.Trim();
+        if (!name.EndsWith(".Item.Gbx", StringComparison.OrdinalIgnoreCase))
+            name += ".Item.Gbx";
+
+        _exportItems = new[] { new ExportableItem { FileName = name, GetBytes = () => bytes } };
+        StateHasChanged();
+
+        return new ExecuteActionResult(ExecuteActionResultStatus.Success, "Successfully created variant item.");
+    }
+}
