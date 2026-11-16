@@ -21,20 +21,20 @@
     <script type="importmap">{
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.dww6hpw24s.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.fwwjbaqxuj.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.v2rwe8u38b.js"
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.v2rwe8u38b.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.sdivzol5ke.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.dww6hpw24s.js": "sha256-DSFFiuwkUqMXEVLADc/IZOLfZur9PCGcxgspyijn4Wo=",
-    "./_framework/dotnet.js": "sha256-DSFFiuwkUqMXEVLADc/IZOLfZur9PCGcxgspyijn4Wo=",
+    "./_framework/dotnet.js": "sha256-MJ4J5WdehMnuvVtJcZN3GTVekx0Otf2JVNHd6tiaRBQ=",
     "./_framework/dotnet.native.fwwjbaqxuj.js": "sha256-T2AauFkPTmNOtUiC/wlxeY0pZoA4Xt6fcsLty6DXiPI=",
     "./_framework/dotnet.native.js": "sha256-T2AauFkPTmNOtUiC/wlxeY0pZoA4Xt6fcsLty6DXiPI=",
     "./_framework/dotnet.runtime.js": "sha256-6SBqDbLLy460Bxd7wMZoiO97hZfLTuF+HRhWT3elS7U=",
-    "./_framework/dotnet.runtime.v2rwe8u38b.js": "sha256-6SBqDbLLy460Bxd7wMZoiO97hZfLTuF+HRhWT3elS7U="
+    "./_framework/dotnet.runtime.v2rwe8u38b.js": "sha256-6SBqDbLLy460Bxd7wMZoiO97hZfLTuF+HRhWT3elS7U=",
+    "./_framework/dotnet.sdivzol5ke.js": "sha256-MJ4J5WdehMnuvVtJcZN3GTVekx0Otf2JVNHd6tiaRBQ="
   }
 }</script>
     <script>
@@ -47,7 +47,7 @@
         })()
     </script>
 
-    <link href="_framework/dotnet.dww6hpw24s.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-DSFFiuwkUqMXEVLADc/IZOLfZur9PCGcxgspyijn4Wo="/>
+    <link href="_framework/dotnet.sdivzol5ke.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-MJ4J5WdehMnuvVtJcZN3GTVekx0Otf2JVNHd6tiaRBQ="/>
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" href="css/app.css"/>
@@ -75,7 +75,8 @@
         <div class="nav-item px-3 nav-item-theme-toggle" style="margin-top: 0.3rem;" b-k974kyz3h5><button class="nav-link nav-footer-link theme-toggle-btn" title="Switch to Light Mode" b-k974kyz3h5><i class="nav-menu-icon bi bi-sun-fill" aria-hidden="true" b-k974kyz3h5></i>
                 Light Mode</button></div></div></div></div>
 
-    <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
+    <main b-yrpmrvqeod><div class="top-row px-4" b-yrpmrvqeod><a href="https://ko-fi.com/achioto" target="_blank" b-yrpmrvqeod><i class="bi bi-cup-hot-fill" aria-hidden="true" b-yrpmrvqeod></i> Support Me</a>
+            <a href="https://github.com/AchimBunke/TM_MappingTools" target="_blank" b-yrpmrvqeod>Mapping Tools GitHub</a>
             <a href="https://github.com/AchimBunke/TM_CSharpMapping" target="_blank" b-yrpmrvqeod>CSharp Mapping GitHub</a>
             <a href="https://trackmania.exchange/usershow/131189" target="_blank" b-yrpmrvqeod>TMX</a></div>
 
@@ -83,10 +84,10 @@
 
 <div class="tool-page"><div class="tool-page-header"><div class="tool-page-header-main"><span class="bi-layers tool-page-header-icon" aria-hidden="true"></span>
         <div class="tool-page-header-text"><h1 class="tool-page-title">Variant Item Creator</h1><p class="tool-page-desc">Combine multiple items into one item with variants.</p></div></div><div class="tool-page-header-actions"><button type="button" class="btn btn-outline-secondary btn-sm tool-toggle-btn" aria-controls="variant-item-creator-help"><span class="bi bi-info-circle" aria-hidden="true"></span>
-                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Source Items</h2><p class="tool-panel-desc">Load every .Item.Gbx that should become a variant.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-b95d05fd3d7443d58bf8bb9521e545b9" class="visually-hidden" accept=".Item.Gbx" multiple type="file" />
+                    Show Help</button></div></div><div class="tool-io-row tool-io-row--no-history"><div class="tool-io-inputs"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Source Items</h2><p class="tool-panel-desc">Load every .Item.Gbx that should become a variant.</p></div></div><div class="tool-panel-body "><div class="file-drop-area" __internal_preventDefault_ondrop __internal_preventDefault_ondragover b-6u4mseu3x4><input id="filePicker-cfb9d238c16747cf984c0b7748eb79fd" class="visually-hidden" accept=".Item.Gbx" multiple type="file" />
 
     <div class="file-drop-content" b-6u4mseu3x4><div class="file-name text-muted" b-6u4mseu3x4>No items loaded.</div><div class="file-drop-hint" b-6u4mseu3x4>Drop all items that should become variants here or
-                <label for="filePicker-b95d05fd3d7443d58bf8bb9521e545b9" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
+                <label for="filePicker-cfb9d238c16747cf984c0b7748eb79fd" class="file-open-link" b-6u4mseu3x4>choose files from disk</label>.
             </div></div></div></div></div></div><div class="tool-io-export"><div class="tool-panel tool-export-panel "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Export</h2><p class="tool-panel-desc">Export the created variant item.</p></div></div><div class="tool-panel-body tool-export-panel-body"><div class="export-panel-content" b-g04346ebfa><span class="text-muted small" b-g04346ebfa>Run Execute to generate export content.</span></div></div></div></div></div><div class="tool-page-body"><div class="tool-page-layout&#xA;            &#xA;            "><div class="tool-page-sidebar"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Input Selection</h2></div></div><div class="tool-panel-body small text-muted"><div>Items loaded: 0</div></div></div></div><div class="tool-page-main"><div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Actions</h2></div></div><div class="tool-panel-body "><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3" b-0uij2y1ggg><span class="text-muted small" b-0uij2y1ggg><span b-0uij2y1ggg><strong b-0uij2y1ggg>Create Variant Item</strong></span></span>
     <button type="button" class="btn btn-primary " disabled title="Combine the loaded items into one variant item." b-0uij2y1ggg><span b-0uij2y1ggg>Execute</span></button></div></div></div>
         <div class="tool-panel  "><div class="tool-panel-header"><div><h2 class="tool-panel-title">Output</h2></div></div><div class="tool-panel-body "><div class="mb-0"><label class="form-label small" for="variantOutputName">Output file name</label>
